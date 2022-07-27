@@ -1,0 +1,125 @@
+version 1.0
+
+workflow TransferToGdc {
+
+  input {
+    File bam_file
+    String gdc_bam_file_name
+    String program
+    String project
+    String sar_id
+    String vault_token_path
+    String gdc_token_vault_path
+    Boolean dry_run = false
+  }
+
+  call RetrieveGdcManifest {
+    input:
+      program = program,
+      project = project,
+      sar_id = sar_id,
+      vault_token_path = vault_token_path,
+      gdc_token_vault_path = gdc_token_vault_path,
+      dry_run = dry_run
+  }
+
+  call TransferBamToGdc {
+    input:
+      bam_file = bam_file,
+      gdc_bam_file_name = gdc_bam_file_name,
+      manifest = RetrieveGdcManifest.manifest,
+      vault_token_path = vault_token_path,
+      gdc_token_vault_path = gdc_token_vault_path,
+      dry_run = dry_run
+  }
+
+  output {
+    File gdc_transfer_log = TransferBamToGdc.gdc_transfer_log
+  }
+}
+
+task RetrieveGdcManifest {
+
+  input {
+    String program
+    String project
+    String sar_id
+    String vault_token_path
+    String gdc_token_vault_path
+    Boolean dry_run
+  }
+
+  command {
+    set -e
+    export VAULT_ADDR=https://clotho.broadinstitute.org:8200
+    export VAULT_TOKEN=$(gsutil cat ~{vault_token_path})
+
+    gdc_token=$(vault read -field=token ~{gdc_token_vault_path})
+
+    if ~{dry_run}; then
+      echo "This is a fake manifest for a dry run" > manifest.yml
+    else
+      curl --header "X-Auth-Token: $gdc_token" \
+        https://api.gdc.cancer.gov/v0/submission/~{program}/~{project}/manifest?ids=~{sar_id} \
+        > manifest.yml
+    fi
+  }
+
+  runtime {
+    memory: "3.75 GB"
+    cpu: 1
+    disks: "local-disk " + 20 + " HDD"
+  }
+
+  output {
+      File manifest = "manifest.yml"
+  }
+}
+
+
+task TransferBamToGdc {
+
+  input {
+    File bam_file
+    String gdc_bam_file_name
+    File manifest
+    String vault_token_path
+    String gdc_token_vault_path
+    Boolean dry_run
+  }
+
+  Int disk_size = ceil(size(bam_file, "GiB") * 1.5)
+
+  command {
+    set -e
+
+    export VAULT_ADDR=https://clotho.broadinstitute.org:8200
+    export VAULT_TOKEN=$(gsutil cat ~{vault_token_path})
+
+    vault read -field=token ~{gdc_token_vault_path} > gdc_token
+    chmod 600 gdc_token
+
+    if ~{dry_run}; then
+      echo "This was a dry run of uploading to GDC" > gdc_transfer.log
+      echo "BAM_FILE=~{bam_file}" >> gdc_transfer.log
+      echo "MANIFEST=~{manifest}" >> gdc_transfer.log
+      echo "TOKEN_VAULT_PATH=~{gdc_token_vault_path}" >> gdc_transfer.log
+    else
+      mv ~{bam_file} ./~{gdc_bam_file_name}
+      gdc-client upload \
+          -t gdc_token \
+          -m ~{manifest} \
+          --log-file gdc_transfer.log
+    fi
+  }
+
+  runtime {
+    memory: "7.5 GB"
+    cpu: 2
+    disks: "local-disk " + disk_size + " HDD"
+  }
+
+  output {
+    File gdc_transfer_log = "gdc_transfer.log"
+  }
+}
