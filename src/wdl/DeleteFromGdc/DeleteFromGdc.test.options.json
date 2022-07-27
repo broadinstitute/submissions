@@ -1,0 +1,11 @@
+{
+  "backend": "PAPIv2",
+  "google_project": "broad-exomes-dev1",
+  "jes_gcs_root": "gs://broad-gotc-dev-cromwell-execution",
+  "read_from_cache": false,
+  "write_to_cache": false,
+  "default_runtime_attributes": {
+    "zones": "us-east4-c us-west1-c us-central1-a us-east1-c us-central1-b us-central1-c us-west1-b us-east1-d us-central1-f us-east4-a us-east1-b us-east4-b us-west1-a",
+    "docker": "us.gcr.io/broad-gotc-prod/eddy:1.0.2-1587136282"
+  }
+}
