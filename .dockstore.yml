@@ -1,0 +1,4 @@
+version: 1.0
+workflows:
+  - subclass: WDL
+    primaryDescriptorPath: /submissions/src/wdl/TransferToGdc/TransferToGdc.wdl
