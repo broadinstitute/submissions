@@ -8,7 +8,6 @@ workflow TransferToGdc {
     String program
     String project
     String sar_id
-    String vault_token_path
     String gdc_token_vault_path
     Boolean dry_run = false
   }
@@ -18,7 +17,6 @@ workflow TransferToGdc {
       program = program,
       project = project,
       sar_id = sar_id,
-      vault_token_path = vault_token_path,
       gdc_token_vault_path = gdc_token_vault_path,
       dry_run = dry_run
   }
@@ -28,7 +26,6 @@ workflow TransferToGdc {
       bam_file = bam_file,
       gdc_bam_file_name = gdc_bam_file_name,
       manifest = RetrieveGdcManifest.manifest,
-      vault_token_path = vault_token_path,
       gdc_token_vault_path = gdc_token_vault_path,
       dry_run = dry_run
   }
@@ -44,15 +41,12 @@ task RetrieveGdcManifest {
     String program
     String project
     String sar_id
-    String vault_token_path
     String gdc_token_vault_path
     Boolean dry_run
   }
 
   command {
     set -e
-    export VAULT_ADDR=https://clotho.broadinstitute.org:8200
-    export VAULT_TOKEN=$(gsutil cat ~{vault_token_path})
 
     gdc_token=$(vault read -field=token ~{gdc_token_vault_path})
 
@@ -83,7 +77,6 @@ task TransferBamToGdc {
     File bam_file
     String gdc_bam_file_name
     File manifest
-    String vault_token_path
     String gdc_token_vault_path
     Boolean dry_run
   }
@@ -92,9 +85,6 @@ task TransferBamToGdc {
 
   command {
     set -e
-
-    export VAULT_ADDR=https://clotho.broadinstitute.org:8200
-    export VAULT_TOKEN=$(gsutil cat ~{vault_token_path})
 
     vault read -field=token ~{gdc_token_vault_path} > gdc_token
     chmod 600 gdc_token
