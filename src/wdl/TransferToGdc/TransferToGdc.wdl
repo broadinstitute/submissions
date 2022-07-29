@@ -48,8 +48,6 @@ task RetrieveGdcManifest {
   command {
     set -e
 
-    # gdc_token=$(vault read -field=token ~{gdc_token_vault_path})
-
     if ~{dry_run}; then
       echo "This is a fake manifest for a dry run" > manifest.yml
     else
@@ -86,17 +84,10 @@ task TransferBamToGdc {
   command {
     set -e
 
-    # export VAULT_ADDR=https://clotho.broadinstitute.org:8200
-    # export VAULT_TOKEN=$(gsutil cat ~{vault_token_path})
-
-    # vault read -field=token ~{gdc_token_vault_path} > gdc_token
-    # chmod 600 gdc_token
-
     if ~{dry_run}; then
       echo "This was a dry run of uploading to GDC" > gdc_transfer.log
       echo "BAM_FILE=~{bam_file}" >> gdc_transfer.log
       echo "MANIFEST=~{manifest}" >> gdc_transfer.log
-      # echo "TOKEN_VAULT_PATH=~{gdc_token_vault_path}" >> gdc_transfer.log
     else
       mv ~{bam_file} ./~{gdc_bam_file_name}
       gdc-client upload \
