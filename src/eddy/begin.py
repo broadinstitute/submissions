@@ -1,5 +1,5 @@
 import sys
-from rich import print, print_json
+# from rich import print, print_json
 from .clio import callClio
 
 def access(input):
