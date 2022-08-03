@@ -1,0 +1,17 @@
+{
+    "file_name": "NA12878.WholeGenome-TEST.G96830.bam",
+    "submitter_id": "NA12878.WholeGenome-TEST.G96830",
+    "data_category": "Sequencing Reads",
+    "type": "submitted_aligned_reads",
+    "file_size": 123456,
+    "data_type": "Aligned Reads",
+    "experimental_strategy": "WGS",
+    "data_format": "BAM",
+    "project_id": "CMDC-HCMI",
+    "md5sum": "abc123",
+    "read_groups": [
+        {
+            "submitter_id": "HJYN2CCXXTEST.1.G96830.NA12878"
+        }
+    ]
+}
