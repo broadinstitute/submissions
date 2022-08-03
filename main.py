@@ -9,11 +9,9 @@ def main(argv):
     longOptions = [
         'program=',
         'project=',
-        'data_format=',
-        'submitter_id=',
         'step='
     ]
-    opts, args = getopt.getopt(argv, 'gjdics', longOptions)
+    opts, args = getopt.getopt(argv, 'gjs', longOptions)
 
     for opt, arg in opts:
         inputData[str(opt).replace("-", "")] = arg
@@ -24,7 +22,6 @@ def main(argv):
     else:
         print("program", inputData['program'])
         print("project", inputData['project'])
-        print("submitter_id", inputData['submitter_id'])
         print("Did not enter valid step")
         submit(inputData)
 
