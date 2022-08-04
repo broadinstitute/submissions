@@ -1,32 +1,45 @@
 import requests
 import json
-import edn_format
 
 # Need to figure out a better way to handle the env variables
 endpoint = 'https://api.gdc.cancer.gov/v0/submission'
 
+# Currently this function uses a hardcoded file, however we can expect that this will be passed in
 def submit(input):
     file = open('src/resources/metadata.json')
-    fileToken = open('tokens/gdc-token.txt')
     data = json.load(file)
-    token = fileToken.read()
-    url = f"{endpoint}/{input['program']}/{input['project']}/_dry_run"
+    url = f"{endpoint}/{input['program']}/{input['project']}"
 
     print("Submit METADATA to GDC dry_run endpoint for PROGRAM PROJECT.")
-
-    print("url", url)
     try:
-        response = requests.post(url,
+        dryRunResponse = requests.post(f'{url}/_dry_run',
             data = json.dumps(data),
-            headers = {
-                "Content-Type": "application/json",
-                "X-Auth-Token": token
-            }
+            headers = getHeaders()
+        )
+        print("dryRunResponse", json.loads(dryRunResponse.text))
+        transaction_id = json.loads(dryRunResponse.text).transaction_id
+
+        if dryRunResponse.success == true:
+            print("Successfully submitted metadata for transaction", transaction_id)
+            operation = "commit"
+        else:
+            print("Could not submit metadata for transaction", transaction_id)
+            operation = "close"
+
+        commitResponse = requests.post(f'{url}/transactions/{transaction_id}/{operation}',
+            headers = getHeaders()
         )
     except Exception as e:
         print("Error", e)
 
-    print("response", response.text)
+def getHeaders():
+    fileToken = open('tokens/gdc-token.txt')
+    token = fileToken.read()
+
+    return {
+        "Content-Type": "application/json",
+        "X-Auth-Token": token
+    }
 
 # Run this function if you would like to see all entity schemas in GDC
 def getGdcShemas():

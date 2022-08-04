@@ -3,29 +3,40 @@ import getopt
 import argparse
 from src import access
 from src import submit
+import time
 
 def main(argv):
+    inputData = getCommandLineInput(argv)
+    submit(inputData)
+
+    # now lets sleep() for a little to ensure that gdp has finished  
+    time.sleep(10)
+
+    # now lets grab the submitted-aligned-reads-id
+    submitterId = f"{inputData['alias']}.{inputData['type']}.{inputData['agg_project']}"
+    sarId = getSubmittedAlignedReadsId(inputData['program'], inputData['project'], submitterId)
+    print("sarId", sarId)
+
+def getCommandLineInput(argv):
     inputData = {}
     longOptions = [
         'program=',
         'project=',
-        'step='
+        'agg_project=',
+        'alias=',
+        'type='
     ]
-    opts, args = getopt.getopt(argv, 'gjs', longOptions)
+    opts, args = getopt.getopt(argv, '', longOptions)
 
     for opt, arg in opts:
         inputData[str(opt).replace("-", "")] = arg
 
-    if inputData['step'] == "compileMetadata":
-        print("Need to compile Metadata")
-        access(inputData)
-    else:
-        print("program", inputData['program'])
-        print("project", inputData['project'])
-        print("Did not enter valid step")
-        submit(inputData)
+    return inputData
 
-    print(inputData)
+def getSubmittedAlignedReadsId(program, project, submitterId):
+    query = """query {
+
+    }"""
 
 if __name__ == "__main__":
    main(sys.argv[1:])
