@@ -1,21 +1,22 @@
 import sys
 import getopt
 import argparse
+import json
 from src import access
-from src import submit, getHeaders
+from src import submit, getSubmittedAlignedReadsId
 import time
 
 def main(argv):
     inputData = getCommandLineInput(argv)
     submit(inputData)
 
-    # now lets sleep() for a little to ensure that gdp has finished  
+    # now lets sleep() for a little to ensure that gdc has finished  
     time.sleep(10)
 
     # now lets grab the submitted-aligned-reads-id
-    submitterId = f"{inputData['alias']}.{inputData['type']}.{inputData['agg_project']}"
-    sarId = getSubmittedAlignedReadsId(inputData['program'], inputData['project'], submitterId)
-    print("sarId", sarId)
+    submitterId = f"{inputData['alias']}.{inputData['data_type']}.{inputData['agg_project']}"
+    sarId = getSubmittedAlignedReadsId(inputData['program'], inputData['project'], submitterId, inputData['token'])
+    print(sarId)
 
 def getCommandLineInput(argv):
     inputData = {}
@@ -24,7 +25,9 @@ def getCommandLineInput(argv):
         'project=',
         'agg_project=',
         'alias=',
-        'sequence_type='
+        'sequence_type=',
+        'data_type=',
+        'token='
     ]
     opts, args = getopt.getopt(argv, '', longOptions)
 
@@ -32,23 +35,6 @@ def getCommandLineInput(argv):
         inputData[str(opt).replace("-", "")] = arg
 
     return inputData
-
-def getSubmittedAlignedReadsId(program, project, submitterId):
-    query = """query submitted_aligned_reads ($project_id: String, $submitter_id: Int) { id }"""
-    variables = {
-        'project_id': f'{program}-{project}',
-        'submitter_id': submitterId
-    }
-
-    return requests.post(
-        url,
-        json = {
-            'query': query,
-            'variables': variables
-        },
-        headers = getHeaders()
-    )
-
 
 if __name__ == "__main__":
    main(sys.argv[1:])
