@@ -25,7 +25,7 @@ workflow metadataToUUID {
     }
 
     output {
-        File UUID = 
+        String UUID = submitMetadataToGDC.UUID
     }
 }
 
@@ -52,6 +52,6 @@ task submitMetadataToGDC {
     }
 
     output {
-        String UUID = st
+        String UUID = stdout()
     }
 }
