@@ -2,7 +2,7 @@ import sys
 import getopt
 import argparse
 from src import access
-from src import submit
+from src import submit, getHeaders
 import time
 
 def main(argv):
@@ -24,7 +24,7 @@ def getCommandLineInput(argv):
         'project=',
         'agg_project=',
         'alias=',
-        'type='
+        'sequence_type='
     ]
     opts, args = getopt.getopt(argv, '', longOptions)
 
@@ -34,9 +34,21 @@ def getCommandLineInput(argv):
     return inputData
 
 def getSubmittedAlignedReadsId(program, project, submitterId):
-    query = """query {
+    query = """query submitted_aligned_reads ($project_id: String, $submitter_id: Int) { id }"""
+    variables = {
+        'project_id': f'{program}-{project}',
+        'submitter_id': submitterId
+    }
 
-    }"""
+    return requests.post(
+        url,
+        json = {
+            'query': query,
+            'variables': variables
+        },
+        headers = getHeaders()
+    )
+
 
 if __name__ == "__main__":
    main(sys.argv[1:])

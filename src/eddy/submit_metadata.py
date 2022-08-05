@@ -16,10 +16,13 @@ def submit(input):
             data = json.dumps(data),
             headers = getHeaders()
         )
-        print("dryRunResponse", json.loads(dryRunResponse.text))
-        transaction_id = json.loads(dryRunResponse.text).transaction_id
+        dryRunResponse = json.loads(dryRunResponse.text)
+        transaction_id = dryRunResponse['transaction_id']
 
-        if dryRunResponse.success == true:
+        print("dryrun", dryRunResponse)
+        print("id", transaction_id)
+        print("success", dryRunResponse['success'])
+        if dryRunResponse['success'] == true:
             print("Successfully submitted metadata for transaction", transaction_id)
             operation = "commit"
         else:
