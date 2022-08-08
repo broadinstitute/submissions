@@ -137,7 +137,8 @@ task submitMetadataToGDC {
                         --project ~{project} \
                         --agg_project ~{aggregation_project} \
                         --alias ~{alias} \
-                        --data_type ~{data_type}
+                        --data_type ~{data_type} \
+                        --token ~{gdcToken}
     }
 
     runtime {
