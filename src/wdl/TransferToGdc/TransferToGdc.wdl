@@ -7,16 +7,29 @@ workflow TransferToGdc {
     String gdc_bam_file_name
     String program
     String project
+    String aggregation_project
+    String alias
+    String data_type
     String sar_id
     String gdc_token
     Boolean dry_run = false
+  }
+
+  call submitMetadataToGDC {
+    input:
+      program = program,
+      project = project,
+      aggregation_project = aggregation_project,
+      alias = alias
+      data_type = data_type
+      gdc_token = gdc_token,
   }
 
   call RetrieveGdcManifest {
     input:
       program = program,
       project = project,
-      sar_id = sar_id,
+      sar_id = submitMetadataToGDC.UUID,
       gdc_token = gdc_token,
       dry_run = dry_run
   }
@@ -125,7 +138,7 @@ task submitMetadataToGDC {
                         --project ~{project} \
                         --agg_project ~{aggregation_project} \
                         --alias ~{alias} \
-                        --sequence_type ~{sequence_type}
+                        --data_type ~{data_type}
     }
 
     runtime {
