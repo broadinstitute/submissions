@@ -8,7 +8,7 @@ workflow TransferToGdc {
     String program
     String project
     String aggregation_project
-    String alias
+    String alias_value
     String data_type
     String gdc_token
     Boolean dry_run = false
@@ -19,7 +19,7 @@ workflow TransferToGdc {
       program = program,
       project = project,
       aggregation_project = aggregation_project,
-      alias = alias,
+      alias_value = alias_value,
       data_type = data_type,
       gdc_token = gdc_token
   }
@@ -127,7 +127,7 @@ task submitMetadataToGDC {
         String program
         String project
         String aggregation_project
-        String alias
+        String alias_value
         String sequence_type
         File gdcToken
     }
@@ -136,7 +136,7 @@ task submitMetadataToGDC {
         python3 main.py --program ~{program} \
                         --project ~{project} \
                         --agg_project ~{aggregation_project} \
-                        --alias ~{alias} \
+                        --alias_value ~{alias_value} \
                         --data_type ~{data_type} \
                         --token ~{gdcToken}
     }
