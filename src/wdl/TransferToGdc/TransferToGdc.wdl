@@ -142,7 +142,7 @@ task submitMetadataToGDC {
     }
 
     runtime {
-        docker: "schaluvadi/horsefish/submissionV1"
+        docker: "schaluvadi/horsefish:submissionV1"
     }
 
     output {
