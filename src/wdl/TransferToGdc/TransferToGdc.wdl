@@ -10,7 +10,6 @@ workflow TransferToGdc {
     String aggregation_project
     String alias
     String data_type
-    String sar_id
     String gdc_token
     Boolean dry_run = false
   }
@@ -20,9 +19,9 @@ workflow TransferToGdc {
       program = program,
       project = project,
       aggregation_project = aggregation_project,
-      alias = alias
-      data_type = data_type
-      gdc_token = gdc_token,
+      alias = alias,
+      data_type = data_type,
+      gdc_token = gdc_token
   }
 
   call RetrieveGdcManifest {
