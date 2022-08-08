@@ -2,4 +2,4 @@ version: 1.2
 workflows:
   - name: transfer
     subclass: WDL
-    primaryDescriptorPath: /metadataToUUID.wdl
+    primaryDescriptorPath: /src/wdl/TransferToGdc/TransferToGdc.wdl
