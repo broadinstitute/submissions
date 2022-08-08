@@ -128,7 +128,7 @@ task submitMetadataToGDC {
         String project
         String aggregation_project
         String alias_value
-        String sequence_type
+        String data_type
         File gdcToken
     }
 
