@@ -129,7 +129,7 @@ task submitMetadataToGDC {
         String aggregation_project
         String alias_value
         String data_type
-        File gdcToken
+        String gdcToken
     }
 
     command {
