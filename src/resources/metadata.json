@@ -1,6 +1,6 @@
 {
-    "file_name": "NA12878.WholeGenome-TEST.G96830.bam",
-    "submitter_id": "NA12878.WholeGenome-TEST.G96830",
+    "file_name": "Test_sample_1.bam",
+    "submitter_id": "Test_sample_1",
     "data_category": "Sequencing Reads",
     "type": "submitted_aligned_reads",
     "file_size": 123456,
@@ -11,7 +11,7 @@
     "md5sum": "3b85ec9ab2984b91070128be6aae25eb",
     "read_groups": [
         {
-            "submitter_id": "Test_aliquot_1"
+            "submitter_id": "Test_read_group_1"
         }
     ]
 }
