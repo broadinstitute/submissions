@@ -1,0 +1,90 @@
+[
+    {
+        "type": "submitted_aligned_reads",
+        "md5sum": "58a6879a7b8f7c0c427ab080d034f89f",
+        "data_type": "Aligned Reads",
+        "file_name": "EOMI-B41W-NB1-A-1-0-D-A82T-36.WholeGenome.RP-2359.bam",
+        "file_size": 70428594170,
+        "project_id": "EOMI-BREAST",
+        "data_format": "BAM",
+        "read_groups": [
+            {
+                "submitter_id": "HHNJMDSXY.3.RP-2359.EOMI-B41W-NB1-A-1-0-D-A82T-36"
+            },
+            {
+                "submitter_id": "HHN73DSXY.1.RP-2359.EOMI-B41W-NB1-A-1-0-D-A82T-36"
+            }
+        ],
+        "submitter_id": "EOMI-B41W-NB1-A-1-0-D-A82T-36.WholeGenome.RP-2359",
+        "data_category": "Sequencing Reads",
+        "experimental_strategy": "WGS"
+    },
+    {
+        "type": "read_group",
+        "aliquots": {
+            "submitter_id": "EOMI-B41W-NB1-A-1-0-D-A82T-36"
+        },
+        "platform": "Illumina",
+        "project_id": "EOMI-BREAST",
+        "lane_number": 3,
+        "read_length": 151,
+        "library_name": "0380988230_Illumina_P5-Nalok_P7-Difew",
+        "submitter_id": "HHNJMDSXY.3.RP-2359.EOMI-B41W-NB1-A-1-0-D-A82T-36",
+        "is_paired_end": true,
+        "library_strand": "Not Applicable",
+        "experiment_name": "EOMI-B41W-NB1-A-1-0-D-A82T-36.WGS.RP-2359",
+        "read_group_name": "HHNJM.3",
+        "sequencing_date": "2021-01-05T11:44:46",
+        "instrument_model": "Other",
+        "library_strategy": "WGS",
+        "flow_cell_barcode": "HHNJMDSXY",
+        "library_selection": "Random",
+        "multiplex_barcode": "GAACTTCG+AGGATCTA",
+        "sequencing_center": "BI",
+        "includes_spike_ins": false,
+        "target_capture_kit": "Not Applicable",
+        "fragment_mean_length": 488.301637,
+        "fragment_maximum_length": 245259690,
+        "fragment_minimum_length": 2,
+        "to_trim_adapter_sequence": true,
+        "library_preparation_kit_name": "KAPA HyperPrep Kit (no amp)",
+        "library_preparation_kit_vendor": "Kapa BioSystems",
+        "library_preparation_kit_version": "v1.1",
+        "fragment_standard_deviation_length": 196.765109,
+        "library_preparation_kit_catalog_number": "KK8505"
+    },
+    {
+        "type": "read_group",
+        "aliquots": {
+            "submitter_id": "EOMI-B41W-NB1-A-1-0-D-A82T-36"
+        },
+        "platform": "Illumina",
+        "project_id": "EOMI-BREAST",
+        "lane_number": 1,
+        "read_length": 151,
+        "library_name": "0380988230_Illumina_P5-Nalok_P7-Difew",
+        "submitter_id": "HHN73DSXY.1.RP-2359.EOMI-B41W-NB1-A-1-0-D-A82T-36",
+        "is_paired_end": true,
+        "library_strand": "Not Applicable",
+        "experiment_name": "EOMI-B41W-NB1-A-1-0-D-A82T-36.WGS.RP-2359",
+        "read_group_name": "HHN73.1",
+        "sequencing_date": "2021-01-05T11:44:46",
+        "instrument_model": "Other",
+        "library_strategy": "WGS",
+        "flow_cell_barcode": "HHN73DSXY",
+        "library_selection": "Random",
+        "multiplex_barcode": "GAACTTCG+AGGATCTA",
+        "sequencing_center": "BI",
+        "includes_spike_ins": false,
+        "target_capture_kit": "Not Applicable",
+        "fragment_mean_length": 488.301637,
+        "fragment_maximum_length": 245259690,
+        "fragment_minimum_length": 2,
+        "to_trim_adapter_sequence": true,
+        "library_preparation_kit_name": "KAPA HyperPrep Kit (no amp)",
+        "library_preparation_kit_vendor": "Kapa BioSystems",
+        "library_preparation_kit_version": "v1.1",
+        "fragment_standard_deviation_length": 196.765109,
+        "library_preparation_kit_catalog_number": "KK8505"
+    }
+]

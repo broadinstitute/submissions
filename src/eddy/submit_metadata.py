@@ -12,18 +12,23 @@ def submit(input):
 
     # print("Submit METADATA to GDC dry_run endpoint for PROGRAM PROJECT.")
     try:
+        # getGdcShemas()
+        print("before call url", f'{url}/_dry_run')
         dryRunResponse = requests.post(f'{url}/_dry_run',
             data = json.dumps(data),
             headers = getHeaders(input)
         )
+        print(dryRunResponse.text)
         dryRunResponse = json.loads(dryRunResponse.text)
+
+        print("response", dryRunResponse)
         transaction_id = dryRunResponse['transaction_id']
 
         if dryRunResponse['success'] == true:
-            # print("Successfully submitted metadata for transaction", transaction_id)
+            print("Successfully submitted metadata for transaction", transaction_id)
             operation = "commit"
         else:
-            # print("Could not submit metadata for transaction", transaction_id)
+            print("Could not submit metadata for transaction", transaction_id)
             operation = "close"
 
         commitResponse = requests.post(f'{url}/transactions/{transaction_id}/{operation}',
@@ -32,15 +37,23 @@ def submit(input):
     except Exception as e:
         print("Error", e)
 
-def getSubmittedAlignedReadsId(program, project, submitterId, token):
-    query = """query submitted_aligned_reads ($project_id: String, $submitter_id: Int) { id }"""
+def getEntity(queryType, program, project, submitterId, token):
+    query = ""
+
+    if queryType == "sar":
+        query = """query submitted_aligned_reads ($project_id: String, $submitter_id: Int) { id }"""
+    else:
+        query = """query aliquot(project_id: String, submitter_id: String) { id }"""
+
     variables = {
         'project_id': f'{program}-{project}',
         'submitter_id': submitterId
     }
+    print(query)
+    print("variables", variables)
 
     return requests.post(
-        endpoint,
+        f"{endpoint}/graphql",
         json = {
             'query': query,
             'variables': variables
@@ -62,7 +75,8 @@ def getHeaders(input):
 
 # Run this function if you would like to see all entity schemas in GDC
 def getGdcShemas():
-    response = requests.get(f'{endpoint}/_dictionary/_all', params = {})
-    f = open('src/resources/reads_output.json', 'w')
+    response = requests.get(f'{endpoint}/template/sample?format=json')
+    print("sample response", response.text)
+    f = open('src/resources/sample_template.json', 'w')
     f.write(response.text)
     f.close()
