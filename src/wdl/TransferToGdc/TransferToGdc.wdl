@@ -14,6 +14,14 @@ workflow TransferToGdc {
     Boolean dry_run = false
   }
 
+  call verifyGDCRegistration {
+    input:
+      program = program,
+      project = project,
+      alias_value = alias_value,
+      gdc_token = gdc_token
+  }
+
   call submitMetadataToGDC {
     input:
       program = program,
@@ -145,7 +153,7 @@ task submitMetadataToGDC {
     }
 
     output {
-        String UUID = read_lines("UUID.txt)
+        String UUID = read_lines("UUID.txt")
     }
 }
 
@@ -154,7 +162,6 @@ task verifyGDCRegistration {
         String program
         String project
         String alias_value
-        String data_type
         String gdc_token
     }
 
@@ -170,6 +177,6 @@ task verifyGDCRegistration {
     }
 
     output {
-        String UUID = read_lines("UUID.txt)
+        String UUID = read_lines("isValid.txt")
     }
 }
