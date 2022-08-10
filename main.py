@@ -50,7 +50,7 @@ def getCommandLineInput(argv):
         'program=',
         'project=',
         'agg_project=',
-        'alias=',
+        'alias_value=',
         'data_type=',
         'token='
     ]
@@ -63,7 +63,7 @@ def getCommandLineInput(argv):
 
 # Calls GDC to check if the sample is registered
 def verifyRegistration(inputData):
-    response = getEntity("verify", inputData['program'], inputData['project'], inputData['alias'], inputData['token'])
+    response = getEntity("verify", inputData['program'], inputData['project'], inputData['alias_value'], inputData['token'])
     response = json.loads(response.text)
 
     if response['data'] and response['data']['aliquot'] and len(response['data']['aliquot']) > 0:
