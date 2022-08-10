@@ -12,13 +12,15 @@ def submit(input):
 
     print("Submit METADATA to GDC dry_run endpoint for PROGRAM PROJECT.")
     try:
-        linkSampleAndAliqout(url, input)
+        # These are simply helper functions.
+        # linkSampleAndAliqout(url, input)
         # getGdcShemas()
+
         dryRunResponse = requests.put(f'{url}/_dry_run',
             data = json.dumps(data),
             headers = getHeaders(input)
         )
-        print(dryRunResponse.text)
+        print("response for the dry commit", dryRunResponse.text)
         dryRunResponse = json.loads(dryRunResponse.text)
 
         print("response", dryRunResponse)
@@ -31,7 +33,7 @@ def submit(input):
             print("Could not submit metadata for transaction", transaction_id)
             operation = "close"
 
-        commitResponse = requests.post(f'{url}/transactions/{transaction_id}/{operation}',
+        commitResponse = requests.put(f'{url}/transactions/{transaction_id}/{operation}',
             headers = getHeaders(input)
         )
     except Exception as e:
@@ -41,57 +43,17 @@ def getEntity(queryType, program, project, submitterId, token):
     query = ""
 
     if queryType == "sar":
-        query = """query submitted_aligned_reads ($project_id: String, $submitter_id: Int) { id }"""
+        query = {
+            "query": f"{{\n \n  submitted_aligned_reads (project_id: \"{program}-{project}\", submitter_id: \"{submitterId}\") {{\n    id\n}}\n}}",
+        }
     else:
-        fields = [
-            "id"
-        ]
-        fields = ",".join(fields)
-
-        filters = {
-            "op": "and",
-            "content": [
-                {
-                    "op": "in",
-                    "content":{
-                        "field": "project_id",
-                        "value": [f"{program}-{project}"]
-                    }
-                },
-                {
-                    "op": "in",
-                    "content":{
-                        "field": "submitter_id",
-                        "value": [submitterId]
-                    }
-                }
-            ]
+        query = {
+            "query": f"{{\n \n  aliquot (project_id: \"{program}-{project}\", submitter_id: \"{submitterId}\") {{\n    id\n}}\n}}",
         }
-
-        params = {
-            "filters": json.dumps(filters),
-            "fields": fields,
-            "format": "JSON",
-            "size": "1000"
-        }
-
-        response = requests.post(f"{endpoint}/{program}/{project}", headers = {"Content-Type": "application/json"}, json = params)
-
-        print("this is the graphql response", response.text)
-
-    variables = {
-        'type': 'case',
-        'submitter_id': submitterId
-    }
-    print(query)
-    print("variables", variables)
 
     return requests.post(
         f"{endpoint}/graphql",
-        json = {
-            'query': query,
-            'variables': variables
-        },
+        json = query,
         headers = {
             "Content-Type": "application/json",
             "X-Auth-Token": token
@@ -146,8 +108,6 @@ def linkSampleAndAliqout(url, input):
         data = json.dumps(data),
         headers = getHeaders(input)
     )
-
-    print("this is the response of creating the links", response.text)
     
 def getHeaders(input):
     # fileToken = open('tokens/gdc-token.txt')
