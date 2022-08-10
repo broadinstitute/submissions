@@ -140,7 +140,7 @@ task submitMetadataToGDC {
     }
 
     command {
-        python3 main.py --program ~{program} \
+        python3 /main.py --program ~{program} \
                         --project ~{project} \
                         --agg_project ~{aggregation_project} \
                         --alias_value ~{alias_value} \
@@ -166,7 +166,7 @@ task verifyGDCRegistration {
     }
 
     command {
-        python3 main.py --program ~{program} \
+        python3 /main.py --program ~{program} \
                         --project ~{project} \
                         --alias_value ~{alias_value} \
                         --token ~{gdc_token}
