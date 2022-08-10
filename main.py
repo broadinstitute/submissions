@@ -8,16 +8,21 @@ import time
 
 def main(argv):
     inputData = getCommandLineInput(argv)
-    # verifyRegistration(inputData)
-    submit(inputData)
+    # This needs to go in its own workflow - verifyRegistration(inputData)
+    if "agg_project" in inputData:
+        submit(inputData)
 
-    # now lets sleep() for a little to ensure that gdc has finished  
-    time.sleep(10)
+        # now lets sleep() for a little to ensure that gdc has finished  
+        time.sleep(10)
 
-    # now lets grab the submitted-aligned-reads-id
-    submitterId = f"{inputData['alias']}.{inputData['data_type']}.{inputData['agg_project']}"
-    sarId = getEntity("sar", inputData['program'], inputData['project'], submitterId, inputData['token'])
-    print(sarId)
+        # now lets grab the submitted-aligned-reads-id
+        submitterId = f"{inputData['alias']}.{inputData['data_type']}.{inputData['agg_project']}"
+        sarId = getEntity("sar", inputData['program'], inputData['project'], submitterId, inputData['token'])
+        print(sarId)
+    else:
+        print("Verify Registration")
+        isValid = verifyRegistration(inputData)
+        print("isvalid", isValid)
 
 def getCommandLineInput(argv):
     inputData = {}
@@ -38,7 +43,13 @@ def getCommandLineInput(argv):
 
 def verifyRegistration(inputData):
     response = getEntity("verify", inputData['program'], inputData['project'], inputData['alias'], inputData['token'])
-    print("response", response.text)
+    response = json.loads(response.text)
+
+    print("response", response)
+    if response['data'] and response['data']['aliquot'] and len(response['data']['aliquot']) > 0:
+        return True
+    else:
+        return False
 
 if __name__ == "__main__":
    main(sys.argv[1:])

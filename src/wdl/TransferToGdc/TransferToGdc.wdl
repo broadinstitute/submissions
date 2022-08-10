@@ -81,7 +81,6 @@ task RetrieveGdcManifest {
   }
 }
 
-
 task TransferBamToGdc {
 
   input {
@@ -138,6 +137,31 @@ task submitMetadataToGDC {
                         --agg_project ~{aggregation_project} \
                         --alias_value ~{alias_value} \
                         --data_type ~{data_type} \
+                        --token ~{gdc_token}
+    }
+
+    runtime {
+        docker: "schaluvadi/horsefish:submissionV1"
+    }
+
+    output {
+        String UUID = read_lines("UUID.txt)
+    }
+}
+
+task verifyGDCRegistration {
+    input {
+        String program
+        String project
+        String alias_value
+        String data_type
+        String gdc_token
+    }
+
+    command {
+        python3 main.py --program ~{program} \
+                        --project ~{project} \
+                        --alias_value ~{alias_value} \
                         --token ~{gdc_token}
     }
 

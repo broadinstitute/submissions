@@ -1,6 +1,6 @@
 {
-    "file_name": "Test_sample_1.bam",
-    "submitter_id": "Test_sample_1",
+    "file_name": "Test_aligned_1.bam",
+    "submitter_id": "Test_aligned_1",
     "data_category": "Sequencing Reads",
     "type": "submitted_aligned_reads",
     "file_size": 123456,
