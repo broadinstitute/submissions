@@ -21,10 +21,19 @@ def main(argv):
         # now lets grab the submitted-aligned-reads-id *Need to change this back after testing
         # submitterId = f"{inputData['alias']}.{inputData['data_type']}.{inputData['agg_project']}"
         submitterId = "Test_aligned_1"
-        sarId = getEntity("sar", inputData['program'], inputData['project'], submitterId, inputData['token'])
-        f = open("UUID.txt", w)
-        f.write(sarId)
-        f.close()
+        response = getEntity("sar", inputData['program'], inputData['project'], submitterId, inputData['token'])
+        sarId = json.loads(response.text)
+
+        if sarId and sarId['data'] and sarId['data']['submitted_aligned_reads']:
+            if len(sarId['data']['submitted_aligned_reads']) > 0:
+                f = open("UUID.txt", 'w')
+                f.write(sarId['data']['submitted_aligned_reads'][0]['id'])
+                f.close()
+                print("Done writing UUID to file")
+            else:
+                print("No ids inside of submitted_aligned_reads array")
+        else:
+            print("Data was not returned from gdc properly")
     else:
         print("Verify Registration")
         isValid = verifyRegistration(inputData)
