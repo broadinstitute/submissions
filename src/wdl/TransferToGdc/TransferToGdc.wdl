@@ -14,7 +14,7 @@ workflow TransferToGdc {
     Boolean dry_run = false
   }
 
-  String token_value = read_lines(gdc_token)
+  String token_value = (read_lines(gdc_token))[0]
 
   call verifyGDCRegistration {
     input:
