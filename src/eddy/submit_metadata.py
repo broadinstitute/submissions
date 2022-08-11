@@ -6,7 +6,8 @@ endpoint = 'https://api.gdc.cancer.gov/v0/submission'
 
 # Currently this function uses a hardcoded file, however we can expect that this will be passed in
 def submit(input):
-    file = open('src/resources/metadata.json')
+    # TODO - Need to set up seperate environments because the path is different on VM
+    file = open('/src/resources/metadata.json')
     data = json.load(file)
     url = f"{endpoint}/{input['program']}/{input['project']}"
 
