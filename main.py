@@ -54,6 +54,8 @@ def getCommandLineInput(argv):
         'data_type=',
         'token='
     ]
+
+    print("these are the options", longOptions)
     opts, args = getopt.getopt(argv, '', longOptions)
 
     for opt, arg in opts:
