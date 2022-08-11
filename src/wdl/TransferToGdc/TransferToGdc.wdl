@@ -14,12 +14,14 @@ workflow TransferToGdc {
     Boolean dry_run = false
   }
 
+  String token_value = read_lines(gdc_token)
+
   call verifyGDCRegistration {
     input:
       program = program,
       project = project,
       alias_value = alias_value,
-      gdc_token = gdc_token
+      gdc_token = token_value
   }
 
   call submitMetadataToGDC {
@@ -29,7 +31,7 @@ workflow TransferToGdc {
       aggregation_project = aggregation_project,
       alias_value = alias_value,
       data_type = data_type,
-      gdc_token = gdc_token
+      gdc_token = token_value
   }
 
   call RetrieveGdcManifest {
@@ -37,7 +39,7 @@ workflow TransferToGdc {
       program = program,
       project = project,
       sar_id = submitMetadataToGDC.UUID,
-      gdc_token = ~{read_lines(gdc_token)},
+      gdc_token = token_value,
       dry_run = dry_run
   }
 
@@ -46,7 +48,7 @@ workflow TransferToGdc {
       bam_file = bam_file,
       gdc_bam_file_name = gdc_bam_file_name,
       manifest = RetrieveGdcManifest.manifest,
-      gdc_token = ~{read_lines(gdc_token)},
+      gdc_token = token_value,
       dry_run = dry_run
   }
 
@@ -136,7 +138,7 @@ task submitMetadataToGDC {
         String aggregation_project
         String alias_value
         String data_type
-        File gdc_token
+        String gdc_token
     }
 
     command {
@@ -145,7 +147,7 @@ task submitMetadataToGDC {
                         --agg_project ~{aggregation_project} \
                         --alias_value ~{alias_value} \
                         --data_type ~{data_type} \
-                        --token ~{read_lines(gdc_token)}
+                        --token ~{gdc_token}
     }
 
     runtime {
@@ -162,14 +164,14 @@ task verifyGDCRegistration {
         String program
         String project
         String alias_value
-        File gdc_token
+        String gdc_token
     }
 
     command {
         python3 /main.py --program ~{program} \
                         --project ~{project} \
                         --alias_value ~{alias_value} \
-                        --token ~{read_lines(gdc_token)}
+                        --token ~{gdc_token}
     }
 
     runtime {
