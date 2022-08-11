@@ -136,7 +136,7 @@ task submitMetadataToGDC {
         String aggregation_project
         String alias_value
         String data_type
-        String gdc_token
+        File gdc_token
     }
 
     command {
@@ -145,7 +145,7 @@ task submitMetadataToGDC {
                         --agg_project ~{aggregation_project} \
                         --alias_value ~{alias_value} \
                         --data_type ~{data_type} \
-                        --token ~{gdc_token}
+                        --token ~{read_lines(gdc_token)}
     }
 
     runtime {
@@ -162,14 +162,14 @@ task verifyGDCRegistration {
         String program
         String project
         String alias_value
-        String gdc_token
+        File gdc_token
     }
 
     command {
         python3 /main.py --program ~{program} \
                         --project ~{project} \
                         --alias_value ~{alias_value} \
-                        --token ~{gdc_token}
+                        --token ~{read_lines(gdc_token)}
     }
 
     runtime {
