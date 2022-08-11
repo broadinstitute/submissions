@@ -19,7 +19,7 @@ def main(argv):
         time.sleep(10)
 
         # now lets grab the submitted-aligned-reads-id *Need to change this back after testing
-        # submitterId = f"{inputData['alias']}.{inputData['data_type']}.{inputData['agg_project']}"
+        # submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
         submitterId = "Test_aligned_1"
         response = getEntity("sar", inputData['program'], inputData['project'], submitterId, inputData['token'])
         sarId = json.loads(response.text)
