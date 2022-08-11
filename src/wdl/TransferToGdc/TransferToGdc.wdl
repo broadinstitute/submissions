@@ -155,7 +155,7 @@ task submitMetadataToGDC {
     }
 
     output {
-        String UUID = (read_lines("/UUID.txt"))
+        String UUID = read_lines("/UUID.txt")
     }
 }
 
@@ -179,6 +179,6 @@ task verifyGDCRegistration {
     }
 
     output {
-        String UUID = (read_lines("/isValid.txt"))
+        String UUID = read_lines("/isValid.txt")[0]
     }
 }
