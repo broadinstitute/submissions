@@ -10,7 +10,7 @@ workflow TransferToGdc {
     String aggregation_project
     String alias_value
     String data_type
-    String gdc_token
+    File gdc_token
     Boolean dry_run = false
   }
 
@@ -37,7 +37,7 @@ workflow TransferToGdc {
       program = program,
       project = project,
       sar_id = submitMetadataToGDC.UUID,
-      gdc_token = gdc_token,
+      gdc_token = ~{read_lines(gdc_token)},
       dry_run = dry_run
   }
 
@@ -46,7 +46,7 @@ workflow TransferToGdc {
       bam_file = bam_file,
       gdc_bam_file_name = gdc_bam_file_name,
       manifest = RetrieveGdcManifest.manifest,
-      gdc_token = gdc_token,
+      gdc_token = ~{read_lines(gdc_token)},
       dry_run = dry_run
   }
 
