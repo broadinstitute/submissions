@@ -26,7 +26,7 @@ def main(argv):
 
         if sarId and sarId['data'] and sarId['data']['submitted_aligned_reads']:
             if len(sarId['data']['submitted_aligned_reads']) > 0:
-                f = open("UUID.txt", 'w')
+                f = open("/cromwell_root/UUID.txt", 'w')
                 f.write(sarId['data']['submitted_aligned_reads'][0]['id'])
                 f.close()
                 print("Done writing UUID to file")
@@ -54,8 +54,6 @@ def getCommandLineInput(argv):
         'data_type=',
         'token='
     ]
-
-    print("these are the options", longOptions)
     opts, args = getopt.getopt(argv, '', longOptions)
 
     for opt, arg in opts:
@@ -68,10 +66,19 @@ def verifyRegistration(inputData):
     response = getEntity("verify", inputData['program'], inputData['project'], inputData['alias_value'], inputData['token'])
     response = json.loads(response.text)
 
+    f = open("/cromwell_root/isValid.txt", 'w')
+
     if response['data'] and response['data']['aliquot'] and len(response['data']['aliquot']) > 0:
+        f.write("isValid")
+        
         return True
     else:
+        f.write("Not valid")
+
         return False
+
+    f.close()
+    print("Done writing UUID to file")
 
 if __name__ == "__main__":
    main(sys.argv[1:])
