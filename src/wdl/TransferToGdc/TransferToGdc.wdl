@@ -155,7 +155,7 @@ task submitMetadataToGDC {
     }
 
     output {
-        String UUID = read_lines("UUID.txt")
+        String UUID = read_lines("UUID.txt")[0]
     }
 }
 
