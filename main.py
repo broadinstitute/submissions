@@ -11,37 +11,47 @@ import time
 def main(argv):
     inputData = getCommandLineInput(argv)
     
-    # if we have agg_project in the input we know this is a submit workflow
-    if "agg_project" in inputData:
-        submit(inputData)
+    if "step" in inputData:
+        # if we have agg_project in the input we know this is a submit workflow
+        if inputData['step'] == "submit_metadata":
+            submitMetadata(inputData)
+        elif inputData['step'] == "verify_registration":
+            print("Verify Registration")
+            isValid = verifyRegistration(inputData)
 
-        # now lets sleep() for a little to ensure that gdc has finished updating the UUID
-        time.sleep(10)
-
-        # now lets grab the submitted-aligned-reads-id *Need to change this back after testing
-        # submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
-        submitterId = "Test_aligned_1"
-        response = getEntity("sar", inputData['program'], inputData['project'], submitterId, inputData['token'])
-        sarId = json.loads(response.text)
-
-        if sarId and sarId['data'] and sarId['data']['submitted_aligned_reads']:
-            if len(sarId['data']['submitted_aligned_reads']) > 0:
-                f = open("/cromwell_root/UUID.txt", 'w')
-                f.write(sarId['data']['submitted_aligned_reads'][0]['id'])
-                f.close()
-                print("Done writing UUID to file")
+            if isValid:
+                print("Sample is valid in GDC")
             else:
-                print("No ids inside of submitted_aligned_reads array")
+                raise RuntimeError("Sample is not registered in GDC")
+        elif inputData['step'] == "validate_status":
+            validateFileStatus(inputData)
         else:
-            print("Data was not returned from gdc properly")
+            print("Invalid step entered. Please check input")
     else:
-        print("Verify Registration")
-        isValid = verifyRegistration(inputData)
+        print("Input for step not found")
 
-        if isValid:
-            print("Sample is valid in GDC")
+def submitMetadata(inputData):
+    submit(inputData)
+
+    # now lets sleep() for a little to ensure that gdc has finished updating the UUID
+    time.sleep(10)
+
+    # now lets grab the submitted-aligned-reads-id *Need to change this back after testing
+    # submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
+    submitterId = "Test_aligned_1"
+    response = getEntity("sar", inputData['program'], inputData['project'], submitterId, inputData['token'])
+    sarId = json.loads(response.text)
+
+    if sarId and sarId['data'] and sarId['data']['submitted_aligned_reads']:
+        if len(sarId['data']['submitted_aligned_reads']) > 0:
+            f = open("/cromwell_root/UUID.txt", 'w')
+            f.write(sarId['data']['submitted_aligned_reads'][0]['id'])
+            f.close()
+            print("Done writing UUID to file")
         else:
-            raise RuntimeError("Sample is not registered in GDC")
+            print("No ids inside of submitted_aligned_reads array")
+    else:
+        print("Data was not returned from gdc properly")
 
 # Parses the command line input and populates the input dictionary
 def getCommandLineInput(argv):
@@ -52,7 +62,8 @@ def getCommandLineInput(argv):
         'agg_project=',
         'alias_value=',
         'data_type=',
-        'token='
+        'token=',
+        "step="
     ]
     opts, args = getopt.getopt(argv, '', longOptions)
 
@@ -79,6 +90,12 @@ def verifyRegistration(inputData):
 
     f.close()
     print("Done writing UUID to file")
+
+def validateFileStatus(inputData):
+    # submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
+    submitterId = "Test_aligned_1"
+    response = getEntity("validate", inputData['program'], inputData['project'], submitterId, inputData['token'])
+    print("validate", response.text)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
