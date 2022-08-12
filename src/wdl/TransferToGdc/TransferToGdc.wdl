@@ -147,6 +147,7 @@ task submitMetadataToGDC {
                         --agg_project ~{aggregation_project} \
                         --alias_value ~{alias_value} \
                         --data_type ~{data_type} \
+                        --step "submit_metadata" \
                         --token ~{gdc_token}
     }
 
@@ -171,6 +172,7 @@ task verifyGDCRegistration {
         python3 /main.py --program ~{program} \
                         --project ~{project} \
                         --alias_value ~{alias_value} \
+                        --step "verify_registration" \
                         --token ~{gdc_token}
     }
 
@@ -180,5 +182,30 @@ task verifyGDCRegistration {
 
     output {
         String UUID = read_lines("isValid.txt")[0]
+    }
+}
+
+task validateFileStatus {
+    input {
+        String program
+        String project
+        String alias_value
+        String gdc_token
+    }
+
+    command {
+        python3 /main.py --program ~{program} \
+                        --project ~{project} \
+                        --alias_value ~{alias_value} \
+                        --step "validate_status" \
+                        --token ~{gdc_token}
+    }
+
+    runtime {
+        docker: "schaluvadi/horsefish:submissionV1"
+    }
+
+    output {
+        String UUID = read_lines("fileStatus.txt")[0]
     }
 }

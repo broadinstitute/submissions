@@ -47,9 +47,13 @@ def getEntity(queryType, program, project, submitterId, token):
         query = {
             "query": f"{{\n \n  submitted_aligned_reads (project_id: \"{program}-{project}\", submitter_id: \"{submitterId}\") {{\n    id\n}}\n}}",
         }
-    else:
+    elif queryType == "verify":
         query = {
             "query": f"{{\n \n  aliquot (project_id: \"{program}-{project}\", submitter_id: \"{submitterId}\") {{\n    id\n}}\n}}",
+        }
+    else:
+        query = {
+            "query": f"{{\n \n  submitted_aligned_reads (project_id: \"{program}-{project}\", submitter_id: \"{submitterId}\") {{\n    id\n    submitter_id\n    state\n     file_state\n    error_type\n}}\n}}",
         }
 
     return requests.post(
