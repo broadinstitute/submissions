@@ -97,7 +97,7 @@ task TransferBamToGdc {
     File bam_file
     String gdc_bam_file_name
     File manifest
-    String gdc_token
+    File gdc_token
     Boolean dry_run
   }
 
