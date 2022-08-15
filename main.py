@@ -105,7 +105,7 @@ def validateFileStatus(inputData):
         if response['data'] and response['data']['submitted_aligned_reads'] and len(response['data']['submitted_aligned_reads']) > 0:
             responseValue = response['data']['submitted_aligned_reads']
 
-            if responseValue['state'] == "validated" and (responseValue['file_state'] == "registered" or responseValue['file_state'] == "validated"):
+            if responseValue['state'] == "validated" and (responseValue['file_state'] == "released" or responseValue['file_state'] == "validated"):
                 validResponse = true
         
         # Will need to buff this up in the long run

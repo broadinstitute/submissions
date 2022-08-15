@@ -73,7 +73,7 @@ task RetrieveGdcManifest {
     if ~{dry_run}; then
       echo "This is a fake manifest for a dry run" > manifest.yml
     else
-      curl --header "X-Auth-Token: $gdc_token" \
+      curl --header "X-Auth-Token: ~{gdc_token}" \
         https://api.gdc.cancer.gov/v0/submission/~{program}/~{project}/manifest?ids=~{sar_id} \
         > manifest.yml
     fi
@@ -113,7 +113,7 @@ task TransferBamToGdc {
     else
       mv ~{bam_file} ./~{gdc_bam_file_name}
       gdc-client upload \
-          -t gdc_token \
+          -t ~{gdc_token} \
           -m ~{manifest} \
           --log-file gdc_transfer.log
     fi
