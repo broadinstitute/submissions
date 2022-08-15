@@ -48,7 +48,7 @@ workflow TransferToGdc {
       bam_file = bam_file,
       gdc_bam_file_name = gdc_bam_file_name,
       manifest = RetrieveGdcManifest.manifest,
-      gdc_token = token_value,
+      gdc_token = gdc_token,
       dry_run = dry_run
   }
 
