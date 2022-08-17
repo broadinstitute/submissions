@@ -16,10 +16,29 @@ workflow TransferToGdc {
 
   String token_value = (read_lines(gdc_token))[0]
 
+  call verifyGDCRegistration {
+    input:
+      program = program,
+      project = project,
+      alias_value = alias_value,
+      gdc_token = token_value
+  }
+
+  call submitMetadataToGDC {
+    input:
+      program = program,
+      project = project,
+      aggregation_project = aggregation_project,
+      alias_value = alias_value,
+      data_type = data_type,
+      gdc_token = token_value
+  }
+
   call RetrieveGdcManifest {
     input:
       program = program,
       project = project,
+      sar_id = submitMetadataToGDC.UUID,
       gdc_token = token_value,
       dry_run = dry_run
   }
@@ -96,8 +115,13 @@ task TransferBamToGdc {
       gdc-client upload \
           -t ~{gdc_token} \
           -m ~{manifest} \
-          --delete \
           --log-file gdc_transfer.log
+
+      gdc-client upload \
+        -t gdc_token \
+        -m ~{manifest} \
+        --delete \
+        --log-file gdc_deletion.log
     fi
   }
 

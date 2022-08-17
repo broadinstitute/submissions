@@ -7,7 +7,7 @@ endpoint = 'https://api.gdc.cancer.gov/v0/submission'
 # Currently this function uses a hardcoded file, however we can expect that this will be passed in
 def submit(input):
     # TODO - Need to set up seperate environments because the path is different on VM
-    file = open('/src/resources/metadata.json')
+    file = open('/src/resources/metadataUpdated.json')
     data = json.load(file)
     url = f"{endpoint}/{input['program']}/{input['project']}"
 
@@ -66,53 +66,15 @@ def getEntity(queryType, program, project, submitterId, token):
     )
 
 def linkSampleAndAliqout(url, input):
-    data = [
-        {
-            "type": "case",
-            "projects": {
-                "code": "TEST4"
-            },
-            "submitter_id": "BROAD-TEST4-0001"
-        },
-        {
-            "type": "sample",
-            "cases": {
-                "submitter_id": "BROAD-TEST4-0001"
-            },
-            "submitter_id": "Test_sample_1",
-            "sample_type": "Primary Tumor",
-            "tissue_type": "Tumor"
-        },
-        {
-            "type": "aliquot",
-            "samples": {
-                "submitter_id": "Test_sample_1"
-            },
-            "submitter_id": "Test_aliquot_1"
-        },
-        {
-            "type": "read_group",
-            "aliquots": {
-                "submitter_id": "Test_aliquot_1"
-            },
-            "submitter_id": "Test_read_group_1",
-            "experiment_name": "This is a test",
-            "sequencing_center": "TEST",
-            "platform": "Other",
-            "library_selection": "Other",
-            "library_strategy": "WGS",
-            "library_name": "TEST",
-            "is_paired_end": True,
-            "read_length": 151,
-            "read_group_name": "TEST",
-            "target_capture_kit": "Unknown"
-        }
-    ]
+    f = open('src/resources/linkData.json')
+    data = json.load(f)
 
     response = requests.put(url,
         data = json.dumps(data),
         headers = getHeaders(input)
     )
+
+    print("response for creating links", response.text)
     
 def getHeaders(input):
     # fileToken = open('tokens/gdc-token.txt')
