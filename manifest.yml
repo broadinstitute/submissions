@@ -1,0 +1,17 @@
+files:
+- data_category: Sequencing Reads
+  data_format: BAM
+  data_type: Aligned Reads
+  experimental_strategy: WGS
+  file_name: Test_aligned_1.bam
+  file_size: 123456
+  id: caba0da3-c490-479f-973e-3ca5e9d68176
+  local_file_path: Test_aligned_1.bam
+  md5sum: 3b85ec9ab2984b91070128be6aae25eb
+  proc_internal: null
+  project_id: BROAD-TEST4
+  read_groups:
+  - id: ae01c4db-6ca6-4c7a-9772-4533753e0a7b
+    submitter_id: Test_read_group_1
+  submitter_id: Test_aligned_1
+  type: submitted_aligned_reads

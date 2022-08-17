@@ -93,15 +93,17 @@ def verifyRegistration(inputData):
 
 def validateFileStatus(inputData):
     gdcCallCounter = 0
-    validResponse = false
+    validResponse = False
 
-    while gdcCounter < 10 and not validResponse:
+    while gdcCallCounter < 10 and not validResponse:
         print(f"{gdcCallCounter}th iteration of loop when trying to validate sample in GDC")
 
         # submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
         submitterId = "Test_aligned_1"
-        response = getEntity("validate", inputData['program'], inputData['project'], submitterId, inputData['token']).text
-        
+        response = getEntity("validate", inputData['program'], inputData['project'], submitterId, inputData['token'])
+        response = json.loads(response.text)
+        print("Response", response)
+
         if response['data'] and response['data']['submitted_aligned_reads'] and len(response['data']['submitted_aligned_reads']) > 0:
             responseValue = response['data']['submitted_aligned_reads']
 
