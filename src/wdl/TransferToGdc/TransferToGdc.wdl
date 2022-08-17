@@ -54,7 +54,7 @@ task RetrieveGdcManifest {
       echo "This is a fake manifest for a dry run" > manifest.yml
     else
       curl --header "X-Auth-Token: ~{gdc_token}" \
-        https://api.gdc.cancer.gov/v0/submission/~{program}/~{project}/manifest?ids=caba0da3-c490-479f-973e-3ca5e9d68176 \
+        https://api.gdc.cancer.gov/v0/submission/~{program}/~{project}/manifest?ids=0b9297de-9ce4-47d0-b0aa-63fda1d23e64 \
         > manifest.yml
     fi
   }
