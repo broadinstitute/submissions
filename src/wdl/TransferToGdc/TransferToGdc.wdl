@@ -16,10 +16,29 @@ workflow TransferToGdc {
 
   String token_value = (read_lines(gdc_token))[0]
 
+  call verifyGDCRegistration {
+    input:
+      program = program,
+      project = project,
+      alias_value = alias_value,
+      gdc_token = token_value
+  }
+
+  call submitMetadataToGDC {
+    input:
+      program = program,
+      project = project,
+      aggregation_project = aggregation_project,
+      alias_value = alias_value,
+      data_type = data_type,
+      gdc_token = token_value
+  }
+
   call RetrieveGdcManifest {
     input:
       program = program,
       project = project,
+      sar_id = submitMetadataToGDC.UUID,
       gdc_token = token_value,
       dry_run = dry_run
   }
@@ -43,6 +62,7 @@ task RetrieveGdcManifest {
   input {
     String program
     String project
+    String sar_id
     String gdc_token
     Boolean dry_run
   }
@@ -54,7 +74,7 @@ task RetrieveGdcManifest {
       echo "This is a fake manifest for a dry run" > manifest.yml
     else
       curl --header "X-Auth-Token: ~{gdc_token}" \
-        https://api.gdc.cancer.gov/v0/submission/~{program}/~{project}/manifest?ids=0b9297de-9ce4-47d0-b0aa-63fda1d23e64 \
+        https://api.gdc.cancer.gov/v0/submission/~{program}/~{project}/manifest?ids=caba0da3-c490-479f-973e-3ca5e9d68176 \
         > manifest.yml
     fi
   }
@@ -95,8 +115,13 @@ task TransferBamToGdc {
       gdc-client upload \
           -t ~{gdc_token} \
           -m ~{manifest} \
-          --delete \
           --log-file gdc_transfer.log
+
+      gdc-client upload \
+        -t gdc_token \
+        -m ~{manifest} \
+        --delete \
+        --log-file gdc_deletion.log
     fi
   }
 
