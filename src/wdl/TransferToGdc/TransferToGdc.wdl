@@ -43,7 +43,6 @@ task RetrieveGdcManifest {
   input {
     String program
     String project
-    String sar_id
     String gdc_token
     Boolean dry_run
   }
