@@ -3,7 +3,7 @@ version 1.0
 workflow DeleteFromGdc {
 
   input {
-    File program
+    String program
     String project
     String sar_id
     File gdc_token
