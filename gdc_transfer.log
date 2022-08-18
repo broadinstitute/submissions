@@ -1,0 +1,4 @@
+2022-08-18 10:04:51,216: INFO: Delete file caba0da3-c490-479f-973e-3ca5e9d68176
+2022-08-18 10:50:44,257: INFO: Attempting to upload to https://api.gdc.cancer.gov/v0/submission/BROAD/TEST4/files/caba0da3-c490-479f-973e-3ca5e9d68176
+2022-08-18 10:50:44,260: INFO: File size smaller than part size 1073745920, do simple upload
+2022-08-18 10:54:54,926: INFO: Upload finished for file caba0da3-c490-479f-973e-3ca5e9d68176
