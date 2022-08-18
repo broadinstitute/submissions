@@ -3,3 +3,6 @@ workflows:
   - name: transfer
     subclass: WDL
     primaryDescriptorPath: /src/wdl/TransferToGdc/TransferToGdc.wdl
+  - name: delete
+    subclass: WDL
+    primaryDescriptorPath: /src/wdl/DeleteFromGdc/DeleteFromGdc.wdl
