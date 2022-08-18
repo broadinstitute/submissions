@@ -3,7 +3,7 @@ version 1.0
 workflow TransferToGdc {
 
   input {
-    File bam_file
+    String bam_file
     String gdc_bam_file_name
     String program
     String project
@@ -94,7 +94,7 @@ task RetrieveGdcManifest {
 task TransferBamToGdc {
 
   input {
-    File bam_file
+    String bam_file
     String gdc_bam_file_name
     File manifest
     File gdc_token
