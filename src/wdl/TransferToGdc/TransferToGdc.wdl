@@ -111,7 +111,8 @@ task TransferBamToGdc {
       echo "BAM_FILE=~{bam_file}" >> gdc_transfer.log
       echo "MANIFEST=~{manifest}" >> gdc_transfer.log
     else
-      gsutil cp ~{bam_file} ./~{gdc_bam_file_name}
+      mv ~{bam_file} ./~{gdc_bam_file_name}
+
       gdc-client upload \
           -t ~{gdc_token} \
           -m ~{manifest} \
