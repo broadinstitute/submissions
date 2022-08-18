@@ -90,10 +90,10 @@ task DeleteBamFromGdc {
   }
 
   runtime {
-    memory: "7.5 GB"
+    memory: "3.75 GB"
     docker: "us.gcr.io/broad-gotc-prod/eddy:1.1.0-1595358485"
-    cpu: 2
-    disks: "local-disk " + disk_size + " HDD"
+    cpu: 1
+    disks: "local-disk " + 20 + " HDD"
   }
 
   output {
