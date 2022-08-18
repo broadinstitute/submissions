@@ -24,7 +24,8 @@ workflow DeleteFromGdc {
   call DeleteBamFromGdc {
     input:
       manifest = RetrieveGdcManifest.manifest,
-      gdc_token = gdc_token
+      gdc_token = gdc_token,
+      dry_run = dry_run
   }
 
   output {
