@@ -111,13 +111,9 @@ task TransferBamToGdc {
       echo "BAM_FILE=~{bam_file}" >> gdc_transfer.log
       echo "MANIFEST=~{manifest}" >> gdc_transfer.log
     else
-      mv ~{bam_file} ./~{gdc_bam_file_name}
-      head -1 ~{gdc_bam_file_name}
-      
-      gdc-client upload \
-          -t ~{gdc_token} \
-          -m ~{manifest} \
-          --log-file gdc_transfer.log
+      mv ~{bam_file} /cromwell_root/~{gdc_bam_file_name}
+
+      gdc-client upload -t ~{gdc_token} -m ~{manifest} --log-file gdc_transfer.log
     fi
   }
 
