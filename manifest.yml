@@ -3,15 +3,33 @@ files:
   data_format: BAM
   data_type: Aligned Reads
   experimental_strategy: WGS
-  file_name: Test_aligned_1.bam
-  file_size: 123456
-  id: caba0da3-c490-479f-973e-3ca5e9d68176
-  local_file_path: Test_aligned_1.bam
-  md5sum: 3b85ec9ab2984b91070128be6aae25eb
-  proc_internal: null
+  file_name: Test_aligned_2.bam
+  file_size: 383751452100
+  id: 04e47171-27b1-4c1d-8e53-6ed828d3e522
+  local_file_path: Test_aligned_2.bam
+  md5sum: 5159d744f9d087dc13ffef988adf1e30
+  proc_internal: dna-seq skip
   project_id: BROAD-TEST4
   read_groups:
-  - id: ae01c4db-6ca6-4c7a-9772-4533753e0a7b
-    submitter_id: Test_read_group_1
-  submitter_id: Test_aligned_1
+  - id: c8c2d6ef-e40b-47bf-a023-1f68ae357bb1
+    submitter_id: HTW25DSX3.1.RP-1329.Test_aliquot_2
+  - id: 0523f58b-5933-4a23-9e51-adfea2436b1e
+    submitter_id: HTY2GDSX3.1.RP-1329.Test_aliquot_2
+  - id: f26292f7-1e17-48c8-b21f-bdeb3edea731
+    submitter_id: HTWFLDSX3.1.RP-1329.Test_aliquot_2
+  - id: 29a66416-51b9-4edd-8fb5-f5ea18a63be2
+    submitter_id: HTW35DSX3.1.RP-1329.Test_aliquot_2
+  - id: f6705baf-dd42-4874-ac2c-0f74204fc6cc
+    submitter_id: HTYCCDSX3.1.RP-1329.Test_aliquot_2
+  - id: adbbe145-63f9-41b1-ae77-19cbac25aa6c
+    submitter_id: HTWVCDSX3.1.RP-1329.Test_aliquot_2
+  - id: 4bfc9b80-53e8-4c9c-8d40-f671cfec6e07
+    submitter_id: HTYF7DSX3.1.RP-1329.Test_aliquot_2
+  - id: dd2e74b2-99f5-4c6c-8141-a37159f2ba8c
+    submitter_id: HTWJNDSX3.1.RP-1329.Test_aliquot_2
+  - id: ad530296-7f3b-460d-ae0f-1ff3512e0f95
+    submitter_id: HTWF3DSX3.1.RP-1329.Test_aliquot_2
+  - id: 76241801-780b-45db-a6a9-04c0f37e83cf
+    submitter_id: HTY33DSX3.1.RP-1329.Test_aliquot_2
+  submitter_id: Test_aligned_2
   type: submitted_aligned_reads

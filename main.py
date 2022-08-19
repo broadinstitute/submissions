@@ -38,7 +38,7 @@ def submitMetadata(inputData):
 
     # now lets grab the submitted-aligned-reads-id *Need to change this back after testing
     # submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
-    submitterId = "Test_aligned_1"
+    submitterId = "Test_aligned_2"
     response = getEntity("sar", inputData['program'], inputData['project'], submitterId, inputData['token'])
     sarId = json.loads(response.text)
 
@@ -99,7 +99,7 @@ def validateFileStatus(inputData):
         print(f"{gdcCallCounter}th iteration of loop when trying to validate sample in GDC")
 
         # submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
-        submitterId = "Test_aligned_1"
+        submitterId = "Test_aligned_2"
         response = getEntity("validate", inputData['program'], inputData['project'], submitterId, inputData['token'])
         response = json.loads(response.text)
         print("Response", response)
