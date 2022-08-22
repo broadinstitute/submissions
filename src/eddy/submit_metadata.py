@@ -6,16 +6,17 @@ endpoint = 'https://api.gdc.cancer.gov/v0/submission'
 
 # Currently this function uses a hardcoded file, however we can expect that this will be passed in
 def submit(input):
+    # getGdcShemas()
+    url = f"{endpoint}/{input['program']}/{input['project']}"
+    # linkSampleAndAliqout(url, input)
+
     # TODO - Need to set up seperate environments because the path is different on VM
     file = open('/src/resources/metadataUpdated.json')
     data = json.load(file)
-    url = f"{endpoint}/{input['program']}/{input['project']}"
 
     print("Submit METADATA to GDC dry_run endpoint for PROGRAM PROJECT.")
     try:
         # These are simply helper functions.
-        # linkSampleAndAliqout(url, input)
-        # getGdcShemas()
 
         dryRunResponse = requests.put(f'{url}/_dry_run',
             data = json.dumps(data),
@@ -87,7 +88,7 @@ def getHeaders(input):
 
 # Run this function if you would like to see all entity schemas in GDC
 def getGdcShemas():
-    response = requests.get(f'{endpoint}/template/sample?format=json')
+    response = requests.get(f'{endpoint}/template/submitted_aligned_reads?format=json')
     print("sample response", response.text)
     f = open('src/resources/sample_template.json', 'w')
     f.write(response.text)

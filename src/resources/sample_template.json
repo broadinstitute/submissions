@@ -1,49 +1,16 @@
 {
-  "composition": null, 
-  "days_to_sample_procurement": null, 
-  "biospecimen_laterality": null, 
-  "tissue_source_sites": {
-    "code": null
-  }, 
-  "biospecimen_anatomic_site": null, 
-  "passage_count": null, 
-  "cases": {
-    "submitter_id": null
-  }, 
-  "intermediate_dimension": null, 
-  "tumor_code": null, 
-  "time_between_excision_and_freezing": null, 
-  "tumor_descriptor": null, 
-  "freezing_method": null, 
-  "distance_normal_to_tumor": null, 
-  "sample_ordinal": null, 
-  "initial_weight": null, 
-  "distributor_reference": null, 
-  "oct_embedded": null, 
-  "parent_samples": {
-    "submitter_id": null
-  }, 
-  "sample_type_id": null, 
-  "type": "sample", 
-  "tissue_type": null, 
-  "method_of_sample_procurement": null, 
-  "tumor_code_id": null, 
-  "current_weight": null, 
-  "is_ffpe": null, 
-  "diagnosis_pathologically_confirmed": null, 
-  "longest_dimension": null, 
-  "days_to_collection": null, 
-  "sample_type": null, 
   "project_id": null, 
-  "shortest_dimension": null, 
-  "preservation_method": null, 
-  "growth_rate": null, 
-  "time_between_clamping_and_freezing": null, 
-  "tissue_collection_type": null, 
-  "submitter_id": null, 
-  "diagnoses": {
+  "data_category": null, 
+  "data_type": null, 
+  "data_format": null, 
+  "proc_internal": null, 
+  "file_name": null, 
+  "type": "submitted_aligned_reads", 
+  "experimental_strategy": null, 
+  "file_size": null, 
+  "md5sum": null, 
+  "read_groups": {
     "submitter_id": null
   }, 
-  "pathology_report_uuid": null, 
-  "catalog_reference": null
+  "submitter_id": null
 }
