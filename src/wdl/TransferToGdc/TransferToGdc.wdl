@@ -105,8 +105,8 @@ task TransferBamToGdc {
 
   command {
     set -e
-    mv ~{bam_file} /cromwell_root/~{gdc_bam_file_name}
-    sleep 2m 30s
+    mv ~{bam_file} ./~{gdc_bam_file_name}
+    echo "$PWD"
 
     if ~{dry_run}; then
       echo "This was a dry run of uploading to GDC" > gdc_transfer.log
