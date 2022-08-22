@@ -2,3 +2,4 @@ venv
 __pycache__
 *.txt
 Test_aligned_1.bam
+Test_aligned_2.bam

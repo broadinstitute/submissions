@@ -7,3 +7,8 @@
 2022-08-22 09:49:51,604: INFO: File size smaller than part size 1073745920, do simple upload
 2022-08-22 09:56:53,397: INFO: Upload finished for file 04e47171-27b1-4c1d-8e53-6ed828d3e522
 2022-08-22 10:00:34,620: INFO: Delete file 04e47171-27b1-4c1d-8e53-6ed828d3e522
+2022-08-22 10:17:59,614: INFO: Delete file 04e47171-27b1-4c1d-8e53-6ed828d3e522
+2022-08-22 11:36:14,405: INFO: Attempting to upload to https://api.gdc.cancer.gov/v0/submission/BROAD/TEST4/files/04e47171-27b1-4c1d-8e53-6ed828d3e522
+2022-08-22 11:36:14,405: INFO: File size smaller than part size 1073745920, do simple upload
+2022-08-22 11:42:27,059: INFO: Upload finished for file 04e47171-27b1-4c1d-8e53-6ed828d3e522
+2022-08-22 11:51:14,168: INFO: Delete file 04e47171-27b1-4c1d-8e53-6ed828d3e522
