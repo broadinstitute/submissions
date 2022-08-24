@@ -3,33 +3,33 @@ files:
   data_format: BAM
   data_type: Aligned Reads
   experimental_strategy: WGS
-  file_name: Test_aligned_2.bam
+  file_name: Test_aligned_4.bam
   file_size: 383751452100
-  id: 04e47171-27b1-4c1d-8e53-6ed828d3e522
-  local_file_path: Test_aligned_2.bam
-  md5sum: 5159d744f9d087dc13ffef988adf1e30
+  id: f5847613-bd9f-4afc-ac2a-9bd3c9aff4f6
+  local_file_path: Test_aligned_4.bam
+  md5sum: 5159d744f9d087dc13ffef988adf1e33
   proc_internal: dna-seq skip
   project_id: BROAD-TEST4
   read_groups:
-  - id: c8c2d6ef-e40b-47bf-a023-1f68ae357bb1
-    submitter_id: HTW25DSX3.1.RP-1329.Test_aliquot_2
-  - id: 0523f58b-5933-4a23-9e51-adfea2436b1e
-    submitter_id: HTY2GDSX3.1.RP-1329.Test_aliquot_2
-  - id: f26292f7-1e17-48c8-b21f-bdeb3edea731
-    submitter_id: HTWFLDSX3.1.RP-1329.Test_aliquot_2
-  - id: 29a66416-51b9-4edd-8fb5-f5ea18a63be2
-    submitter_id: HTW35DSX3.1.RP-1329.Test_aliquot_2
-  - id: f6705baf-dd42-4874-ac2c-0f74204fc6cc
-    submitter_id: HTYCCDSX3.1.RP-1329.Test_aliquot_2
-  - id: adbbe145-63f9-41b1-ae77-19cbac25aa6c
-    submitter_id: HTWVCDSX3.1.RP-1329.Test_aliquot_2
-  - id: 4bfc9b80-53e8-4c9c-8d40-f671cfec6e07
-    submitter_id: HTYF7DSX3.1.RP-1329.Test_aliquot_2
-  - id: dd2e74b2-99f5-4c6c-8141-a37159f2ba8c
-    submitter_id: HTWJNDSX3.1.RP-1329.Test_aliquot_2
-  - id: ad530296-7f3b-460d-ae0f-1ff3512e0f95
-    submitter_id: HTWF3DSX3.1.RP-1329.Test_aliquot_2
-  - id: 76241801-780b-45db-a6a9-04c0f37e83cf
-    submitter_id: HTY33DSX3.1.RP-1329.Test_aliquot_2
-  submitter_id: Test_aligned_2
+  - id: 70864ef1-d60f-4745-b059-7a66dd3fa02b
+    submitter_id: HTW25DSX3.1.RP-1329.Test_aliquot_4
+  - id: 73de7c7e-3f21-4851-8713-acf165544455
+    submitter_id: HTY2GDSX3.1.RP-1329.Test_aliquot_4
+  - id: 9d3ee3f2-032e-4336-8cfa-c402a33a132f
+    submitter_id: HTWFLDSX3.1.RP-1329.Test_aliquot_4
+  - id: 45698eca-e12e-449e-a2b8-8dcf5a179c2b
+    submitter_id: HTW35DSX3.1.RP-1329.Test_aliquot_4
+  - id: 29d1f989-32b3-46da-98cb-36861179bef6
+    submitter_id: HTYCCDSX3.1.RP-1329.Test_aliquot_4
+  - id: d81f6f98-74aa-4108-941e-0d5da7753564
+    submitter_id: HTWVCDSX3.1.RP-1329.Test_aliquot_4
+  - id: 78814aaa-4dce-48d7-ab1b-8c6f88524b0a
+    submitter_id: HTYF7DSX3.1.RP-1329.Test_aliquot_4
+  - id: cbfd92bb-0370-49fd-9dcc-1c5b003b3f52
+    submitter_id: HTWJNDSX3.1.RP-1329.Test_aliquot_4
+  - id: 88adf704-84d8-492f-8886-f20bc5c5d6b8
+    submitter_id: HTWF3DSX3.1.RP-1329.Test_aliquot_4
+  - id: 39ec2f28-8dd6-426a-a2dd-647204562df3
+    submitter_id: HTY33DSX3.1.RP-1329.Test_aliquot_4
+  submitter_id: Test_aligned_4
   type: submitted_aligned_reads

@@ -14,3 +14,22 @@
 2022-08-22 11:51:14,168: INFO: Delete file 04e47171-27b1-4c1d-8e53-6ed828d3e522
 2022-08-22 13:42:34,367: INFO: Delete file 04e47171-27b1-4c1d-8e53-6ed828d3e522
 2022-08-22 13:43:09,356: INFO: Delete file 04e47171-27b1-4c1d-8e53-6ed828d3e522
+2022-08-23 11:22:18,345: ERROR: [Errno 2] No such file or directory: 'Test_aligned_3.bam'
+2022-08-23 11:23:10,778: INFO: Attempting to upload to https://api.gdc.cancer.gov/v0/submission/BROAD/TEST4/files/32152f65-a8b5-4519-a8af-3b63a618adf7
+2022-08-23 11:23:10,779: INFO: File size smaller than part size 1073745920, do simple upload
+2022-08-23 11:27:12,105: INFO: Upload finished for file 32152f65-a8b5-4519-a8af-3b63a618adf7
+2022-08-23 12:06:49,915: INFO: Attempting to upload to https://api.gdc.cancer.gov/v0/submission/BROAD/TEST4/files/32152f65-a8b5-4519-a8af-3b63a618adf7
+2022-08-23 12:06:49,915: INFO: File size smaller than part size 1073745920, do simple upload
+2022-08-23 12:13:56,867: INFO: Upload finished for file 32152f65-a8b5-4519-a8af-3b63a618adf7
+2022-08-23 13:27:58,800: INFO: Attempting to upload to https://api.gdc.cancer.gov/v0/submission/BROAD/TEST4/files/32152f65-a8b5-4519-a8af-3b63a618adf7
+2022-08-23 13:27:58,802: INFO: File size smaller than part size 1073745920, do simple upload
+2022-08-23 13:35:51,129: INFO: Upload finished for file 32152f65-a8b5-4519-a8af-3b63a618adf7
+2022-08-23 13:41:11,458: INFO: Delete file 32152f65-a8b5-4519-a8af-3b63a618adf7
+2022-08-23 13:43:45,011: INFO: Attempting to upload to https://api.gdc.cancer.gov/v0/submission/BROAD/TEST4/files/32152f65-a8b5-4519-a8af-3b63a618adf7
+2022-08-23 13:43:45,012: INFO: File size smaller than part size 1073745920, do simple upload
+2022-08-23 13:47:48,061: INFO: Upload finished for file 32152f65-a8b5-4519-a8af-3b63a618adf7
+2022-08-23 13:52:09,906: INFO: Delete file 32152f65-a8b5-4519-a8af-3b63a618adf7
+2022-08-24 09:21:43,108: INFO: Attempting to upload to https://api.gdc.cancer.gov/v0/submission/BROAD/TEST4/files/f5847613-bd9f-4afc-ac2a-9bd3c9aff4f6
+2022-08-24 09:21:43,108: INFO: File size smaller than part size 1073745920, do simple upload
+2022-08-24 09:28:22,147: INFO: Upload finished for file f5847613-bd9f-4afc-ac2a-9bd3c9aff4f6
+2022-08-24 09:32:34,905: INFO: Delete file f5847613-bd9f-4afc-ac2a-9bd3c9aff4f6

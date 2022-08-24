@@ -11,23 +11,23 @@
         "cases": {
             "submitter_id": "BROAD-TEST4-0001"
         },
-        "submitter_id": "Test_sample_3",
+        "submitter_id": "Test_sample_4",
         "sample_type": "Primary Tumor",
         "tissue_type": "Tumor"
     },
     {
         "type": "aliquot",
         "samples": {
-            "submitter_id": "Test_sample_3"
+            "submitter_id": "Test_sample_4"
         },
-        "submitter_id": "Test_aliquot_3"
+        "submitter_id": "Test_aliquot_4"
     },
     {
         "type": "read_group",
         "aliquots": {
-            "submitter_id": "Test_aliquot_3"
+            "submitter_id": "Test_aliquot_4"
         },
-        "submitter_id": "HTW25DSX3.1.RP-1329.Test_aliquot_3",
+        "submitter_id": "HTW25DSX3.1.RP-1329.Test_aliquot_4",
         "experiment_name": "This is a test",
         "sequencing_center": "TEST",
         "platform": "Other",
@@ -42,9 +42,9 @@
     {
         "type": "read_group",
         "aliquots": {
-            "submitter_id": "Test_aliquot_3"
+            "submitter_id": "Test_aliquot_4"
         },
-        "submitter_id": "HTY2GDSX3.1.RP-1329.Test_aliquot_3",
+        "submitter_id": "HTY2GDSX3.1.RP-1329.Test_aliquot_4",
         "experiment_name": "This is a test",
         "sequencing_center": "TEST",
         "platform": "Other",
@@ -59,9 +59,9 @@
     {
         "type": "read_group",
         "aliquots": {
-            "submitter_id": "Test_aliquot_3"
+            "submitter_id": "Test_aliquot_4"
         },
-        "submitter_id": "HTWFLDSX3.1.RP-1329.Test_aliquot_3",
+        "submitter_id": "HTWFLDSX3.1.RP-1329.Test_aliquot_4",
         "experiment_name": "This is a test",
         "sequencing_center": "TEST",
         "platform": "Other",
@@ -76,9 +76,9 @@
     {
         "type": "read_group",
         "aliquots": {
-            "submitter_id": "Test_aliquot_3"
+            "submitter_id": "Test_aliquot_4"
         },
-        "submitter_id": "HTYCCDSX3.1.RP-1329.Test_aliquot_3",
+        "submitter_id": "HTYCCDSX3.1.RP-1329.Test_aliquot_4",
         "experiment_name": "This is a test",
         "sequencing_center": "TEST",
         "platform": "Other",
@@ -93,9 +93,9 @@
     {
         "type": "read_group",
         "aliquots": {
-            "submitter_id": "Test_aliquot_3"
+            "submitter_id": "Test_aliquot_4"
         },
-        "submitter_id": "HTWVCDSX3.1.RP-1329.Test_aliquot_3",
+        "submitter_id": "HTWVCDSX3.1.RP-1329.Test_aliquot_4",
         "experiment_name": "This is a test",
         "sequencing_center": "TEST",
         "platform": "Other",
@@ -110,9 +110,9 @@
     {
         "type": "read_group",
         "aliquots": {
-            "submitter_id": "Test_aliquot_3"
+            "submitter_id": "Test_aliquot_4"
         },
-        "submitter_id": "HTYF7DSX3.1.RP-1329.Test_aliquot_3",
+        "submitter_id": "HTYF7DSX3.1.RP-1329.Test_aliquot_4",
         "experiment_name": "This is a test",
         "sequencing_center": "TEST",
         "platform": "Other",
@@ -127,9 +127,9 @@
     {
         "type": "read_group",
         "aliquots": {
-            "submitter_id": "Test_aliquot_3"
+            "submitter_id": "Test_aliquot_4"
         },
-        "submitter_id": "HTWJNDSX3.1.RP-1329.Test_aliquot_3",
+        "submitter_id": "HTWJNDSX3.1.RP-1329.Test_aliquot_4",
         "experiment_name": "This is a test",
         "sequencing_center": "TEST",
         "platform": "Other",
@@ -144,9 +144,9 @@
     {
         "type": "read_group",
         "aliquots": {
-            "submitter_id": "Test_aliquot_3"
+            "submitter_id": "Test_aliquot_4"
         },
-        "submitter_id": "HTWF3DSX3.1.RP-1329.Test_aliquot_3",
+        "submitter_id": "HTWF3DSX3.1.RP-1329.Test_aliquot_4",
         "experiment_name": "This is a test",
         "sequencing_center": "TEST",
         "platform": "Other",
@@ -161,9 +161,9 @@
     {
         "type": "read_group",
         "aliquots": {
-            "submitter_id": "Test_aliquot_3"
+            "submitter_id": "Test_aliquot_4"
         },
-        "submitter_id": "HTY33DSX3.1.RP-1329.Test_aliquot_3",
+        "submitter_id": "HTY33DSX3.1.RP-1329.Test_aliquot_4",
         "experiment_name": "This is a test",
         "sequencing_center": "TEST",
         "platform": "Other",
