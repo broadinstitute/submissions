@@ -1,4 +1,4 @@
-task CreateSampleMetadataLoadFile {
+task CreateTableLoadFile {
     input {
         # values to update to data model
         String uuid
@@ -15,7 +15,6 @@ task CreateSampleMetadataLoadFile {
     }
 
     command {
-        
         # write header to file
         echo -e "entity:sample_id\tfile_state\tstate\tregistration_status\tuuid" \
         > sample_metadata.tsv
@@ -51,11 +50,9 @@ task UpsertMetadataToDataModel {
     }
 
     command {
-
         python3 /src/scripts/batch_upsert_entities.py -w ~{workspace_name} \
                                                       -p ~{workspace_project} \
                                                       -f ~{tsv}
-
     }
 
     runtime {
