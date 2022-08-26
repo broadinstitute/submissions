@@ -7,13 +7,20 @@ task CreateSampleMetadataLoadFile {
         String registration_status
     }
 
+    parameter_meta {
+        uuid: "The UUID/sra_id value returned from GDC at the finish of submitMetadataGDC."
+        file_state: "State of file from transferBamFile."
+        state: "State of file from transferBamFile."
+        registration_status: "Registration status returned from verifyRegistration."
+    }
+
     command {
         
         # write header to file
         echo -e "entity:sample_id\tfile_state\tstate\tregistration_status\tuuid" \
         > sample_metadata.tsv
 
-        # write file paths to row in tsv file
+        # write metadata values to row in tsv file
         echo -e "~{file_state}\t~{state}\t~{registration_status}\t~{uuid}" \
         >> sample_metadata.tsv
     }
@@ -37,11 +44,17 @@ task UpsertMetadataToDataModel {
         File   tsv
     }
 
+    parameter_meta {
+        workspace_name: "Name of the workspace to which WDL should push the additional sample metadata."
+        workspace_project: "Namespace/project of workspace to which WDL should push the additional sample metadata."
+        tsv: "Load tsv file formatted in the Terra required format to update the sample table."
+    }
+
     command {
 
-        python3 /scripts/batch_upsert_entities.py -w ~{workspace_name} \
-                                                  -p ~{workspace_project} \
-                                                  -f ~{tsv}
+        python3 /src/scripts/batch_upsert_entities.py -w ~{workspace_name} \
+                                                      -p ~{workspace_project} \
+                                                      -f ~{tsv}
 
     }
 
