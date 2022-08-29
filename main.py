@@ -3,7 +3,7 @@ import getopt
 import argparse
 import json
 from src import access
-from src import submit, getEntity
+from src import submit, getEntity, readMetadata
 import time
 
 #### TODO - Need to add BETTER error handling for the whole application ### 
@@ -95,15 +95,15 @@ def verifyRegistration(inputData):
         return False
 
 def validateFileStatus(inputData):
+    response = None
     gdcCallCounter = 0
     validResponse = False
-    response = None
+    data = readMetadata(inputData)
 
     while gdcCallCounter < 10 and not validResponse:
         print(f"{gdcCallCounter}th iteration of loop when trying to validate sample in GDC")
 
-        # submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
-        submitterId = "Test_aligned_4"
+        submitterId = f"{inputData['alias_value']}.{data['data_type']}.{data['aggregation_project']}"
         response = getEntity("validate", inputData['program'], inputData['project'], submitterId, inputData['token'])
         response = json.loads(response.text)
 
