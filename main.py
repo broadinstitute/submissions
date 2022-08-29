@@ -57,10 +57,11 @@ def submitMetadata(inputData):
 def getCommandLineInput(argv):
     inputData = {}
     longOptions = [
-        'program',
-        'project',
+        'program=',
+        'project=',
         'token=',
         'metadata=',
+        'alias_value=',
         "step="
     ]
     opts, args = getopt.getopt(argv, '', longOptions)
@@ -78,13 +79,13 @@ def verifyRegistration(inputData):
     f = open("/cromwell_root/isValid.txt", 'w')
 
     if response['data'] and response['data']['aliquot'] and len(response['data']['aliquot']) > 0:
-        f.write("isValid")
+        f.write("Registered")
         f.close()
         print("Done writing UUID to file")  
         
         return True
     else:
-        f.write("Not valid")
+        f.write("Not Registered")
         f.close()
         print("Not a valid response from GDC")
 
