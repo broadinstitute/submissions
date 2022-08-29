@@ -57,12 +57,10 @@ def submitMetadata(inputData):
 def getCommandLineInput(argv):
     inputData = {}
     longOptions = [
-        'program=',
-        'project=',
-        'agg_project=',
-        'alias_value=',
-        'data_type=',
+        'program',
+        'project',
         'token=',
+        'metadata=',
         "step="
     ]
     opts, args = getopt.getopt(argv, '', longOptions)
@@ -81,15 +79,16 @@ def verifyRegistration(inputData):
 
     if response['data'] and response['data']['aliquot'] and len(response['data']['aliquot']) > 0:
         f.write("isValid")
+        f.close()
+        print("Done writing UUID to file")  
         
         return True
     else:
         f.write("Not valid")
+        f.close()
+        print("Not a valid response from GDC")
 
         return False
-
-    f.close()
-    print("Done writing UUID to file")
 
 def validateFileStatus(inputData):
     gdcCallCounter = 0
