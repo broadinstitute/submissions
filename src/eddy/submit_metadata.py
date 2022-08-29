@@ -41,7 +41,8 @@ def submit(input):
         print("Error", e)
 
 def createMetadata(inputData):
-    submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
+    data = readMetadata(inputData)
+    submitterId = f"{data['sample_alias']}.{data['data_type']}.{data['aggregation_project']}"
     dataTypeToExperimentalStrategy = {
         "WGS": "WGS",
         "Exome": "WXS",
@@ -49,23 +50,43 @@ def createMetadata(inputData):
         "Custom_Selection": "Targeted Sequencing"
     }
 
+    print("this is the data", data)
     metadata = {
         "file_name": f"{submitterId}.bam",
         "submitter_id": submitterId,
         "data_category": "Sequencing Reads",
         "type": "submitted_aligned_reads",
-        "file_size": inputData['bam_filesize'],
+        "file_size": data['file_size'],
         "data_type": "Aligned Reads",
-        "experimental_strategy": dataTypeToExperimentalStrategy[inputData['data_type']],
+        "experimental_strategy": dataTypeToExperimentalStrategy[data['data_type']],
         "data_format": "BAM",
         "project_id": f"{inputData['program']}-{inputData['project']}",
-        "md5sum": inputData['bam_md5'],
+        "md5sum": data['md5'],
         "proc_internal": "dna-seq skip",
-        "read_groups": findReadGroups()
+        "read_groups": getSubmitterIdForReadGroups(data)
     }
 
-def findReadGroups(inputData):
-    data = json.load(inputData[''])
+    print("metadata after", metadata)
+
+    return metadata
+
+def readMetadata(inputData):
+    with open(inputData['metadata'], 'r') as my_file:
+        return json.load(my_file)['samples'][0] # TODO - Need to be more defensive here
+
+    print("Error when trying to parse the input Metadata file")
+
+def getSubmitterIdForReadGroups(data):
+    submitterIds = []
+    submitterIdConstant = f"{data['aggregation_project']}.{data['sample_alias']}"
+
+    for readGroup in data['read_groups']:
+        submitterIds.append({
+            "submitter_id": f"{readGroup['flow_cell_barcode']}.{readGroup['lane_number']}.{submitterIdConstant}"
+        })
+
+    return submitterIds
+
 def getEntity(queryType, program, project, submitterId, token):
     query = ""
 
@@ -111,7 +132,7 @@ def getHeaders(input):
 # Run this function if you would like to see all entity schemas in GDC
 def getGdcShemas():
     response = requests.get(f'{endpoint}/template/submitted_aligned_reads?format=json')
-    print("sample response", response.text)
+
     f = open('src/resources/sample_template.json', 'w')
     f.write(response.text)
     f.close()
