@@ -47,9 +47,9 @@ workflow TransferToGdc {
 
   call validateFileStatus {
     input:
-      program = program
-      project = project
-      metadata = metadata
+      program = program,
+      project = project,
+      metadata = metadata,
       gdc_token = token_value
   }
 
