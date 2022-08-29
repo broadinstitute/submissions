@@ -14,16 +14,16 @@ workflow TransferToGdc {
 
   call verifyGDCRegistration {
     input:
-      program = program
-      project = project
+      program = program,
+      project = project,
       gdc_token = token_value
   }
 
   call submitMetadataToGDC {
     input:
-      program = program
-      project = project
-      metadata = metadata
+      program = program,
+      project = project,
+      metadata = metadata,
       gdc_token = token_value
   }
 
