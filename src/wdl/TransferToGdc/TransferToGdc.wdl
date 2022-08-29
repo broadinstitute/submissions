@@ -133,6 +133,8 @@ task TransferBamToGdc {
 
 task submitMetadataToGDC {
     input {
+        String program
+        String project
         File metadata
         String gdc_token
     }
