@@ -67,8 +67,11 @@ def getCommandLineInput(argv):
     opts, args = getopt.getopt(argv, '', longOptions)
 
     for opt, arg in opts:
+        # print("opt", opt)
+        # print("arg", arg)
         inputData[str(opt).replace("-", "")] = arg
 
+    print("input data", inputData)
     return inputData
 
 # Calls GDC to check if the sample is registered
