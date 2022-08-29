@@ -11,13 +11,12 @@ def submit(input):
     # linkSampleAndAliqout(url, input)
 
     # TODO - Need to set up seperate environments because the path is different on VM
-    file = open('/src/resources/metadataUpdated.json')
-    data = json.load(file)
+    # file = open('/src/resources/metadataUpdated.json')
+    # data = json.load(file)
+    data = createMetadata(input)
 
     print("Submit METADATA to GDC dry_run endpoint for PROGRAM PROJECT.")
     try:
-        # These are simply helper functions.
-
         dryRunResponse = requests.put(f'{url}/_dry_run',
             data = json.dumps(data),
             headers = getHeaders(input)
@@ -41,6 +40,32 @@ def submit(input):
     except Exception as e:
         print("Error", e)
 
+def createMetadata(inputData):
+    submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
+    dataTypeToExperimentalStrategy = {
+        "WGS": "WGS",
+        "Exome": "WXS",
+        "RNA": "RNA-Seq",
+        "Custom_Selection": "Targeted Sequencing"
+    }
+
+    metadata = {
+        "file_name": f"{submitterId}.bam",
+        "submitter_id": submitterId,
+        "data_category": "Sequencing Reads",
+        "type": "submitted_aligned_reads",
+        "file_size": inputData['bam_filesize'],
+        "data_type": "Aligned Reads",
+        "experimental_strategy": dataTypeToExperimentalStrategy[inputData['data_type']],
+        "data_format": "BAM",
+        "project_id": f"{inputData['program']}-{inputData['project']}",
+        "md5sum": inputData['bam_md5'],
+        "proc_internal": "dna-seq skip",
+        "read_groups": findReadGroups()
+    }
+
+def findReadGroups(inputData):
+    data = json.load(inputData[''])
 def getEntity(queryType, program, project, submitterId, token):
     query = ""
 
@@ -78,9 +103,6 @@ def linkSampleAndAliqout(url, input):
     print("response for creating links", response.text)
     
 def getHeaders(input):
-    # fileToken = open('tokens/gdc-token.txt')
-    # token = fileToken.read()
-
     return {
         "Content-Type": "application/json",
         "X-Auth-Token": input['token']
