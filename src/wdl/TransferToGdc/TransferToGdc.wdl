@@ -189,7 +189,7 @@ task validateFileStatus {
         String program
         String project
         File metadata
-        String gdc_token,
+        String gdc_token
         File transfer_log
     }
 
