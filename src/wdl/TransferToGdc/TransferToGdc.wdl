@@ -105,7 +105,7 @@ task TransferBamToGdc {
 
   command {
     set -e
-    gsutil ~{bam_file} ./~{bam_name}
+    gsutil ~{bam_path} ./~{bam_name}
     ls /cromwell_root
 
     if ~{dry_run}; then
