@@ -101,7 +101,7 @@ task TransferBamToGdc {
     Boolean dry_run
   }
 
-  Int disk_size = ceil(size(bam_file, "GiB") * 1.5)
+  Int disk_size = ceil(size(bam_path, "GiB") * 1.5)
 
   command {
     set -e
@@ -110,7 +110,7 @@ task TransferBamToGdc {
 
     if ~{dry_run}; then
       echo "This was a dry run of uploading to GDC" > gdc_transfer.log
-      echo "BAM_FILE=~{bam_file}" >> gdc_transfer.log
+      echo "BAM_FILE=~{bam_path}" >> gdc_transfer.log
       echo "MANIFEST=~{manifest}" >> gdc_transfer.log
     else
       gdc-client --version
