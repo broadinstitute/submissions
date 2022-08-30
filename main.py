@@ -106,7 +106,7 @@ def validateFileStatus(inputData):
     while gdcCallCounter < 10 and not validResponse:
         print(f"{gdcCallCounter}th iteration of loop when trying to validate sample in GDC")
 
-        submitterId = f"{inputData['alias_value']}.{data['data_type']}.{data['aggregation_project']}"
+        submitterId = f"{data['alias_value']}.{data['data_type']}.{data['aggregation_project']}"
         response = getEntity("validate", inputData['program'], inputData['project'], submitterId, inputData['token'])
         response = json.loads(response.text)
 
