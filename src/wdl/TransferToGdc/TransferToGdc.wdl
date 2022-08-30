@@ -2,7 +2,6 @@ version 1.0
 
 workflow TransferToGdc {
   input {
-    File bam_file
     File metadata
     File gdc_token
     String program
@@ -38,8 +37,8 @@ workflow TransferToGdc {
 
   call TransferBamToGdc {
     input:
-      bam_file = bam_file,
-      gdc_bam_file_name = gdc_bam_file_name,
+      bam_file = submitMetadataToGDC.bam_path,
+      gdc_bam_file_name = submitMetadataToGDC.bam_name,
       manifest = RetrieveGdcManifest.manifest,
       gdc_token = gdc_token,
       dry_run = dry_run
@@ -95,8 +94,8 @@ task RetrieveGdcManifest {
 task TransferBamToGdc {
 
   input {
-    File bam_file
-    String gdc_bam_file_name
+    String bam_path
+    String bam_name
     File manifest
     File gdc_token
     Boolean dry_run
@@ -106,7 +105,7 @@ task TransferBamToGdc {
 
   command {
     set -e
-    mv ~{bam_file} ./~{gdc_bam_file_name}
+    gsutil ~{bam_file} ./~{bam_name}
     ls /cromwell_root
 
     if ~{dry_run}; then
@@ -153,6 +152,8 @@ task submitMetadataToGDC {
 
     output {
         String UUID = read_lines("UUID.txt")[0]
+        String bam_path = read_lines("bam.txt)[0]
+        String bam_name = read_lines("bam.txt)[1]
     }
 }
 

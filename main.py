@@ -95,6 +95,9 @@ def verifyRegistration(inputData):
         return False
 
 def validateFileStatus(inputData):
+    """Calls the GDC api 10 times to periodically check the status of the given bam file.
+       Writes the status to a file named fileStatus.txt"""
+
     response = None
     gdcCallCounter = 0
     validResponse = False
