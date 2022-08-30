@@ -4,8 +4,8 @@
         {
             "aggregation_path": "gs://fc-a881fb23-4d34-42ce-90cd-d0dc7e8595a7/test_data/Test_aligned_4.bam",
             "aggregation_project": "RP-1329",
-            "md5": "H6nUgaKKZtdIZxayKpSo9A==",
-            "file_size": 565.41,
+            "md5": "5159d744f9d087dc13ffef988adf1e33",
+            "file_size": 383751452100,
             "data_type": "WGS",
             "sample_alias": "CTSP-B6L9-TTP1-A-1-0-D-A91P-36",
             "version": 1,

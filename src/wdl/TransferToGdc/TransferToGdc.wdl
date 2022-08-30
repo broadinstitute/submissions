@@ -101,11 +101,12 @@ task TransferBamToGdc {
     Boolean dry_run
   }
 
-  Int disk_size = ceil(size(bam_path, "GiB") * 1.5)
+  File bam_file = ~{bam_path}
+  Int disk_size = ceil(size(bam_file, "GiB") * 1.5)
 
   command {
     set -e
-    gsutil ~{bam_path} ./~{bam_name}
+    mv ~{bam_file} ./~{bam_name}
     ls /cromwell_root
 
     if ~{dry_run}; then
