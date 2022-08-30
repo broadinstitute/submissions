@@ -49,8 +49,6 @@ def createMetadata(inputData):
         "RNA": "RNA-Seq",
         "Custom_Selection": "Targeted Sequencing"
     }
-
-    print("this is the data", data)
     metadata = {
         "file_name": f"{submitterId}.bam",
         "submitter_id": submitterId,
@@ -65,15 +63,21 @@ def createMetadata(inputData):
         "proc_internal": "dna-seq skip",
         "read_groups": getSubmitterIdForReadGroups(data)
     }
-
-    print("metadata after", metadata)
+    # Need to write bam name and bam file to a file so we can access it in the wdl. Talk to Sushma!
+    writeBamDataToFile(data)
 
     return metadata
+
+def writeBamDataToFile(data):
+    bamFileName = data['aggregation_path'].split('/')[-1]
+    f = open("/cromwell_root/bam.txt", 'w')
+    f.write(f"{data['aggregation_path']}\n{bamFileName}")
+    f.close()
 
 def readMetadata(inputData):
     with open(inputData['metadata'], 'r') as my_file:
         return json.load(my_file)['samples'][0] # TODO - Need to be more defensive here
-
+        
     print("Error when trying to parse the input Metadata file")
 
 def getSubmitterIdForReadGroups(data):
