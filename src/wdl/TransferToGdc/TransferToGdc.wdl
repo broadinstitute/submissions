@@ -49,7 +49,8 @@ workflow TransferToGdc {
       program = program,
       project = project,
       metadata = metadata,
-      gdc_token = token_value
+      gdc_token = token_value,
+      transfer_log = TransferBamToGdc.gdc_transfer_log
   }
 
   output {
@@ -188,7 +189,8 @@ task validateFileStatus {
         String program
         String project
         File metadata
-        String gdc_token
+        String gdc_token,
+        File transfer_log
     }
 
     command {
