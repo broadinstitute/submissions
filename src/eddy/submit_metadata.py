@@ -4,21 +4,16 @@ import json
 # Need to figure out a better way to handle the env variables
 endpoint = 'https://api.gdc.cancer.gov/v0/submission'
 
-# Currently this function uses a hardcoded file, however we can expect that this will be passed in
-def submit(input):
-    # getGdcShemas()
-    url = f"{endpoint}/{input['program']}/{input['project']}"
-    # linkSampleAndAliqout(url, input)
+def submit(input, opsMetadata):
+    """Submits the formatted metadata to gdc api"""
 
-    # TODO - Need to set up seperate environments because the path is different on VM
-    # file = open('/src/resources/metadataUpdated.json')
-    # data = json.load(file)
-    data = createMetadata(input)
+    url = f"{endpoint}/{input['program']}/{input['project']}"
+    gdcFormattedMetadata = createMetadata(input, opsMetadata)
 
     print("Submit METADATA to GDC dry_run endpoint for PROGRAM PROJECT.")
     try:
         dryRunResponse = requests.put(f'{url}/_dry_run',
-            data = json.dumps(data),
+            data = json.dumps(gdcFormattedMetadata),
             headers = getHeaders(input)
         )
         print("response for the dry commit", dryRunResponse.text)
@@ -40,9 +35,10 @@ def submit(input):
     except Exception as e:
         print("Error", e)
 
-def createMetadata(inputData):
-    data = readMetadata(inputData)
-    submitterId = f"{data['sample_alias']}.{data['data_type']}.{data['aggregation_project']}"
+def createMetadata(inputData, opsMetadata):
+    """Uses the opsMetadata file to format metadata to be submitted to gdc"""
+
+    submitterId = f"{opsMetadata['sample_alias']}.{opsMetadata['data_type']}.{opsMetadata['aggregation_project']}"
     dataTypeToExperimentalStrategy = {
         "WGS": "WGS",
         "Exome": "WXS",
@@ -54,33 +50,31 @@ def createMetadata(inputData):
         "submitter_id": submitterId,
         "data_category": "Sequencing Reads",
         "type": "submitted_aligned_reads",
-        "file_size": data['file_size'],
+        "file_size": opsMetadata['file_size'],
         "data_type": "Aligned Reads",
-        "experimental_strategy": dataTypeToExperimentalStrategy[data['data_type']],
+        "experimental_strategy": dataTypeToExperimentalStrategy[opsMetadata['data_type']],
         "data_format": "BAM",
         "project_id": f"{inputData['program']}-{inputData['project']}",
-        "md5sum": data['md5'],
+        "md5sum": opsMetadata['md5'],
         "proc_internal": "dna-seq skip",
-        "read_groups": getSubmitterIdForReadGroups(data)
+        "read_groups": getSubmitterIdForReadGroups(opsMetadata)
     }
     # Need to write bam name and bam file to a file so we can access it in the wdl. Talk to Sushma!
-    writeBamDataToFile(data)
+    # writeBamDataToFile(opsMetadata)
 
     return metadata
 
 def writeBamDataToFile(data):
+    """Extracts bam path and bam name and writes to a file named bam.txt"""
+
     bamFileName = data['aggregation_path'].split('/')[-1]
     f = open("/cromwell_root/bam.txt", 'w')
     f.write(f"{data['aggregation_path']}\n{bamFileName}")
     f.close()
 
-def readMetadata(inputData):
-    with open(inputData['metadata'], 'r') as my_file:
-        return json.load(my_file)['samples'][0] # TODO - Need to be more defensive here
-        
-    print("Error when trying to parse the input Metadata file")
-
 def getSubmitterIdForReadGroups(data):
+    """Extracts all submitterIds for each read_group inside of sample_metadata"""
+
     submitterIds = []
     submitterIdConstant = f"{data['aggregation_project']}.{data['sample_alias']}"
 
@@ -92,6 +86,8 @@ def getSubmitterIdForReadGroups(data):
     return submitterIds
 
 def getEntity(queryType, program, project, submitterId, token):
+    """Constructs graphql query to hit the gdc api"""
+
     query = ""
 
     if queryType == "sar":
@@ -117,9 +113,10 @@ def getEntity(queryType, program, project, submitterId, token):
     )
 
 def linkSampleAndAliqout(url, input):
+    """Helper function to create entities inside of gdc"""
+
     f = open('src/resources/linkData.json')
     data = json.load(f)
-
     response = requests.put(url,
         data = json.dumps(data),
         headers = getHeaders(input)
@@ -128,15 +125,17 @@ def linkSampleAndAliqout(url, input):
     print("response for creating links", response.text)
     
 def getHeaders(input):
+    """Returns general headers for gdc api call"""
+
     return {
         "Content-Type": "application/json",
         "X-Auth-Token": input['token']
     }
 
-# Run this function if you would like to see all entity schemas in GDC
 def getGdcShemas():
-    response = requests.get(f'{endpoint}/template/submitted_aligned_reads?format=json')
+    """Queries gdc to get specific schema. Replace submitted_aligned_reads with any entity with any gdc entity"""
 
+    response = requests.get(f'{endpoint}/template/submitted_aligned_reads?format=json')
     f = open('src/resources/sample_template.json', 'w')
     f.write(response.text)
     f.close()

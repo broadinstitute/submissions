@@ -11,23 +11,23 @@
         "cases": {
             "submitter_id": "BROAD-TEST4-0001"
         },
-        "submitter_id": "Test_sample_4",
+        "submitter_id": "CTSP-B6L9-TTP1-A-1-0-D-A91P-37-sample",
         "sample_type": "Primary Tumor",
         "tissue_type": "Tumor"
     },
     {
         "type": "aliquot",
         "samples": {
-            "submitter_id": "Test_sample_4"
+            "submitter_id": "CTSP-B6L9-TTP1-A-1-0-D-A91P-37-sample"
         },
-        "submitter_id": "Test_aliquot_4"
+        "submitter_id": "CTSP-B6L9-TTP1-A-1-0-D-A91P-37"
     },
     {
         "type": "read_group",
         "aliquots": {
-            "submitter_id": "Test_aliquot_4"
+            "submitter_id": "CTSP-B6L9-TTP1-A-1-0-D-A91P-37"
         },
-        "submitter_id": "HTW25DSX3.1.RP-1329.Test_aliquot_4",
+        "submitter_id": "HV322DSX3.1.RP-1329.CTSP-B6L9-TTP1-A-1-0-D-A91P-37",
         "experiment_name": "This is a test",
         "sequencing_center": "TEST",
         "platform": "Other",
@@ -37,142 +37,6 @@
         "is_paired_end": true,
         "read_length": 151,
         "read_group_name": "TEST1",
-        "target_capture_kit": "Unknown"
-    },
-    {
-        "type": "read_group",
-        "aliquots": {
-            "submitter_id": "Test_aliquot_4"
-        },
-        "submitter_id": "HTY2GDSX3.1.RP-1329.Test_aliquot_4",
-        "experiment_name": "This is a test",
-        "sequencing_center": "TEST",
-        "platform": "Other",
-        "library_selection": "Other",
-        "library_strategy": "WGS",
-        "library_name": "TEST",
-        "is_paired_end": true,
-        "read_length": 151,
-        "read_group_name": "TEST2",
-        "target_capture_kit": "Unknown"
-    },
-    {
-        "type": "read_group",
-        "aliquots": {
-            "submitter_id": "Test_aliquot_4"
-        },
-        "submitter_id": "HTWFLDSX3.1.RP-1329.Test_aliquot_4",
-        "experiment_name": "This is a test",
-        "sequencing_center": "TEST",
-        "platform": "Other",
-        "library_selection": "Other",
-        "library_strategy": "WGS",
-        "library_name": "TEST",
-        "is_paired_end": true,
-        "read_length": 151,
-        "read_group_name": "TEST3",
-        "target_capture_kit": "Unknown"
-    },
-    {
-        "type": "read_group",
-        "aliquots": {
-            "submitter_id": "Test_aliquot_4"
-        },
-        "submitter_id": "HTYCCDSX3.1.RP-1329.Test_aliquot_4",
-        "experiment_name": "This is a test",
-        "sequencing_center": "TEST",
-        "platform": "Other",
-        "library_selection": "Other",
-        "library_strategy": "WGS",
-        "library_name": "TEST",
-        "is_paired_end": true,
-        "read_length": 151,
-        "read_group_name": "TEST4",
-        "target_capture_kit": "Unknown"
-    },
-    {
-        "type": "read_group",
-        "aliquots": {
-            "submitter_id": "Test_aliquot_4"
-        },
-        "submitter_id": "HTWVCDSX3.1.RP-1329.Test_aliquot_4",
-        "experiment_name": "This is a test",
-        "sequencing_center": "TEST",
-        "platform": "Other",
-        "library_selection": "Other",
-        "library_strategy": "WGS",
-        "library_name": "TEST",
-        "is_paired_end": true,
-        "read_length": 151,
-        "read_group_name": "TEST5",
-        "target_capture_kit": "Unknown"
-    },
-    {
-        "type": "read_group",
-        "aliquots": {
-            "submitter_id": "Test_aliquot_4"
-        },
-        "submitter_id": "HTYF7DSX3.1.RP-1329.Test_aliquot_4",
-        "experiment_name": "This is a test",
-        "sequencing_center": "TEST",
-        "platform": "Other",
-        "library_selection": "Other",
-        "library_strategy": "WGS",
-        "library_name": "TEST",
-        "is_paired_end": true,
-        "read_length": 151,
-        "read_group_name": "TEST6",
-        "target_capture_kit": "Unknown"
-    },
-    {
-        "type": "read_group",
-        "aliquots": {
-            "submitter_id": "Test_aliquot_4"
-        },
-        "submitter_id": "HTWJNDSX3.1.RP-1329.Test_aliquot_4",
-        "experiment_name": "This is a test",
-        "sequencing_center": "TEST",
-        "platform": "Other",
-        "library_selection": "Other",
-        "library_strategy": "WGS",
-        "library_name": "TEST",
-        "is_paired_end": true,
-        "read_length": 151,
-        "read_group_name": "TEST7",
-        "target_capture_kit": "Unknown"
-    },
-    {
-        "type": "read_group",
-        "aliquots": {
-            "submitter_id": "Test_aliquot_4"
-        },
-        "submitter_id": "HTWF3DSX3.1.RP-1329.Test_aliquot_4",
-        "experiment_name": "This is a test",
-        "sequencing_center": "TEST",
-        "platform": "Other",
-        "library_selection": "Other",
-        "library_strategy": "WGS",
-        "library_name": "TEST",
-        "is_paired_end": true,
-        "read_length": 151,
-        "read_group_name": "TEST8",
-        "target_capture_kit": "Unknown"
-    },
-    {
-        "type": "read_group",
-        "aliquots": {
-            "submitter_id": "Test_aliquot_4"
-        },
-        "submitter_id": "HTY33DSX3.1.RP-1329.Test_aliquot_4",
-        "experiment_name": "This is a test",
-        "sequencing_center": "TEST",
-        "platform": "Other",
-        "library_selection": "Other",
-        "library_strategy": "WGS",
-        "library_name": "TEST",
-        "is_paired_end": true,
-        "read_length": 151,
-        "read_group_name": "TEST9",
         "target_capture_kit": "Unknown"
     }
 ]
