@@ -60,7 +60,7 @@ def createMetadata(inputData, opsMetadata):
         "read_groups": getSubmitterIdForReadGroups(opsMetadata)
     }
     # Need to write bam name and bam file to a file so we can access it in the wdl. Talk to Sushma!
-    # writeBamDataToFile(opsMetadata)
+    writeBamDataToFile(opsMetadata)
 
     return metadata
 
