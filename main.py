@@ -3,7 +3,7 @@ import getopt
 import argparse
 import json
 from src import access
-from src import submit, getEntity, readMetadata
+from src import submit, getEntity
 import time
 
 #### TODO - Need to add BETTER error handling for the whole application ### 
@@ -31,14 +31,13 @@ def main(argv):
         print("Input for step not found")
 
 def submitMetadata(inputData):
-    submit(inputData)
+    """Submits the metadata to gdc, then grabs the SAR_id and writes it to the file UUID.txt"""
 
-    # now lets sleep() for a little to ensure that gdc has finished updating the UUID
+    opsMetadata = readMetadata(inputData)
+    submit(inputData, opsMetadata)
     time.sleep(100)
 
-    # now lets grab the submitted-aligned-reads-id *Need to change this back after testing
-    # submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
-    submitterId = "Test_aligned_4"
+    submitterId = f"{opsMetadata['sample_alias']}.{opsMetadata['data_type']}.{opsMetadata['aggregation_project']}"
     response = getEntity("sar", inputData['program'], inputData['project'], submitterId, inputData['token'])
     sarId = json.loads(response.text)
 
@@ -53,8 +52,17 @@ def submitMetadata(inputData):
     else:
         print("Data was not returned from gdc properly")
 
-# Parses the command line input and populates the input dictionary
+def readMetadata(inputData):
+    """Reads the metadata json file"""
+
+    with open(inputData['metadata'], 'r') as my_file:
+        return json.load(my_file)['samples'][0] # TODO - Need to be more defensive here
+        
+    print("Error when trying to parse the input Metadata file")
+
 def getCommandLineInput(argv):
+    """Parses the command line input and populates the input dictionary"""
+
     inputData = {}
     longOptions = [
         'program=',
@@ -74,8 +82,9 @@ def getCommandLineInput(argv):
     print("input data", inputData)
     return inputData
 
-# Calls GDC to check if the sample is registered
 def verifyRegistration(inputData):
+    """Calls GDC to check if the sample is registered. """
+
     response = getEntity("verify", inputData['program'], inputData['project'], inputData['alias_value'], inputData['token'])
     response = json.loads(response.text)
 
@@ -127,7 +136,9 @@ def validateFileStatus(inputData):
         f.write(f"Sample is inside of GDC.\n Current state {response}")
     else:
         f.write("Error when calling GDC")
-        raise RuntimeError("Failed to validate file in GDC")
+        print("Failed to validate file in GDC")
+
+    f.close()
 
 if __name__ == "__main__":
    main(sys.argv[1:])
