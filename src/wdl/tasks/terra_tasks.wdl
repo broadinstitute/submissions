@@ -1,3 +1,5 @@
+version 1.0
+
 task CreateTableLoadFile {
     input {
         # values to update to data model
