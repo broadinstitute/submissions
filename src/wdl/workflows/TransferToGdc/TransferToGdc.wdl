@@ -7,54 +7,50 @@ workflow TransferToGdc {
     String program
     String project
     Boolean dry_run = false
+    Boolean registration_status
   }
 
-  String token_value = (read_lines(gdc_token))[0]
+  if (registration_status) {
+    String token_value = (read_lines(gdc_token))[0]
 
-  call verifyGDCRegistration {
-    input:
-      program = program,
-      project = project,
-      gdc_token = token_value
-  }
+    call submitMetadataToGDC {
+      input:
+        program = program,
+        project = project,
+        metadata = metadata,
+        gdc_token = token_value
+    }
 
-  call submitMetadataToGDC {
-    input:
-      program = program,
-      project = project,
-      metadata = metadata,
-      gdc_token = token_value
-  }
+    call RetrieveGdcManifest {
+      input:
+        program = program,
+        project = project,
+        sar_id = submitMetadataToGDC.UUID,
+        gdc_token = token_value,
+        dry_run = dry_run
+    }
 
-  call RetrieveGdcManifest {
-    input:
-      program = program,
-      project = project,
-      sar_id = submitMetadataToGDC.UUID,
-      gdc_token = token_value,
-      dry_run = dry_run
-  }
+    call TransferBamToGdc {
+      input:
+        bam_path = submitMetadataToGDC.bam_path,
+        bam_name = submitMetadataToGDC.bam_name,
+        manifest = RetrieveGdcManifest.manifest,
+        gdc_token = gdc_token,
+        dry_run = dry_run
+    }
 
-  call TransferBamToGdc {
-    input:
-      bam_path = submitMetadataToGDC.bam_path,
-      bam_name = submitMetadataToGDC.bam_name,
-      manifest = RetrieveGdcManifest.manifest,
-      gdc_token = gdc_token,
-      dry_run = dry_run
-  }
+    call validateFileStatus {
+      input:
+        program = program,
+        project = project,
+        metadata = metadata,
+        gdc_token = token_value,
+        transfer_log = TransferBamToGdc.gdc_transfer_log
+    }
 
-  call validateFileStatus {
-    input:
-      program = program,
-      project = project,
-      metadata = metadata,
-      gdc_token = token_value,
-      transfer_log = TransferBamToGdc.gdc_transfer_log
-  }
-
-  output {
-    File gdc_transfer_log = TransferBamToGdc.gdc_transfer_log
+    output {
+      File gdc_transfer_log = TransferBamToGdc.gdc_transfer_log
+    }
   }
 }
 
@@ -156,31 +152,6 @@ task submitMetadataToGDC {
         String UUID = read_lines("UUID.txt")[0]
         String bam_path = read_lines("bam.txt")[0]
         String bam_name = read_lines("bam.txt")[1]
-    }
-}
-
-task verifyGDCRegistration {
-    input {
-        String program
-        String project
-        String alias_value
-        String gdc_token
-    }
-
-    command {
-        python3 /main.py --program ~{program} \
-                        --project ~{project} \
-                        --alias_value ~{alias_value} \
-                        --step "verify_registration" \
-                        --token ~{gdc_token}
-    }
-
-    runtime {
-        docker: "schaluvadi/horsefish:submissionV1"
-    }
-
-    output {
-        String UUID = read_lines("isValid.txt")[0]
     }
 }
 

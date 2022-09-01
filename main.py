@@ -91,13 +91,13 @@ def verifyRegistration(inputData):
     f = open("/cromwell_root/isValid.txt", 'w')
 
     if response['data'] and response['data']['aliquot'] and len(response['data']['aliquot']) > 0:
-        f.write("Registered")
+        f.write("true")
         f.close()
         print("Done writing UUID to file")  
         
         return True
     else:
-        f.write("Not Registered")
+        f.write("false")
         f.close()
         print("Not a valid response from GDC")
 
