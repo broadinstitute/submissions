@@ -2,7 +2,7 @@ version: 1.2
 workflows:
   - name: transfer
     subclass: WDL
-    primaryDescriptorPath: /src/wdl/TransferToGdc/TransferToGdc.wdl
+    primaryDescriptorPath: /src/wdl/workflows/TransferToGdc/TransferToGdc.wdl
   - name: delete
     subclass: WDL
-    primaryDescriptorPath: /src/wdl/DeleteFromGdc/DeleteFromGdc.wdl
+    primaryDescriptorPath: /src/wdl/workflows/DeleteFromGdc/DeleteFromGdc.wdl
