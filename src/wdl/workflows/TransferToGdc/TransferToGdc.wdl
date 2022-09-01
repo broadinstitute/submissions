@@ -53,20 +53,18 @@ workflow TransferToGdc {
     }
 
     call tasks.CreateTableLoadFile as tsv_file {
-      input {
+      input:
         uuid = submitMetadataToGDC.UUID,
         file_state = validateFileStatus.file_state,
         state = validateFileStatus.state,
         registration_status = registration_status
-      }
     }
 
     call tasks.UpsertMetadataToDataModel {
-      input {
+      input:
         workspace_name = workspace_name
         workspace_project = workspace_project
         tsv = tsv_file.load_tsv
-      }
     }
 
     output {
