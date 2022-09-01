@@ -66,10 +66,6 @@ workflow TransferToGdc {
         workspace_project = workspace_project,
         tsv = tsv_file.load_tsv
     }
-
-    output {
-      File gdc_transfer_log = TransferBamToGdc.gdc_transfer_log
-    }
   }
 }
 
