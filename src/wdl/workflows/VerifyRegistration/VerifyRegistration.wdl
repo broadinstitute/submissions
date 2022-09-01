@@ -39,6 +39,6 @@ task verifyGDCRegistration {
     }
 
     output {
-        Boolean registration_status = read_boolean("isValid.txt")[0]
+        Boolean registration_status = read_boolean("isValid.txt")
     }
 }
