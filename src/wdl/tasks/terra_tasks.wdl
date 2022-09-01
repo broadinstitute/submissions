@@ -27,7 +27,7 @@ task CreateTableLoadFile {
     }
 
     runtime {
-        docker: docker
+        docker: "schaluvadi/horsefish:submissionV1"
     }
 
     output {
@@ -58,7 +58,7 @@ task UpsertMetadataToDataModel {
     }
 
     runtime {
-        docker: docker
+        docker: "schaluvadi/horsefish:submissionV1"
     }
 
     output {
