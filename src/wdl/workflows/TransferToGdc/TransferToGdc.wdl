@@ -1,16 +1,11 @@
 version 1.0
 
 workflow TransferToGdc {
-
   input {
-    File bam_file
-    String gdc_bam_file_name
+    File metadata
+    File gdc_token
     String program
     String project
-    String aggregation_project
-    String alias_value
-    String data_type
-    File gdc_token
     Boolean dry_run = false
   }
 
@@ -20,7 +15,6 @@ workflow TransferToGdc {
     input:
       program = program,
       project = project,
-      alias_value = alias_value,
       gdc_token = token_value
   }
 
@@ -28,9 +22,7 @@ workflow TransferToGdc {
     input:
       program = program,
       project = project,
-      aggregation_project = aggregation_project,
-      alias_value = alias_value,
-      data_type = data_type,
+      metadata = metadata,
       gdc_token = token_value
   }
 
@@ -45,11 +37,20 @@ workflow TransferToGdc {
 
   call TransferBamToGdc {
     input:
-      bam_file = bam_file,
-      gdc_bam_file_name = gdc_bam_file_name,
+      bam_path = submitMetadataToGDC.bam_path,
+      bam_name = submitMetadataToGDC.bam_name,
       manifest = RetrieveGdcManifest.manifest,
       gdc_token = gdc_token,
       dry_run = dry_run
+  }
+
+  call validateFileStatus {
+    input:
+      program = program,
+      project = project,
+      metadata = metadata,
+      gdc_token = token_value,
+      transfer_log = TransferBamToGdc.gdc_transfer_log
   }
 
   output {
@@ -81,7 +82,7 @@ task RetrieveGdcManifest {
 
   runtime {
     memory: "3.75 GB"
-    docker: "us.gcr.io/broad-gotc-prod/eddy:1.1.0-1595358485"
+    docker: "schaluvadi/horsefish:submissionV2GDC"
     cpu: 1
     disks: "local-disk " + 20 + " HDD"
   }
@@ -94,23 +95,24 @@ task RetrieveGdcManifest {
 task TransferBamToGdc {
 
   input {
-    File bam_file
-    String gdc_bam_file_name
+    String bam_path
+    String bam_name
     File manifest
     File gdc_token
     Boolean dry_run
   }
 
+  File bam_file = bam_path
   Int disk_size = ceil(size(bam_file, "GiB") * 1.5)
 
   command {
     set -e
-    mv ~{bam_file} ./~{gdc_bam_file_name}
+    mv ~{bam_file} ./~{bam_name}
     ls /cromwell_root
 
     if ~{dry_run}; then
       echo "This was a dry run of uploading to GDC" > gdc_transfer.log
-      echo "BAM_FILE=~{bam_file}" >> gdc_transfer.log
+      echo "BAM_FILE=~{bam_path}" >> gdc_transfer.log
       echo "MANIFEST=~{manifest}" >> gdc_transfer.log
     else
       gdc-client --version
@@ -120,7 +122,7 @@ task TransferBamToGdc {
 
   runtime {
     memory: "7.5 GB"
-    docker: "us.gcr.io/broad-gotc-prod/eddy:1.1.0-1595358485"
+    docker: "schaluvadi/horsefish:submissionV2GDC"
     cpu: 2
     disks: "local-disk " + disk_size + " HDD"
   }
@@ -134,20 +136,16 @@ task submitMetadataToGDC {
     input {
         String program
         String project
-        String aggregation_project
-        String alias_value
-        String data_type
+        File metadata
         String gdc_token
     }
 
     command {
-        python3 /main.py --program ~{program} \
-                        --project ~{project} \
-                        --agg_project ~{aggregation_project} \
-                        --alias_value ~{alias_value} \
-                        --data_type ~{data_type} \
+        python3 /main.py --metadata ~{metadata} \
                         --step "submit_metadata" \
-                        --token ~{gdc_token}
+                        --token ~{gdc_token} \
+                        --program ~{program} \
+                        --project ~{project}
     }
 
     runtime {
@@ -156,6 +154,8 @@ task submitMetadataToGDC {
 
     output {
         String UUID = read_lines("UUID.txt")[0]
+        String bam_path = read_lines("bam.txt")[0]
+        String bam_name = read_lines("bam.txt")[1]
     }
 }
 
@@ -188,14 +188,15 @@ task validateFileStatus {
     input {
         String program
         String project
-        String alias_value
+        File metadata
         String gdc_token
+        File transfer_log
     }
 
     command {
         python3 /main.py --program ~{program} \
                         --project ~{project} \
-                        --alias_value ~{alias_value} \
+                        --metadata ~{metadata} \
                         --step "validate_status" \
                         --token ~{gdc_token}
     }

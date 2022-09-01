@@ -31,14 +31,13 @@ def main(argv):
         print("Input for step not found")
 
 def submitMetadata(inputData):
-    submit(inputData)
+    """Submits the metadata to gdc, then grabs the SAR_id and writes it to the file UUID.txt"""
 
-    # now lets sleep() for a little to ensure that gdc has finished updating the UUID
+    opsMetadata = readMetadata(inputData)
+    submit(inputData, opsMetadata)
     time.sleep(100)
 
-    # now lets grab the submitted-aligned-reads-id *Need to change this back after testing
-    # submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
-    submitterId = "Test_aligned_4"
+    submitterId = f"{opsMetadata['sample_alias']}.{opsMetadata['data_type']}.{opsMetadata['aggregation_project']}"
     response = getEntity("sar", inputData['program'], inputData['project'], submitterId, inputData['token'])
     sarId = json.loads(response.text)
 
@@ -53,54 +52,70 @@ def submitMetadata(inputData):
     else:
         print("Data was not returned from gdc properly")
 
-# Parses the command line input and populates the input dictionary
+def readMetadata(inputData):
+    """Reads the metadata json file"""
+
+    with open(inputData['metadata'], 'r') as my_file:
+        return json.load(my_file)['samples'][0] # TODO - Need to be more defensive here
+        
+    print("Error when trying to parse the input Metadata file")
+
 def getCommandLineInput(argv):
+    """Parses the command line input and populates the input dictionary"""
+
     inputData = {}
     longOptions = [
         'program=',
         'project=',
-        'agg_project=',
-        'alias_value=',
-        'data_type=',
         'token=',
+        'metadata=',
+        'alias_value=',
         "step="
     ]
     opts, args = getopt.getopt(argv, '', longOptions)
 
     for opt, arg in opts:
+        # print("opt", opt)
+        # print("arg", arg)
         inputData[str(opt).replace("-", "")] = arg
 
+    print("input data", inputData)
     return inputData
 
-# Calls GDC to check if the sample is registered
 def verifyRegistration(inputData):
+    """Calls GDC to check if the sample is registered. """
+
     response = getEntity("verify", inputData['program'], inputData['project'], inputData['alias_value'], inputData['token'])
     response = json.loads(response.text)
 
     f = open("/cromwell_root/isValid.txt", 'w')
 
     if response['data'] and response['data']['aliquot'] and len(response['data']['aliquot']) > 0:
-        f.write("isValid")
+        f.write("Registered")
+        f.close()
+        print("Done writing UUID to file")  
         
         return True
     else:
-        f.write("Not valid")
+        f.write("Not Registered")
+        f.close()
+        print("Not a valid response from GDC")
 
         return False
 
-    f.close()
-    print("Done writing UUID to file")
-
 def validateFileStatus(inputData):
+    """Calls the GDC api 10 times to periodically check the status of the given bam file.
+       Writes the status to a file named fileStatus.txt"""
+
+    response = None
     gdcCallCounter = 0
     validResponse = False
-    response = None
+    data = readMetadata(inputData)
 
     while gdcCallCounter < 10 and not validResponse:
         print(f"{gdcCallCounter}th iteration of loop when trying to validate sample in GDC")
 
-        # submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
-        submitterId = "Test_aligned_4"
+        submitterId = f"{data['sample_alias']}.{data['data_type']}.{data['aggregation_project']}"
         response = getEntity("validate", inputData['program'], inputData['project'], submitterId, inputData['token'])
         response = json.loads(response.text)
 
@@ -121,7 +136,9 @@ def validateFileStatus(inputData):
         f.write(f"Sample is inside of GDC.\n Current state {response}")
     else:
         f.write("Error when calling GDC")
-        raise RuntimeError("Failed to validate file in GDC")
+        print("Failed to validate file in GDC")
+
+    f.close()
 
 if __name__ == "__main__":
    main(sys.argv[1:])
