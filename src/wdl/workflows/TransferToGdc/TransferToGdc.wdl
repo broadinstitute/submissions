@@ -1,6 +1,6 @@
 version 1.0
 
-import "submissions/src/wdl/tasks/terra_tasks.wdl" as tasks
+import "../../tasks/terra_tasks.wdl" as tasks
 
 workflow TransferToGdc {
   input {
