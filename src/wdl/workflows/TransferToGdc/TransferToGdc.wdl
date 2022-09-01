@@ -1,5 +1,7 @@
 version 1.0
 
+import "../tasks/terra_tasks.wdl" as tasks
+
 workflow TransferToGdc {
   input {
     File metadata
@@ -8,6 +10,8 @@ workflow TransferToGdc {
     String project
     Boolean dry_run = false
     Boolean registration_status
+    String workspace_name
+    String workspace_project
   }
 
   if (registration_status) {
@@ -46,6 +50,23 @@ workflow TransferToGdc {
         metadata = metadata,
         gdc_token = token_value,
         transfer_log = TransferBamToGdc.gdc_transfer_log
+    }
+
+    call tasks.CreateTableLoadFile as tsv_file {
+      input {
+        uuid = submitMetadataToGDC.UUID,
+        file_state = validateFileStatus.file_state,
+        state = validateFileStatus.state,
+        registration_status = registration_status
+      }
+    }
+
+    call tasks.UpsertMetadataToDataModel {
+      input {
+        workspace_name = workspace_name
+        workspace_project = workspace_project
+        tsv = tsv_file.load_tsv
+      }
     }
 
     output {
@@ -177,6 +198,7 @@ task validateFileStatus {
     }
 
     output {
-        String UUID = read_lines("fileStatus.txt")[0]
+        String state = read_lines("fileStatus.txt")[0]
+        String file_state = read_lines("fileStatus.txt")[1]
     }
 }
