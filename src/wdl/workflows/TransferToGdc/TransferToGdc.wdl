@@ -62,8 +62,8 @@ workflow TransferToGdc {
 
     call tasks.UpsertMetadataToDataModel {
       input:
-        workspace_name = workspace_name
-        workspace_project = workspace_project
+        workspace_name = workspace_name,
+        workspace_project = workspace_project,
         tsv = tsv_file.load_tsv
     }
 
