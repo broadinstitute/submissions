@@ -16,6 +16,10 @@ workflow VerifyRegistration {
       project = project,
       gdc_token = token_value
   }
+
+  output {
+    Boolean registration_status = verifyGDCRegistration.registration_status
+  }
 }
 
 task verifyGDCRegistration {
