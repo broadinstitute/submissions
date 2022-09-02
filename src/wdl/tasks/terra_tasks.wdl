@@ -54,7 +54,7 @@ task UpsertMetadataToDataModel {
     command {
         python3 /src/scripts/batch_upsert_entities.py -w ~{workspace_name} \
                                                       -p ~{workspace_project} \
-                                                      -f ~{tsv}
+                                                      -t ~{tsv}
     }
 
     runtime {
