@@ -54,6 +54,7 @@ workflow TransferToGdc {
 
     call tasks.CreateTableLoadFile as tsv_file {
       input:
+        sample_id = sample_id,
         uuid = submitMetadataToGDC.UUID,
         file_state = validateFileStatus.file_state,
         state = validateFileStatus.state,
