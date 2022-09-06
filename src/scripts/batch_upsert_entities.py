@@ -87,7 +87,8 @@ def create_upsert_request(tsv, array_attr_cols=None):
     tsv = pandas.read_csv(tsv, sep='\t')
     # check tsv format: data model load tsv requirement "entity:table_name_id" or "membership:table_name_id" -> else exit
     entity_type_col_name = tsv.columns[0]
-    entity_type = "sample"  # entity_name
+    entity_type = entity_type_col_name.split(":")[1].split("_")[0]  # entity_name
+    print("entitiy type", entity_type)
     # initiate string to capture all operation requests for all rows (entities) in given tsv file
     all_entities_request = []
 
