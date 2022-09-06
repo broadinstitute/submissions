@@ -34,6 +34,7 @@ def submitMetadata(inputData):
     """Submits the metadata to gdc, then grabs the SAR_id and writes it to the file UUID.txt"""
 
     opsMetadata = readMetadata(inputData)
+    verifySubmitInput(opsMetadata)
     submit(inputData, opsMetadata)
     time.sleep(100)
 
@@ -52,12 +53,33 @@ def submitMetadata(inputData):
     else:
         print("Data was not returned from gdc properly")
 
+def verifySubmitInput(opsMetadata):
+    """Validates the input for the opsMetadata file"""
+
+    # Basic input info
+    if 'sample_alias' not in opsMetadata:
+        print("Metadata file is missing sample_alias")
+    if 'data_type' not in opsMetadata:
+        print("Metadata file is missing data_type")
+    if 'aggregation_project' not in opsMetadata:
+        print("Metadata file is missing aggregation_project")
+
+    # Submitter file info
+    if 'file_size' not in opsMetadata:
+        print("Metadata file is missing file_size")
+    if 'md5' not in opsMetadata:
+        print("Metadata file is missing md5")
+
+    # Read Group info
+    if 'read_groups' not in opsMetadata:
+        print("Metadata file is missing read_groups")
+
 def readMetadata(inputData):
     """Reads the metadata json file"""
 
     with open(inputData['metadata'], 'r') as my_file:
         return json.load(my_file)['samples'][0] # TODO - Need to be more defensive here
-        
+
     print("Error when trying to parse the input Metadata file")
 
 def getCommandLineInput(argv):
