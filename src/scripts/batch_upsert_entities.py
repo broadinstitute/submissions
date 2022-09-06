@@ -87,7 +87,7 @@ def create_upsert_request(tsv, array_attr_cols=None):
     tsv = pandas.read_csv(tsv, sep='\t')
     # check tsv format: data model load tsv requirement "entity:table_name_id" or "membership:table_name_id" -> else exit
     entity_type_col_name = tsv.columns[0]
-    entity_type = entity_type_col_name.split(":")[1]  # entity_name
+    entity_type = "sample"  # entity_name
     # initiate string to capture all operation requests for all rows (entities) in given tsv file
     all_entities_request = []
 
@@ -103,8 +103,6 @@ def create_upsert_request(tsv, array_attr_cols=None):
 
     # for every row (entity) in df
     for index, row in tsv.iterrows():
-        print("index", index)
-        print("row", row)
         # initialize string to capture request for one row (entity) in tsv
         single_entity_operations = ''''''
         # get the entity_id (row id - must be unique)
@@ -127,7 +125,6 @@ def create_upsert_request(tsv, array_attr_cols=None):
             single_attr_cols = list(set(list(tsv.columns)) - set(array_attr_cols))
         # if no array columns/attributes provided
         else:
-            print("columns", list(tsv.columns))
             single_attr_cols = list(tsv.columns)
 
         # if there are non-array/list attribute columns - cases where all columns are arrays, single_attr_cols would be empty
@@ -162,8 +159,6 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--tsv', required=True, help='.tsv file formatted in load format to Terra UI')
 
     args = parser.parse_args()
-
-    print("args", args.tsv)
     # create request body for batchUpsert
     request = create_upsert_request(args.tsv)
     # call batchUpsert API (rawls)
