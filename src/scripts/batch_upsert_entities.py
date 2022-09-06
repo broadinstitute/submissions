@@ -84,18 +84,27 @@ def create_single_entity_request(var_entity_id, var_entity_type, single_entity_o
 def create_upsert_request(tsv, array_attr_cols=None):
     """Generate the request body for batchUpsert API."""
 
-    tsv = pandas.read_csv(tsv)
-    print("tsv", tsv)
+    tsv = pandas.read_csv(tsv, sep='\t')
     # check tsv format: data model load tsv requirement "entity:table_name_id" or "membership:table_name_id" -> else exit
     entity_type_col_name = tsv.columns[0]
-    print("entity", entity_type_col_name)                  # entity:entity_name_id
-    # entity_type = entity_type_col_name.rsplit("_", 1)[0].split(":")[1]  # entity_name
-    entity_type = tsv.columns[0]
+    entity_type = entity_type_col_name.split(":")[1]  # entity_name
     # initiate string to capture all operation requests for all rows (entities) in given tsv file
     all_entities_request = []
 
+    if not entity_type_col_name.startswith(("entity:", "membership:")):
+        print("Invalid tsv. The .tsv does not start with column entity:[table_name]_id or membership:[table_name]_id. Please correct and try again.")
+        return
+
+    # replace the "entity:col_name_id" with just "col_name" in df
+    # if not replaced, "attributeName" in the template_make_single_attr becomes "entity:entity_name_id" instead of just entity_name
+    # when the API request is made, its read as multiple columns with the "entity" prefix which is illegal
+    # this is specific just to the first column where the format is required for terra load tsv files
+    tsv.rename(columns={entity_type_col_name: entity_type}, inplace=True)
+
     # for every row (entity) in df
     for index, row in tsv.iterrows():
+        print("index", index)
+        print("row", row)
         # initialize string to capture request for one row (entity) in tsv
         single_entity_operations = ''''''
         # get the entity_id (row id - must be unique)
@@ -118,6 +127,7 @@ def create_upsert_request(tsv, array_attr_cols=None):
             single_attr_cols = list(set(list(tsv.columns)) - set(array_attr_cols))
         # if no array columns/attributes provided
         else:
+            print("columns", list(tsv.columns))
             single_attr_cols = list(tsv.columns)
 
         # if there are non-array/list attribute columns - cases where all columns are arrays, single_attr_cols would be empty
