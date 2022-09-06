@@ -3,6 +3,7 @@ version 1.0
 task CreateTableLoadFile {
     input {
         # values to update to data model
+        String sample_id
         String uuid
         String file_state
         String state 
@@ -22,7 +23,7 @@ task CreateTableLoadFile {
         > sample_metadata.tsv
 
         # write metadata values to row in tsv file
-        echo -e "~{file_state}\t~{state}\t~{registration_status}\t~{uuid}" \
+        echo -e "~{sample_id}\t~{file_state}\t~{state}\t~{registration_status}\t~{uuid}" \
         >> sample_metadata.tsv
     }
 

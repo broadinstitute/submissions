@@ -22,6 +22,7 @@ def call_rawls_batch_upsert(workspace_name, project, request):
     # rawls request URL for batchUpsert
     uri = f"https://rawls.dsde-prod.broadinstitute.org/api/workspaces/{project}/{workspace_name}/entities/batchUpsert"
 
+    print("this is the request", request)
     # Get access token and and add to headers for requests.
     # -H  "accept: */*" -H  "Authorization: Bearer [token] -H "Content-Type: application/json"
     headers = {"Authorization": "Bearer " + get_access_token(), "accept": "*/*", "Content-Type": "application/json"}
