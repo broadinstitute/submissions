@@ -1,6 +1,2 @@
-Sepal length	Sepal width	Petal length	Petal width	Species
-5.1	3.5	1.4	0.2	I. setosa
-4.9	3.0	1.4	0.2	I. setosa
-4.7	3.2	1.3	0.2	I. setosa
-4.6	3.1	1.5	0.2	I. setosa
-5.0	3.6	1.4	0.2	I. setosa
+entity:sample_id	file_state	state	registration_status	uuid
+CTSP-B6L9-TTP1-A-1-0-D-A91P-37	uploaded	validated	TRUE	5320f868-7a6b-4543-873e-a26761ab7890
