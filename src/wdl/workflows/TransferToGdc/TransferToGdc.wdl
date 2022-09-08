@@ -4,15 +4,17 @@ import "../../tasks/terra_tasks.wdl" as tasks
 
 workflow TransferToGdc {
   input {
-    String sample_id
-    File metadata
-    File gdc_token
-    String program
-    String project
+    String  sample_id
+    File    metadata
+    File    gdc_token
+    String  program
+    String  project
     Boolean dry_run = false
     Boolean registration_status
-    String workspace_name
-    String workspace_project
+    String  workspace_name
+    String  workspace_project
+
+    File?   monitoring_script
   }
 
   if (registration_status) {
@@ -20,53 +22,54 @@ workflow TransferToGdc {
 
     call submitMetadataToGDC {
       input:
-        program = program,
-        project = project,
-        metadata = metadata,
+        program   = program,
+        project   = project,
+        metadata  = metadata,
         gdc_token = token_value
     }
 
     call RetrieveGdcManifest {
       input:
-        program = program,
-        project = project,
-        sar_id = submitMetadataToGDC.UUID,
+        program   = program,
+        project   = project,
+        sar_id    = submitMetadataToGDC.UUID,
         gdc_token = token_value,
-        dry_run = dry_run
+        dry_run   = dry_run
     }
 
     call TransferBamToGdc {
       input:
-        bam_path = submitMetadataToGDC.bam_path,
-        bam_name = submitMetadataToGDC.bam_name,
-        manifest = RetrieveGdcManifest.manifest,
-        gdc_token = gdc_token,
-        dry_run = dry_run
+        bam_path          = submitMetadataToGDC.bam_path,
+        bam_name          = submitMetadataToGDC.bam_name,
+        manifest          = RetrieveGdcManifest.manifest,
+        gdc_token         = gdc_token,
+        dry_run           = dry_run,
+        monitoring_script = monitoring_script
     }
 
     call validateFileStatus {
       input:
-        program = program,
-        project = project,
-        metadata = metadata,
-        gdc_token = token_value,
+        program      = program,
+        project      = project,
+        metadata     = metadata,
+        gdc_token    = token_value,
         transfer_log = TransferBamToGdc.gdc_transfer_log
     }
 
     call tasks.CreateTableLoadFile as tsv_file {
       input:
-        sample_id = sample_id,
-        uuid = submitMetadataToGDC.UUID,
-        file_state = validateFileStatus.file_state,
-        state = validateFileStatus.state,
+        sample_id           = sample_id,
+        uuid                = submitMetadataToGDC.UUID,
+        file_state          = validateFileStatus.file_state,
+        state               = validateFileStatus.state,
         registration_status = registration_status
     }
 
     call tasks.UpsertMetadataToDataModel {
       input:
-        workspace_name = workspace_name,
+        workspace_name    = workspace_name,
         workspace_project = workspace_project,
-        tsv = tsv_file.load_tsv
+        tsv               = tsv_file.load_tsv
     }
   }
 }
@@ -74,10 +77,10 @@ workflow TransferToGdc {
 task RetrieveGdcManifest {
 
   input {
-    String program
-    String project
-    String sar_id
-    String gdc_token
+    String  program
+    String  project
+    String  sar_id
+    String  gdc_token
     Boolean dry_run
   }
 
@@ -108,11 +111,12 @@ task RetrieveGdcManifest {
 task TransferBamToGdc {
 
   input {
-    String bam_path
-    String bam_name
-    File manifest
-    File gdc_token
+    String  bam_path
+    String  bam_name
+    File    manifest
+    File    gdc_token
     Boolean dry_run
+    File?   monitoring_script
   }
 
   File bam_file = bam_path
@@ -120,6 +124,16 @@ task TransferBamToGdc {
 
   command {
     set -e
+
+    # if the WDL/task contains a monitoring script as input
+    if [ ! -z "~{monitoring_script}" ]; then
+      chmod a+x ~{monitoring_script}
+      ~{monitoring_script} > monitoring.log &
+    else
+      echo "No monitoring script given as input" > monitoring.log &
+    fi
+
+    # put the localized bam file in the same place as the gdc-client
     mv ~{bam_file} ./~{bam_name}
     ls /cromwell_root
 
@@ -147,18 +161,18 @@ task TransferBamToGdc {
 
 task submitMetadataToGDC {
     input {
-        String program
-        String project
-        File metadata
-        String gdc_token
+      String  program
+      String  project
+      File    metadata
+      String  gdc_token
     }
 
     command {
-        python3 /main.py --metadata ~{metadata} \
-                        --step "submit_metadata" \
-                        --token ~{gdc_token} \
-                        --program ~{program} \
-                        --project ~{project}
+      python3 /main.py --metadata ~{metadata} \
+                       --step "submit_metadata" \
+                       --token ~{gdc_token} \
+                       --program ~{program} \
+                       --project ~{project}
     }
 
     runtime {
@@ -174,11 +188,11 @@ task submitMetadataToGDC {
 
 task validateFileStatus {
     input {
-        String program
-        String project
-        File metadata
-        String gdc_token
-        File transfer_log
+        String  program
+        String  project
+        File    metadata
+        String  gdc_token
+        File    transfer_log
     }
 
     command {
