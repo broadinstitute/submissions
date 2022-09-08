@@ -1,5 +1,6 @@
 import argparse
 import requests
+import pandas
 
 from oauth2client.client import GoogleCredentials
 
@@ -21,6 +22,7 @@ def call_rawls_batch_upsert(workspace_name, project, request):
     # rawls request URL for batchUpsert
     uri = f"https://rawls.dsde-prod.broadinstitute.org/api/workspaces/{project}/{workspace_name}/entities/batchUpsert"
 
+    print("this is the request", request)
     # Get access token and and add to headers for requests.
     # -H  "accept: */*" -H  "Authorization: Bearer [token] -H "Content-Type: application/json"
     headers = {"Authorization": "Bearer " + get_access_token(), "accept": "*/*", "Content-Type": "application/json"}
@@ -82,9 +84,13 @@ def create_single_entity_request(var_entity_id, var_entity_type, single_entity_o
 def create_upsert_request(tsv, array_attr_cols=None):
     """Generate the request body for batchUpsert API."""
 
+    tsv = pandas.read_csv(tsv, sep='\t')
     # check tsv format: data model load tsv requirement "entity:table_name_id" or "membership:table_name_id" -> else exit
-    entity_type_col_name = tsv.columns[0]                               # entity:entity_name_id
-    entity_type = entity_type_col_name.rsplit("_", 1)[0].split(":")[1]  # entity_name
+    entity_type_col_name = tsv.columns[0]
+    entity_type = entity_type_col_name.split(":")[1].split("_")[0]  # entity_name
+    print("entitiy type", entity_type)
+    # initiate string to capture all operation requests for all rows (entities) in given tsv file
+    all_entities_request = []
 
     if not entity_type_col_name.startswith(("entity:", "membership:")):
         print("Invalid tsv. The .tsv does not start with column entity:[table_name]_id or membership:[table_name]_id. Please correct and try again.")
@@ -95,9 +101,6 @@ def create_upsert_request(tsv, array_attr_cols=None):
     # when the API request is made, its read as multiple columns with the "entity" prefix which is illegal
     # this is specific just to the first column where the format is required for terra load tsv files
     tsv.rename(columns={entity_type_col_name: entity_type}, inplace=True)
-
-    # initiate string to capture all operation requests for all rows (entities) in given tsv file
-    all_entities_request = []
 
     # for every row (entity) in df
     for index, row in tsv.iterrows():
@@ -157,7 +160,6 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--tsv', required=True, help='.tsv file formatted in load format to Terra UI')
 
     args = parser.parse_args()
-
     # create request body for batchUpsert
     request = create_upsert_request(args.tsv)
     # call batchUpsert API (rawls)

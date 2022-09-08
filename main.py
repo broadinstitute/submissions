@@ -34,6 +34,7 @@ def submitMetadata(inputData):
     """Submits the metadata to gdc, then grabs the SAR_id and writes it to the file UUID.txt"""
 
     opsMetadata = readMetadata(inputData)
+    verifySubmitInput(opsMetadata)
     submit(inputData, opsMetadata)
     time.sleep(100)
 
@@ -52,12 +53,33 @@ def submitMetadata(inputData):
     else:
         print("Data was not returned from gdc properly")
 
+def verifySubmitInput(opsMetadata):
+    """Validates the input for the opsMetadata file"""
+
+    # Basic input info
+    if 'sample_alias' not in opsMetadata:
+        print("Metadata file is missing sample_alias")
+    if 'data_type' not in opsMetadata:
+        print("Metadata file is missing data_type")
+    if 'aggregation_project' not in opsMetadata:
+        print("Metadata file is missing aggregation_project")
+
+    # Submitter file info
+    if 'file_size' not in opsMetadata:
+        print("Metadata file is missing file_size")
+    if 'md5' not in opsMetadata:
+        print("Metadata file is missing md5")
+
+    # Read Group info
+    if 'read_groups' not in opsMetadata:
+        print("Metadata file is missing read_groups")
+
 def readMetadata(inputData):
     """Reads the metadata json file"""
 
     with open(inputData['metadata'], 'r') as my_file:
         return json.load(my_file)['samples'][0] # TODO - Need to be more defensive here
-        
+
     print("Error when trying to parse the input Metadata file")
 
 def getCommandLineInput(argv):
@@ -91,13 +113,13 @@ def verifyRegistration(inputData):
     f = open("/cromwell_root/isValid.txt", 'w')
 
     if response['data'] and response['data']['aliquot'] and len(response['data']['aliquot']) > 0:
-        f.write("Registered")
+        f.write("true")
         f.close()
         print("Done writing UUID to file")  
         
         return True
     else:
-        f.write("Not Registered")
+        f.write("false")
         f.close()
         print("Not a valid response from GDC")
 
@@ -107,12 +129,14 @@ def validateFileStatus(inputData):
     """Calls the GDC api 10 times to periodically check the status of the given bam file.
        Writes the status to a file named fileStatus.txt"""
 
-    response = None
     gdcCallCounter = 0
-    validResponse = False
+    fileStateDict = {
+        "file_state": None,
+        "state": None
+    }
     data = readMetadata(inputData)
 
-    while gdcCallCounter < 10 and not validResponse:
+    while gdcCallCounter < 2 and not validFileState(fileStateDict):
         print(f"{gdcCallCounter}th iteration of loop when trying to validate sample in GDC")
 
         submitterId = f"{data['sample_alias']}.{data['data_type']}.{data['aggregation_project']}"
@@ -121,9 +145,8 @@ def validateFileStatus(inputData):
 
         if response['data'] and response['data']['submitted_aligned_reads'] and len(response['data']['submitted_aligned_reads']) > 0:
             responseValue = response['data']['submitted_aligned_reads'][0]
-
-            if responseValue['state'] == "validated" and (responseValue['file_state'] == "released" or responseValue['file_state'] == "validated"):
-                validResponse = True
+            fileStateDict['state'] = responseValue['state']
+            fileStateDict['file_state'] = responseValue['file_state']
         
         # Will need to buff this up in the long run
         time.sleep(60)
@@ -131,14 +154,21 @@ def validateFileStatus(inputData):
 
     f = open("/cromwell_root/fileStatus.txt", 'w')
 
-    if validResponse:
+    if fileStateDict['state'] != None and fileStateDict['file_state'] != None:
         print("Sample is validated in GDC")
-        f.write(f"Sample is inside of GDC.\n Current state {response}")
+        f.write(f"{fileStateDict['state']}\n{fileStateDict['file_state']}")
     else:
+        print("Error when calling GDC")
         f.write("Error when calling GDC")
-        print("Failed to validate file in GDC")
 
     f.close()
+
+def validFileState(fileStateDict):
+    """Checks to see if the file dictionary is in a valid state"""
+
+    return (fileStateDict['state'] == "validated" and 
+           (fileStateDict['file_state'] == "released" or 
+            fileStateDict['file_state'] == "validated"))
 
 if __name__ == "__main__":
    main(sys.argv[1:])

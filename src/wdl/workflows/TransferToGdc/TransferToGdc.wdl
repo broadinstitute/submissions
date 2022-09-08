@@ -1,60 +1,73 @@
 version 1.0
 
+import "../../tasks/terra_tasks.wdl" as tasks
+
 workflow TransferToGdc {
   input {
+    String sample_id
     File metadata
     File gdc_token
     String program
     String project
     Boolean dry_run = false
+    Boolean registration_status
+    String workspace_name
+    String workspace_project
   }
 
-  String token_value = (read_lines(gdc_token))[0]
+  if (registration_status) {
+    String token_value = (read_lines(gdc_token))[0]
 
-  call verifyGDCRegistration {
-    input:
-      program = program,
-      project = project,
-      gdc_token = token_value
-  }
+    call submitMetadataToGDC {
+      input:
+        program = program,
+        project = project,
+        metadata = metadata,
+        gdc_token = token_value
+    }
 
-  call submitMetadataToGDC {
-    input:
-      program = program,
-      project = project,
-      metadata = metadata,
-      gdc_token = token_value
-  }
+    call RetrieveGdcManifest {
+      input:
+        program = program,
+        project = project,
+        sar_id = submitMetadataToGDC.UUID,
+        gdc_token = token_value,
+        dry_run = dry_run
+    }
 
-  call RetrieveGdcManifest {
-    input:
-      program = program,
-      project = project,
-      sar_id = submitMetadataToGDC.UUID,
-      gdc_token = token_value,
-      dry_run = dry_run
-  }
+    call TransferBamToGdc {
+      input:
+        bam_path = submitMetadataToGDC.bam_path,
+        bam_name = submitMetadataToGDC.bam_name,
+        manifest = RetrieveGdcManifest.manifest,
+        gdc_token = gdc_token,
+        dry_run = dry_run
+    }
 
-  call TransferBamToGdc {
-    input:
-      bam_path = submitMetadataToGDC.bam_path,
-      bam_name = submitMetadataToGDC.bam_name,
-      manifest = RetrieveGdcManifest.manifest,
-      gdc_token = gdc_token,
-      dry_run = dry_run
-  }
+    call validateFileStatus {
+      input:
+        program = program,
+        project = project,
+        metadata = metadata,
+        gdc_token = token_value,
+        transfer_log = TransferBamToGdc.gdc_transfer_log
+    }
 
-  call validateFileStatus {
-    input:
-      program = program,
-      project = project,
-      metadata = metadata,
-      gdc_token = token_value,
-      transfer_log = TransferBamToGdc.gdc_transfer_log
-  }
+    call tasks.CreateTableLoadFile as tsv_file {
+      input:
+        sample_id = sample_id,
+        uuid = submitMetadataToGDC.UUID,
+        file_state = validateFileStatus.file_state,
+        state = validateFileStatus.state,
+        registration_status = registration_status
+    }
 
-  output {
-    File gdc_transfer_log = TransferBamToGdc.gdc_transfer_log
+    call tasks.UpsertMetadataToDataModel {
+      input:
+        workspace_name = workspace_name,
+        workspace_project = workspace_project,
+        tsv = tsv_file.load_tsv
+    }
   }
 }
 
@@ -159,31 +172,6 @@ task submitMetadataToGDC {
     }
 }
 
-task verifyGDCRegistration {
-    input {
-        String program
-        String project
-        String alias_value
-        String gdc_token
-    }
-
-    command {
-        python3 /main.py --program ~{program} \
-                        --project ~{project} \
-                        --alias_value ~{alias_value} \
-                        --step "verify_registration" \
-                        --token ~{gdc_token}
-    }
-
-    runtime {
-        docker: "schaluvadi/horsefish:submissionV1"
-    }
-
-    output {
-        String UUID = read_lines("isValid.txt")[0]
-    }
-}
-
 task validateFileStatus {
     input {
         String program
@@ -206,6 +194,7 @@ task validateFileStatus {
     }
 
     output {
-        String UUID = read_lines("fileStatus.txt")[0]
+        String state = read_lines("fileStatus.txt")[0]
+        String file_state = read_lines("fileStatus.txt")[1]
     }
 }
