@@ -5,6 +5,8 @@
             "aggregation_index_path": "gs://broad-prod-somatic-genomes-output/GDCWholeGenomeSomaticSingleSample/d618e707-b96d-4868-abc9-ccbb0f797870/call-gatk_applybqsr/attempt-3/CTSP-B6F9-TTP1-A-1-0-D-A92B-36.aln.mrkdp.bai",
             "aggregation_project": "RP-1329",
             "data_type": "WGS",
+            "md5": "f7a0efcc5025ea374d50d01484a13186",
+            "file_size": 383751452100,
             "sample_alias": "CTSP-B6F9-TTP1-A-1-0-D-A92B-36",
             "version": 1,
             "location": "GCP",

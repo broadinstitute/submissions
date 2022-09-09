@@ -6,7 +6,6 @@ workflow TransferToGdc {
   input {
     String sample_id
     File metadata
-    File bam_file
     File gdc_token
     String program
     String project
@@ -18,11 +17,6 @@ workflow TransferToGdc {
 
   if (registration_status) {
     String token_value = (read_lines(gdc_token))[0]
-
-    call tasks.GetMetadata {
-      input:
-        bam_file = bam_file
-    }
 
     call submitMetadataToGDC {
       input:
