@@ -88,9 +88,10 @@ task GetMetadata {
   >>>
 
   runtime {
-    cpu: 1
-    memory: "3.75 GiB"
-    disks: "local-disk ~{disk_size} HDD"
+    memory: "7.5 GB"
+    docker: "schaluvadi/horsefish:submissionV2GDC"
+    cpu: 2
+    disks: "local-disk " + disk_size + " HDD"
   }
 
   output {
