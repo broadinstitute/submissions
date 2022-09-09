@@ -19,7 +19,7 @@ workflow TransferToGdc {
   if (registration_status) {
     String token_value = (read_lines(gdc_token))[0]
 
-    call task.GetMetadata {
+    call tasks.GetMetadata {
       input:
         bam_file = bam_file
     }
