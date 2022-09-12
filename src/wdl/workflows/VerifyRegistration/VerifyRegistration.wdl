@@ -39,7 +39,8 @@ task verifyGDCRegistration {
     }
 
     runtime {
-        docker: "schaluvadi/horsefish:submissionV1"
+        docker: "schaluvadi/horsefish:submissionV1",
+        preemptible: 1
     }
 
     output {

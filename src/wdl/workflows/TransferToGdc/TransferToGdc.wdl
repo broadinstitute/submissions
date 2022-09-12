@@ -97,6 +97,7 @@ task RetrieveGdcManifest {
     memory: "3.75 GB"
     docker: "schaluvadi/horsefish:submissionV2GDC"
     cpu: 1
+    preemptible: 3
     disks: "local-disk " + 20 + " HDD"
   }
 
@@ -129,7 +130,7 @@ task TransferBamToGdc {
       echo "MANIFEST=~{manifest}" >> gdc_transfer.log
     else
       gdc-client --version
-      gdc-client upload -t ~{gdc_token} -m ~{manifest} --debug --log-file gdc_transfer.log
+      gdc-client upload -t ~{gdc_token} -m ~{manifest} --n 6 --debug --log-file gdc_transfer.log
     fi
   }
 
@@ -137,6 +138,7 @@ task TransferBamToGdc {
     memory: "7.5 GB"
     docker: "schaluvadi/horsefish:submissionV2GDC"
     cpu: 2
+    preemptible: 3
     disks: "local-disk " + disk_size + " HDD"
   }
 
@@ -147,10 +149,10 @@ task TransferBamToGdc {
 
 task submitMetadataToGDC {
     input {
-        String program
-        String project
-        File metadata
-        String gdc_token
+      String program
+      String project
+      File metadata
+      String gdc_token
     }
 
     command {
@@ -162,23 +164,24 @@ task submitMetadataToGDC {
     }
 
     runtime {
-        docker: "schaluvadi/horsefish:submissionV1"
+      preemptible: 3
+      docker: "schaluvadi/horsefish:submissionV1"
     }
 
     output {
-        String UUID = read_lines("UUID.txt")[0]
-        String bam_path = read_lines("bam.txt")[0]
-        String bam_name = read_lines("bam.txt")[1]
+      String UUID = read_lines("UUID.txt")[0]
+      String bam_path = read_lines("bam.txt")[0]
+      String bam_name = read_lines("bam.txt")[1]
     }
 }
 
 task validateFileStatus {
     input {
-        String program
-        String project
-        File metadata
-        String gdc_token
-        File transfer_log
+      String program
+      String project
+      File metadata
+      String gdc_token
+      File transfer_log
     }
 
     command {
@@ -190,11 +193,12 @@ task validateFileStatus {
     }
 
     runtime {
-        docker: "schaluvadi/horsefish:submissionV1"
+      preemptible: 3
+      docker: "schaluvadi/horsefish:submissionV1"
     }
 
     output {
-        String state = read_lines("fileStatus.txt")[0]
-        String file_state = read_lines("fileStatus.txt")[1]
+      String state = read_lines("fileStatus.txt")[0]
+      String file_state = read_lines("fileStatus.txt")[1]
     }
 }

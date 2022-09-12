@@ -28,6 +28,7 @@ task CreateTableLoadFile {
     }
 
     runtime {
+        preemptible: 3
         docker: "schaluvadi/horsefish:submissionV1"
     }
 
@@ -59,6 +60,7 @@ task UpsertMetadataToDataModel {
     }
 
     runtime {
+        preemptible: 3
         docker: "schaluvadi/horsefish:submissionV1"
     }
 
@@ -69,7 +71,7 @@ task UpsertMetadataToDataModel {
 
 task GetMetadata {
   input {
-    File bam_file
+    String bam_file
   }
 
   Int bam_size = ceil(size(bam_file, "GiB"))
@@ -79,6 +81,7 @@ task GetMetadata {
 
   command <<<
     set -eo pipefail
+    gsutil -m {file_path}
 
     # Calculate the md5 of the bam
     md5sum ~{bam_file} | awk '{print $1}' > ~{output_bam_basename}.md5
@@ -91,6 +94,7 @@ task GetMetadata {
     memory: "7.5 GB"
     docker: "schaluvadi/horsefish:submissionV2GDC"
     cpu: 2
+    preemptible: 3
     disks: "local-disk " + disk_size + " HDD"
   }
 
