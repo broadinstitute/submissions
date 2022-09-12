@@ -125,6 +125,7 @@ task TransferBamToGdc {
   command {
     set -e
 
+    pwd
     # if the WDL/task contains a monitoring script as input
     if [ ! -z "~{monitoring_script}" ]; then
       chmod a+x ~{monitoring_script}
@@ -133,11 +134,15 @@ task TransferBamToGdc {
       echo "No monitoring script given as input" > monitoring.log &
     fi
 
+    pwd
     # put the localized bam file in the same place as the gdc-client
     mv ~{bam_file} ./~{bam_name}
+    pwd
     ls /cromwell_root
+    pwd
 
     if ~{dry_run}; then
+      pwd
       echo "This was a dry run of uploading to GDC" > gdc_transfer.log
       echo "BAM_FILE=~{bam_path}" >> gdc_transfer.log
       echo "MANIFEST=~{manifest}" >> gdc_transfer.log
@@ -145,6 +150,8 @@ task TransferBamToGdc {
       gdc-client --version
       gdc-client upload -t ~{gdc_token} -m ~{manifest} --debug --log-file gdc_transfer.log
     fi
+
+    pwd
   }
 
   runtime {
@@ -155,7 +162,8 @@ task TransferBamToGdc {
   }
 
   output {
-    File gdc_transfer_log = "gdc_transfer.log"
+    File  gdc_transfer_log = "gdc_transfer.log"
+    File? monitoring_log = "monitoring.log"
   }
 }
 
