@@ -130,7 +130,7 @@ task TransferBamToGdc {
       echo "MANIFEST=~{manifest}" >> gdc_transfer.log
     else
       gdc-client --version
-      gdc-client upload -t ~{gdc_token} -m ~{manifest} --n 6 --debug --log-file gdc_transfer.log
+      gdc-client upload -t ~{gdc_token} -m ~{manifest} --debug --log-file gdc_transfer.log
     fi
   }
 
