@@ -4,16 +4,50 @@ import "../../tasks/terra_tasks.wdl" as tasks
 
 workflow TransferToGdc {
   input {
+    # Sample input
     String sample_id
-    Array[String] row
-    File metadata
-    File gdc_token
+    String bam_file
+    String bam_name
+    String agg_project
+    String data_type
+    String file_size
+    String md5
     String program
     String project
-    Boolean dry_run = false
-    Boolean registration_status
+
+    # ReadGroup input
+    String read_group_id
+    String experiment_name
+    String flow_cell_barcode
+    Boolean includes_spike_ins
+    String instrument_model
+    Boolean is_paired_end
+    Integer lane_number
+    String library_name
+    String library_preperation_kit_catalog_number
+    String library_preperation_kit_name
+    String library_preperation_kit_vendor
+    String library_preperation_kit_version
+    String library_selection
+    String library_strand
+    String library_strategy
+    String multiplex_barcode
+    String platform
+    String read_group_name
+    Integer read_length
+    String reference_sequence
+    Integer reference_sequence_version
+    String sequencing_center
+    String sequencing_date
+    String target_capture_kit
+    Boolean to_trim_adapter_sequence
+    String type
+
     String workspace_name
     String workspace_project
+    File gdc_token
+    Boolean dry_run = false
+    Boolean registration_status
   }
 
   if (registration_status) {
