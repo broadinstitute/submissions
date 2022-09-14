@@ -5,6 +5,7 @@ import "../../tasks/terra_tasks.wdl" as tasks
 workflow TransferToGdc {
   input {
     String sample_id
+    Array row
     File metadata
     File gdc_token
     String program
