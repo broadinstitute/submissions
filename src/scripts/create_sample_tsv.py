@@ -9,6 +9,7 @@ def createTSV(sample_file):
     sampleMetadata['program'] = metadata['program']
 
     readGroups = sampleMetadata.pop('read_groups')
+    sampleMetadata['entity:sample_id'] = sampleMetadata['sample_alias']
     readGroups = pushReadGroupsToTSV(readGroups, sampleMetadata)
 
     tsv_file = open("sample.tsv", "w")
@@ -34,8 +35,7 @@ def pushReadGroupsToTSV(readGroups, sampleMetadata):
     submitterIdConstant = f"{sampleMetadata['aggregation_project']}.{sampleMetadata['sample_alias']}"
 
     for readGroup in readGroups:
-        readGroup['read_group_id'] = f"{readGroup['flow_cell_barcode']}.{readGroup['lane_number']}.{submitterIdConstant}"
-        readGroup['sample_alias'] = sampleMetadata['sample_alias']
+        readGroup['entity:read_group_id'] = f"{readGroup['flow_cell_barcode']}.{readGroup['lane_number']}.{submitterIdConstant}"
 
     return readGroups
 
