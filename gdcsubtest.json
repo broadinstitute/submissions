@@ -281,13 +281,7 @@
                     "library_strategy": "WGS",
                     "platform": "Illumina"
                 }
-            ],
-            "fragment_statistics": {
-                "fragment_maximum_length": 248267187,
-                "fragment_mean_length": 442.836237,
-                "fragment_minimum_length": 2,
-                "fragment_standard_deviation_length": 167.632045
-            }
+            ]
         }
     ],
     "csv": "/seq/tng/apardo/Submissions/GDCSubTest.csv",
