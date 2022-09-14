@@ -1,7 +1,7 @@
 import argparse
 import requests
 import json
-
+from google.cloud import storage
 
 def link_entity(sample_file, token):
     """Creates all entities such as case, sample, aliquot and readGroup and pushes to gdc"""
@@ -127,4 +127,4 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--token', required=True, help='Api token to communicate with GDC')
     args = parser.parse_args()
 
-    link_entity(args.file, args.token)
+    # link_entity(args.file, args.token)
