@@ -19,10 +19,7 @@ workflow TransferToGdc {
     String read_group_id
     String experiment_name
     String flow_cell_barcode
-    Boolean includes_spike_ins
     String instrument_model
-    Boolean is_paired_end
-    Integer lane_number
     String library_name
     String library_preperation_kit_catalog_number
     String library_preperation_kit_name
@@ -34,14 +31,17 @@ workflow TransferToGdc {
     String multiplex_barcode
     String platform
     String read_group_name
-    Integer read_length
     String reference_sequence
-    Integer reference_sequence_version
     String sequencing_center
     String sequencing_date
     String target_capture_kit
-    Boolean to_trim_adapter_sequence
     String type
+    Int lane_number
+    Int read_length
+    Int reference_sequence_version
+    Boolean is_paired_end
+    Boolean includes_spike_ins
+    Boolean to_trim_adapter_sequence
 
     String workspace_name
     String workspace_project
@@ -55,9 +55,40 @@ workflow TransferToGdc {
 
     call submitMetadataToGDC {
       input:
+        sample_id = sample_id,
+        bam_file = bam_file,
+        bam_name = bam_name,
+        agg_projec = agg_projec,
+        data_type = data_type,
+        file_size = file_size,
+        md5 = md5,
+        read_group_id = read_group_id,
+        experiment_name = experiment_name,
+        flow_cell_barcode = flow_cell_barcode,
+        instrument_model = instrument_model,
+        library_name = library_name,
+        library_preperation_kit_catalog_numb = library_preperation_kit_catalog_n
+        library_preperation_kit_name = library_preperation_kit_name,
+        library_preperation_kit_vendor = library_preperation_kit_vendor,
+        library_preperation_kit_version = library_preperation_kit_version,
+        library_selection = library_selection,
+        library_strand = library_strand,
+        library_strategy = library_strategy,
+        multiplex_barcode = multiplex_barcode,
+        platform = platform,
+        read_group_name = read_group_name,
+        reference_sequence = reference_sequence,
+        sequencing_center = sequencing_center,
+        sequencing_date = sequencing_date,
+        target_capture_kit = target_capture_kit,
+        lane_number = lane_number,
+        read_length = read_length,
+        reference_sequence_version = reference_sequence_version,
+        is_paired_end = is_paired_end,
+        includes_spike_ins = includes_spike_ins,
+        to_trim_adapter_sequence = to_trim_adapter_sequence,
         program = program,
         project = project,
-        metadata = metadata,
         gdc_token = token_value
     }
 
