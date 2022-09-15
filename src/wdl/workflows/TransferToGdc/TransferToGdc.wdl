@@ -63,30 +63,6 @@ workflow TransferToGdc {
         file_size = file_size,
         md5 = md5,
         read_group_id = read_group_id,
-        experiment_name = experiment_name,
-        flow_cell_barcode = flow_cell_barcode,
-        instrument_model = instrument_model,
-        library_name = library_name,
-        library_preperation_kit_catalog_number = library_preperation_kit_catalog_number,
-        library_preperation_kit_name = library_preperation_kit_name,
-        library_preperation_kit_vendor = library_preperation_kit_vendor,
-        library_preperation_kit_version = library_preperation_kit_version,
-        library_selection = library_selection,
-        library_strand = library_strand,
-        library_strategy = library_strategy,
-        multiplex_barcode = multiplex_barcode,
-        platform = platform,
-        read_group_name = read_group_name,
-        reference_sequence = reference_sequence,
-        sequencing_center = sequencing_center,
-        sequencing_date = sequencing_date,
-        target_capture_kit = target_capture_kit,
-        lane_number = lane_number,
-        read_length = read_length,
-        reference_sequence_version = reference_sequence_version,
-        is_paired_end = is_paired_end,
-        includes_spike_ins = includes_spike_ins,
-        to_trim_adapter_sequence = to_trim_adapter_sequence,
         program = program,
         project = project,
         gdc_token = token_value
@@ -215,6 +191,13 @@ task TransferBamToGdc {
 
 task submitMetadataToGDC {
     input {
+      String sample_id
+      String bam_file
+      String bam_name
+      String agg_project
+      String data_type
+      String file_size
+      String md5
       String program
       String project
       # File metadata
