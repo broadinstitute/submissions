@@ -114,7 +114,7 @@ workflow TransferToGdc {
       input:
         program = program,
         project = project,
-        metadata = metadata,
+        # metadata = metadata,
         gdc_token = token_value,
         transfer_log = TransferBamToGdc.gdc_transfer_log
     }
