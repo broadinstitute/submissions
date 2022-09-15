@@ -252,7 +252,6 @@ task validateFileStatus {
     command {
         python3 /main.py --program ~{program} \
                         --project ~{project} \
-                        # --metadata ~{metadata} \
                         --step "validate_status" \
                         --token ~{gdc_token}
     }
