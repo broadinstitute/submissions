@@ -217,13 +217,12 @@ task submitMetadataToGDC {
     input {
       String program
       String project
-      File metadata
+      # File metadata
       String gdc_token
     }
 
     command {
-        python3 /main.py --metadata ~{metadata} \
-                        --step "submit_metadata" \
+        python3 /main.py --step "submit_metadata" \
                         --token ~{gdc_token} \
                         --program ~{program} \
                         --project ~{project}
@@ -245,7 +244,7 @@ task validateFileStatus {
     input {
       String program
       String project
-      File metadata
+      # File metadata
       String gdc_token
       File transfer_log
     }
@@ -253,7 +252,7 @@ task validateFileStatus {
     command {
         python3 /main.py --program ~{program} \
                         --project ~{project} \
-                        --metadata ~{metadata} \
+                        # --metadata ~{metadata} \
                         --step "validate_status" \
                         --token ~{gdc_token}
     }
