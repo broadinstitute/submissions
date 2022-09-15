@@ -80,7 +80,7 @@ workflow TransferToGdc {
     call TransferBamToGdc {
       input:
         bam_path = submitMetadataToGDC.bam_path,
-        bam_name = submitMetadataToGDC.bam_name,
+        bam_name = submitMetadataToGDC.bam_file_name,
         manifest = RetrieveGdcManifest.manifest,
         gdc_token = gdc_token,
         dry_run = dry_run
@@ -219,7 +219,7 @@ task submitMetadataToGDC {
     output {
       String UUID = read_lines("UUID.txt")[0]
       String bam_path = read_lines("bam.txt")[0]
-      String bam_name = read_lines("bam.txt")[1]
+      String bam_file_name = read_lines("bam.txt")[1]
     }
 }
 
