@@ -67,7 +67,7 @@ workflow TransferToGdc {
         flow_cell_barcode = flow_cell_barcode,
         instrument_model = instrument_model,
         library_name = library_name,
-        library_preperation_kit_catalog_numb = library_preperation_kit_catalog_n
+        library_preperation_kit_catalog_number = library_preperation_kit_catalog_number,
         library_preperation_kit_name = library_preperation_kit_name,
         library_preperation_kit_vendor = library_preperation_kit_vendor,
         library_preperation_kit_version = library_preperation_kit_version,
