@@ -200,6 +200,7 @@ task submitMetadataToGDC {
       String md5
       String program
       String project
+      String read_group_id
       # File metadata
       String gdc_token
     }
