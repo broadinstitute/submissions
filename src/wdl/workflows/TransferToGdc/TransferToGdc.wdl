@@ -58,7 +58,7 @@ workflow TransferToGdc {
         sample_id = sample_id,
         bam_file = bam_file,
         bam_name = bam_name,
-        agg_projec = agg_projec,
+        agg_project = agg_project,
         data_type = data_type,
         file_size = file_size,
         md5 = md5,
