@@ -14,6 +14,7 @@ workflow TransferToGdc {
     String md5
     String program
     String project
+    File read_group_table
 
     # ReadGroup input
     String read_group_id
