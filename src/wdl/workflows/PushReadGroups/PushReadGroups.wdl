@@ -141,9 +141,7 @@ task PushReadGroupFile {
     command {
         python3 /src/scripts/upload_read_json.py -w ~{workspace_name} \
                                                       -p ~{workspace_project} \
-                                                      -r ~{write_json(read_group)} \
-                                                      -g ~{program} \
-                                                      -j ~{project}
+                                                      -r ~{write_json(read_group)}
     }
     
     runtime {
