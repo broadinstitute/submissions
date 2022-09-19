@@ -14,41 +14,18 @@ workflow TransferToGdc {
     String md5
     String program
     String project
-    File read_group_table
-
-    # ReadGroup input
-    String read_group_id
-    String experiment_name
-    String flow_cell_barcode
-    String instrument_model
-    String library_name
-    String library_preperation_kit_catalog_number
-    String library_preperation_kit_name
-    String library_preperation_kit_vendor
-    String library_preperation_kit_version
-    String library_selection
-    String library_strand
-    String library_strategy
-    String multiplex_barcode
-    String platform
-    String read_group_name
-    String reference_sequence
-    String sequencing_center
-    String sequencing_date
-    String target_capture_kit
-    String type
-    Int lane_number
-    Int read_length
-    Int reference_sequence_version
-    Boolean is_paired_end
-    Boolean includes_spike_ins
-    Boolean to_trim_adapter_sequence
-
     String workspace_name
     String workspace_project
     File gdc_token
     Boolean dry_run = false
     Boolean registration_status
+  }
+
+  call tasks.addReadsField {
+    input:
+      workspace_name = workspace_name,
+      workspace_project = workspace_project,
+      sample_id = sample_id
   }
 
   if (registration_status) {
@@ -63,7 +40,6 @@ workflow TransferToGdc {
         data_type = data_type,
         file_size = file_size,
         md5 = md5,
-        read_group_id = read_group_id,
         program = program,
         project = project,
         gdc_token = token_value
