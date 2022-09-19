@@ -104,3 +104,27 @@ task GetMetadata {
     String output_bam_size = read_string("~{output_bam_basename}.size")
   }
 }
+
+task addReadsField {
+    input {
+        # workspace details
+        String workspace_name
+        String workspace_project
+        String sample_id
+    }
+
+    command {
+        python3 /src/scripts/extract_reads_data.py -w ~{workspace_name} \
+                                                      -p ~{workspace_project} \
+                                                      -s ~{sample_id}
+    }
+
+    runtime {
+        preemptible: 3
+        docker: "schaluvadi/horsefish:submissionV1"
+    }
+
+    output {
+        File reads_json = read_json("reads.json")
+    }
+}
