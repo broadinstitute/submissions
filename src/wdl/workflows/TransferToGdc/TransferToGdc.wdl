@@ -42,7 +42,7 @@ workflow TransferToGdc {
         md5 = md5,
         program = program,
         project = project,
-        read_groups = reads.reads_json
+        read_groups = reads.reads_json,
         gdc_token = token_value
     }
 
