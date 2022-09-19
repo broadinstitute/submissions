@@ -48,14 +48,9 @@ def callTerraApi(sample_id, project, workspace_name):
     response = requests.get(baseUrl, headers=headers, params=parameters)
     status_code = response.status_code
 
-    if status_code != 204:
-        print(f"WARNING: Failed to retrieve entities.")
-        print(response.text)
-        return
-
     print("respose", response)
 
-    return response
+    return response.text
 
 def returnTestObj():
     return {
