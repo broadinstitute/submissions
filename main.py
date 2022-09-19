@@ -97,11 +97,8 @@ def getCommandLineInput(argv):
     opts, args = getopt.getopt(argv, '', longOptions)
 
     for opt, arg in opts:
-        # print("opt", opt)
-        # print("arg", arg)
         inputData[str(opt).replace("-", "")] = arg
 
-    print("input data", inputData)
     return inputData
 
 def verifyRegistration(inputData):
@@ -134,12 +131,11 @@ def validateFileStatus(inputData):
         "file_state": None,
         "state": None
     }
-    data = readMetadata(inputData)
 
     while gdcCallCounter < 2 and not validFileState(fileStateDict):
         print(f"{gdcCallCounter}th iteration of loop when trying to validate sample in GDC")
 
-        submitterId = f"{data['sample_alias']}.{data['data_type']}.{data['aggregation_project']}"
+        submitterId = f"{inputData['sample_alias']}.{inputData['data_type']}.{inputData['aggregation_project']}"
         response = getEntity("validate", inputData['program'], inputData['project'], submitterId, inputData['token'])
         response = json.loads(response.text)
 
