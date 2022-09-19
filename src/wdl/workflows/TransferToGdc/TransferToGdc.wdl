@@ -21,7 +21,7 @@ workflow TransferToGdc {
     Boolean registration_status
   }
 
-  call tasks.addReadsField {
+  call tasks.addReadsField as reads {
     input:
       workspace_name = workspace_name,
       workspace_project = workspace_project,
@@ -42,6 +42,7 @@ workflow TransferToGdc {
         md5 = md5,
         program = program,
         project = project,
+        read_groups = reads.reads_json
         gdc_token = token_value
     }
 
@@ -67,7 +68,6 @@ workflow TransferToGdc {
       input:
         program = program,
         project = project,
-        # metadata = metadata,
         gdc_token = token_value,
         transfer_log = TransferBamToGdc.gdc_transfer_log
     }
@@ -177,8 +177,7 @@ task submitMetadataToGDC {
       String md5
       String program
       String project
-      String read_group_id
-      # File metadata
+      File read_groups
       String gdc_token
     }
 
