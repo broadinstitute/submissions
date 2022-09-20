@@ -68,7 +68,7 @@ def writeBamDataToFile(data):
     """Extracts bam path and bam name and writes to a file named bam.txt"""
 
     bamFileName = data['agg_path'].split('/')[-1]
-    f = open("cromwell_root/bam.txt", 'w')
+    f = open("/cromwell_root/bam.txt", 'w')
     f.write(f"{data['agg_path']}\n{bamFileName}")
     f.close()
 
