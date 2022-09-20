@@ -181,15 +181,15 @@ task submitMetadataToGDC {
     command {
         python3 /main.py --step "submit_metadata" \
                         --alias_value ~{sample_id} \
+                        --program ~{program} \
+                        --project ~{project} \
                         --agg_path ~{bam_file} \
                         --agg_project ~{agg_project} \
                         --data_type ~{data_type} \
                         --file_size ~{file_size} \
                         --md5 ~{md5} \
                         --read_groups ~{read_groups} \
-                        --token ~{gdc_token} \
-                        --program ~{program} \
-                        --project ~{project}
+                        --token ~{gdc_token}
     }
 
     runtime {
