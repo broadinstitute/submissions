@@ -125,6 +125,6 @@ task addReadsField {
     }
 
     output {
-        File reads_json = read_json("reads.json")
+        String reads_json = read_json("reads.json")
     }
 }
