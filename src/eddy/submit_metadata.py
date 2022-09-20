@@ -8,7 +8,7 @@ def submit(input):
     """Submits the formatted metadata to gdc api"""
 
     url = f"{endpoint}/{input['program']}/{input['project']}"
-    gdcFormattedMetadata = createMetadata(input, opsMetadata)
+    gdcFormattedMetadata = createMetadata(input)
 
     print("Submit METADATA to GDC dry_run endpoint for PROGRAM PROJECT.")
     try:
@@ -38,7 +38,7 @@ def submit(input):
 def createMetadata(inputData):
     """Uses the input to format metadata to be submitted to gdc"""
 
-    submitterId = f"{inputData['sample_id']}.{inputData['data_type']}.{inputData['agg_project']}"
+    submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
     dataTypeToExperimentalStrategy = {
         "WGS": "WGS",
         "Exome": "WXS",
@@ -68,7 +68,7 @@ def writeBamDataToFile(data):
     """Extracts bam path and bam name and writes to a file named bam.txt"""
 
     bamFileName = data['agg_path'].split('/')[-1]
-    f = open("/cromwell_root/bam.txt", 'w')
+    f = open("cromwell_root/bam.txt", 'w')
     f.write(f"{data['agg_path']}\n{bamFileName}")
     f.close()
 
@@ -76,10 +76,11 @@ def getSubmitterIdForReadGroups(data):
     """Extracts all submitterIds for each read_group inside of sample_metadata"""
 
     submitterIds = []
-    submitterIdConstant = f"{data['agg_project']}.{data['sample_id']}"
+    submitterIdConstant = f"{data['agg_project']}.{data['alias_value']}"
+    read_groups = json.loads(data['read_groups'])
 
     print("read groups", read_groups)
-    for readGroup in data['read_groups']:
+    for readGroup in read_groups:
         submitterIds.append({
             "submitter_id": f"{readGroup['flow_cell_barcode']}.{readGroup['lane_number']}.{submitterIdConstant}"
         })

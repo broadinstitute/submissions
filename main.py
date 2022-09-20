@@ -38,7 +38,7 @@ def submitMetadata(inputData):
     submit(inputData)
     time.sleep(100)
 
-    submitterId = f"{opsMetadata['sample_alias']}.{opsMetadata['data_type']}.{opsMetadata['aggregation_project']}"
+    submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
     response = getEntity("sar", inputData['program'], inputData['project'], submitterId, inputData['token'])
     sarId = json.loads(response.text)
 
@@ -92,7 +92,13 @@ def getCommandLineInput(argv):
         'token=',
         'metadata=',
         'alias_value=',
-        "step="
+        "step=",
+        "agg_path=",
+        "agg_project=",
+        "data_type=",
+        "file_size=",
+        "md5=",
+        "read_groups="
     ]
     opts, args = getopt.getopt(argv, '', longOptions)
 

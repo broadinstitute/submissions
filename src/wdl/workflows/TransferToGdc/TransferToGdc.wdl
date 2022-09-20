@@ -180,7 +180,7 @@ task submitMetadataToGDC {
 
     command {
         python3 /main.py --step "submit_metadata" \
-                        --sample_id ~{sample_id} \
+                        --alias_value ~{sample_id} \
                         --agg_path ~{bam_file} \
                         --agg_project ~{agg_project} \
                         --data_type ~{data_type} \
