@@ -7,7 +7,6 @@ workflow TransferToGdc {
     # Sample input
     String sample_id
     String bam_file
-    String bam_name
     String agg_project
     String data_type
     String file_size
@@ -35,7 +34,6 @@ workflow TransferToGdc {
       input:
         sample_id = sample_id,
         bam_file = bam_file,
-        bam_name = bam_name,
         agg_project = agg_project,
         data_type = data_type,
         file_size = file_size,
