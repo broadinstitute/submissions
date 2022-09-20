@@ -170,19 +170,25 @@ task submitMetadataToGDC {
     input {
       String sample_id
       String bam_file
-      String bam_name
       String agg_project
       String data_type
       String file_size
       String md5
       String program
       String project
-      File read_groups
+      String read_groups
       String gdc_token
     }
 
     command {
         python3 /main.py --step "submit_metadata" \
+                        --sample_id ~{sample_id} \
+                        --agg_path ~{bam_file} \
+                        --agg_project ~{agg_project} \
+                        --data_type ~{data_type} \
+                        --file_size ~{file_size} \
+                        --md5 ~{md5} \
+                        --read_groups ~{read_groups} \
                         --token ~{gdc_token} \
                         --program ~{program} \
                         --project ~{project}

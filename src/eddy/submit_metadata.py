@@ -4,7 +4,7 @@ import json
 # Need to figure out a better way to handle the env variables
 endpoint = 'https://api.gdc.cancer.gov/v0/submission'
 
-def submit(input, opsMetadata):
+def submit(input):
     """Submits the formatted metadata to gdc api"""
 
     url = f"{endpoint}/{input['program']}/{input['project']}"
@@ -35,10 +35,10 @@ def submit(input, opsMetadata):
     except Exception as e:
         print("Error", e)
 
-def createMetadata(inputData, opsMetadata):
-    """Uses the opsMetadata file to format metadata to be submitted to gdc"""
+def createMetadata(inputData):
+    """Uses the input to format metadata to be submitted to gdc"""
 
-    submitterId = f"{opsMetadata['sample_alias']}.{opsMetadata['data_type']}.{opsMetadata['aggregation_project']}"
+    submitterId = f"{inputData['sample_id']}.{inputData['data_type']}.{inputData['agg_project']}"
     dataTypeToExperimentalStrategy = {
         "WGS": "WGS",
         "Exome": "WXS",
@@ -50,34 +50,35 @@ def createMetadata(inputData, opsMetadata):
         "submitter_id": submitterId,
         "data_category": "Sequencing Reads",
         "type": "submitted_aligned_reads",
-        "file_size": opsMetadata['file_size'],
+        "file_size": inputData['file_size'],
         "data_type": "Aligned Reads",
-        "experimental_strategy": dataTypeToExperimentalStrategy[opsMetadata['data_type']],
+        "experimental_strategy": dataTypeToExperimentalStrategy[inputData['data_type']],
         "data_format": "BAM",
         "project_id": f"{inputData['program']}-{inputData['project']}",
-        "md5sum": opsMetadata['md5'],
+        "md5sum": inputData['md5'],
         "proc_internal": "dna-seq skip",
-        "read_groups": getSubmitterIdForReadGroups(opsMetadata)
+        "read_groups": getSubmitterIdForReadGroups(inputData)
     }
     # Need to write bam name and bam file to a file so we can access it in the wdl. Talk to Sushma!
-    writeBamDataToFile(opsMetadata)
+    writeBamDataToFile(inputData)
 
     return metadata
 
 def writeBamDataToFile(data):
     """Extracts bam path and bam name and writes to a file named bam.txt"""
 
-    bamFileName = data['aggregation_path'].split('/')[-1]
+    bamFileName = data['agg_path'].split('/')[-1]
     f = open("/cromwell_root/bam.txt", 'w')
-    f.write(f"{data['aggregation_path']}\n{bamFileName}")
+    f.write(f"{data['agg_path']}\n{bamFileName}")
     f.close()
 
 def getSubmitterIdForReadGroups(data):
     """Extracts all submitterIds for each read_group inside of sample_metadata"""
 
     submitterIds = []
-    submitterIdConstant = f"{data['aggregation_project']}.{data['sample_alias']}"
+    submitterIdConstant = f"{data['agg_project']}.{data['sample_id']}"
 
+    print("read groups", read_groups)
     for readGroup in data['read_groups']:
         submitterIds.append({
             "submitter_id": f"{readGroup['flow_cell_barcode']}.{readGroup['lane_number']}.{submitterIdConstant}"
@@ -111,19 +112,7 @@ def getEntity(queryType, program, project, submitterId, token):
             "X-Auth-Token": token
         }
     )
-
-def linkSampleAndAliqout(url, input):
-    """Helper function to create entities inside of gdc"""
-
-    f = open('src/resources/linkData.json')
-    data = json.load(f)
-    response = requests.put(url,
-        data = json.dumps(data),
-        headers = getHeaders(input)
-    )
-
-    print("response for creating links", response.text)
-    
+ 
 def getHeaders(input):
     """Returns general headers for gdc api call"""
 

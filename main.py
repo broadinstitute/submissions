@@ -33,9 +33,9 @@ def main(argv):
 def submitMetadata(inputData):
     """Submits the metadata to gdc, then grabs the SAR_id and writes it to the file UUID.txt"""
 
-    opsMetadata = readMetadata(inputData)
-    verifySubmitInput(opsMetadata)
-    submit(inputData, opsMetadata)
+    # opsMetadata = readMetadata(inputData)
+    # verifySubmitInput(opsMetadata)
+    submit(inputData)
     time.sleep(100)
 
     submitterId = f"{opsMetadata['sample_alias']}.{opsMetadata['data_type']}.{opsMetadata['aggregation_project']}"

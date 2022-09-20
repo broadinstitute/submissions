@@ -48,9 +48,9 @@ def callTerraApi(sample_id, project, workspace_name):
     response = requests.get(baseUrl, headers=headers, params=parameters)
     status_code = response.status_code
 
-    print("respose", response)
+    print("respose", response.text)
 
-    return response.text
+    return json.loads(response.text)
 
 def returnTestObj():
     return {
