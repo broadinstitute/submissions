@@ -66,6 +66,9 @@ workflow TransferToGdc {
       input:
         program = program,
         project = project,
+        sample_id = sample_id,
+        agg_project = agg_project,
+        data_type = data_type,
         gdc_token = token_value,
         transfer_log = TransferBamToGdc.gdc_transfer_log
     }
