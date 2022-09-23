@@ -178,6 +178,8 @@ task submitMetadataToGDC {
       String gdc_token
     }
 
+    File json_file = write_json(read_groups)
+
     command {
         python3 /main.py --step "submit_metadata" \
                         --alias_value ~{sample_id} \
@@ -188,7 +190,7 @@ task submitMetadataToGDC {
                         --data_type ~{data_type} \
                         --file_size ~{file_size} \
                         --md5 ~{md5} \
-                        --read_groups ~{write_json(read_groups)} \
+                        --read_groups ~{json_file} \
                         --token ~{gdc_token}
     }
 
