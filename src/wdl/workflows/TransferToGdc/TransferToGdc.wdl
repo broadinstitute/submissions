@@ -77,7 +77,7 @@ workflow TransferToGdc {
         file_state = validateFileStatus.file_state,
         state = validateFileStatus.state,
         registration_status = registration_status,
-        json_file = submitMetadataToGDC.json_file
+        read_json_file = submitMetadataToGDC.read_json_file
     }
 
     call tasks.UpsertMetadataToDataModel {
@@ -204,7 +204,7 @@ task submitMetadataToGDC {
       String UUID = read_lines("UUID.txt")[0]
       String bam_path = read_lines("bam.txt")[0]
       String bam_file_name = read_lines("bam.txt")[1]
-      File json_file = json_file
+      File read_json_file = json_file
     }
 }
 
