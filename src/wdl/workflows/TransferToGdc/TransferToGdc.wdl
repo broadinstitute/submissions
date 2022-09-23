@@ -77,6 +77,7 @@ workflow TransferToGdc {
         file_state = validateFileStatus.file_state,
         state = validateFileStatus.state,
         registration_status = registration_status
+        json_file = submitMetadataToGDC.json_file
     }
 
     call tasks.UpsertMetadataToDataModel {
@@ -203,20 +204,27 @@ task submitMetadataToGDC {
       String UUID = read_lines("UUID.txt")[0]
       String bam_path = read_lines("bam.txt")[0]
       String bam_file_name = read_lines("bam.txt")[1]
+      json_file
     }
 }
 
+f"{inputData['sample_alias']}.{inputData['data_type']}.{inputData['agg_project']}"
 task validateFileStatus {
     input {
       String program
       String project
-      # File metadata
+      String sample_id
+      String agg_project
+      String data_type
       String gdc_token
       File transfer_log
     }
 
     command {
-        python3 /main.py --program ~{program} \
+        python3 /main.py --alias_value ~{sample_id} \
+                        --agg_project ~{agg_project} \
+                        --data_type ~{data_type} \
+                        --program ~{program} \
                         --project ~{project} \
                         --step "validate_status" \
                         --token ~{gdc_token}
