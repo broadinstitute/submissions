@@ -8,6 +8,7 @@ task CreateTableLoadFile {
         String file_state
         String state 
         String registration_status
+        File json_file
     }
 
     parameter_meta {
@@ -15,15 +16,16 @@ task CreateTableLoadFile {
         file_state: "State of file from transferBamFile."
         state: "State of file from transferBamFile."
         registration_status: "Registration status returned from verifyRegistration."
+        json_file: "JSON file which has all read groups for the given sample"
     }
 
     command {
         # write header to file
-        echo -e "entity:sample_id\tfile_state\tstate\tregistration_status\tuuid" \
+        echo -e "entity:sample_id\tfile_state\tstate\tregistration_status\tuuid\tread_groups" \
         > sample_metadata.tsv
 
         # write metadata values to row in tsv file
-        echo -e "~{sample_id}\t~{file_state}\t~{state}\t~{registration_status}\t~{uuid}" \
+        echo -e "~{sample_id}\t~{file_state}\t~{state}\t~{registration_status}\t~{uuid}\t~{json_file}" \
         >> sample_metadata.tsv
     }
 
