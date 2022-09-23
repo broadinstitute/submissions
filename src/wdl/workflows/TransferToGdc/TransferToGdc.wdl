@@ -204,7 +204,7 @@ task submitMetadataToGDC {
       String UUID = read_lines("UUID.txt")[0]
       String bam_path = read_lines("bam.txt")[0]
       String bam_file_name = read_lines("bam.txt")[1]
-      json_file
+      File json_file = json_file
     }
 }
 
