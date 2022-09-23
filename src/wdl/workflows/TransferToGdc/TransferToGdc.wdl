@@ -188,7 +188,7 @@ task submitMetadataToGDC {
                         --data_type ~{data_type} \
                         --file_size ~{file_size} \
                         --md5 ~{md5} \
-                        --read_groups ~{read_groups} \
+                        --read_groups ~{write_json(read_groups)} \
                         --token ~{gdc_token}
     }
 
