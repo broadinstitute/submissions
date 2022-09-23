@@ -76,7 +76,7 @@ workflow TransferToGdc {
         uuid = submitMetadataToGDC.UUID,
         file_state = validateFileStatus.file_state,
         state = validateFileStatus.state,
-        registration_status = registration_status
+        registration_status = registration_status,
         json_file = submitMetadataToGDC.json_file
     }
 
