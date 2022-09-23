@@ -80,7 +80,11 @@ def getSubmitterIdForReadGroups(data):
     read_groups = getReadGroups(data['read_groups'])
 
     print("read_groups", read_groups)
+    print("type of read groups", type(read_groups))
+
     for readGroup in read_groups:
+        print("type of readGroup",)
+        print("read_group", readGroup)
         submitterIds.append({
             "submitter_id": f"{readGroup['flow_cell_barcode']}.{readGroup['lane_number']}.{submitterIdConstant}"
         })
@@ -90,8 +94,9 @@ def getSubmitterIdForReadGroups(data):
 def getReadGroups(read_file):
     """Opens reads file"""
     
-    with open(sample_file, 'r') as my_file:
-        return json.load(my_file)
+    with open(read_file, 'r') as my_file:
+        print("my_file", type(json.load(my_file)))
+        return json.loads(my_file)
 
 def getEntity(queryType, program, project, submitterId, token):
     """Constructs graphql query to hit the gdc api"""
