@@ -208,7 +208,6 @@ task submitMetadataToGDC {
     }
 }
 
-f"{inputData['sample_alias']}.{inputData['data_type']}.{inputData['agg_project']}"
 task validateFileStatus {
     input {
       String program
