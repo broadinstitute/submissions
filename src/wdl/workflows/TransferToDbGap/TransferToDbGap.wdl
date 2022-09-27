@@ -9,6 +9,7 @@ workflow TransferToDbGap {
     String       ftp_path_prefix = basename(genbank_zip, ".zip")
 
     File         sra_meta_tsv
+    File         genbank_zip
     File?        ncbi_ftp_config_js
   }
 
