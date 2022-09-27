@@ -127,4 +127,4 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--token', required=True, help='Api token to communicate with GDC')
     args = parser.parse_args()
 
-    # link_entity(args.file, args.token)
+    link_entity(args.file, args.token)
