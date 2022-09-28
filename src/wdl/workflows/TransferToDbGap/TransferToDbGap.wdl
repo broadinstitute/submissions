@@ -6,10 +6,9 @@ workflow TransferToDbGap {
     String       sra_bioproject
     String       sra_data_bucket_uri
     String       prod_test = "Production" # Production or Test
-    String       ftp_path_prefix = basename(genbank_zip, ".zip")
+    String       ftp_path_prefix
 
     File         sra_meta_tsv
-    File         genbank_zip
     File?        ncbi_ftp_config_js
   }
 
