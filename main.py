@@ -33,12 +33,12 @@ def main(argv):
 def submitMetadata(inputData):
     """Submits the metadata to gdc, then grabs the SAR_id and writes it to the file UUID.txt"""
 
-    opsMetadata = readMetadata(inputData)
-    verifySubmitInput(opsMetadata)
-    submit(inputData, opsMetadata)
+    # opsMetadata = readMetadata(inputData)
+    # verifySubmitInput(opsMetadata)
+    submit(inputData)
     time.sleep(100)
 
-    submitterId = f"{opsMetadata['sample_alias']}.{opsMetadata['data_type']}.{opsMetadata['aggregation_project']}"
+    submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
     response = getEntity("sar", inputData['program'], inputData['project'], submitterId, inputData['token'])
     sarId = json.loads(response.text)
 
@@ -92,16 +92,19 @@ def getCommandLineInput(argv):
         'token=',
         'metadata=',
         'alias_value=',
-        "step="
+        "step=",
+        "agg_path=",
+        "agg_project=",
+        "data_type=",
+        "file_size=",
+        "md5=",
+        "read_groups="
     ]
     opts, args = getopt.getopt(argv, '', longOptions)
 
     for opt, arg in opts:
-        # print("opt", opt)
-        # print("arg", arg)
         inputData[str(opt).replace("-", "")] = arg
 
-    print("input data", inputData)
     return inputData
 
 def verifyRegistration(inputData):
@@ -134,12 +137,11 @@ def validateFileStatus(inputData):
         "file_state": None,
         "state": None
     }
-    data = readMetadata(inputData)
 
     while gdcCallCounter < 2 and not validFileState(fileStateDict):
         print(f"{gdcCallCounter}th iteration of loop when trying to validate sample in GDC")
 
-        submitterId = f"{data['sample_alias']}.{data['data_type']}.{data['aggregation_project']}"
+        submitterId = f"{inputData['alias_value']}.{inputData['data_type']}.{inputData['agg_project']}"
         response = getEntity("validate", inputData['program'], inputData['project'], submitterId, inputData['token'])
         response = json.loads(response.text)
 
