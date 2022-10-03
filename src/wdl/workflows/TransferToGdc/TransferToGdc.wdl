@@ -4,17 +4,27 @@ import "../../tasks/terra_tasks.wdl" as tasks
 
 workflow TransferToGdc {
   input {
-    String  sample_id
-    File    metadata
-    File    gdc_token
-    String  program
-    String  project
+    # Sample input
+    String sample_id
+    String bam_file
+    String agg_project
+    String data_type
+    String file_size
+    String md5
+    String program
+    String project
+    String workspace_name
+    String workspace_project
+    File gdc_token
     Boolean dry_run = false
     Boolean registration_status
-    String  workspace_name
-    String  workspace_project
+  }
 
-    File?   monitoring_script
+  call tasks.addReadsField as reads {
+    input:
+      workspace_name = workspace_name,
+      workspace_project = workspace_project,
+      sample_id = sample_id
   }
 
   if (registration_status) {
@@ -22,9 +32,15 @@ workflow TransferToGdc {
 
     call submitMetadataToGDC {
       input:
-        program   = program,
-        project   = project,
-        metadata  = metadata,
+        sample_id = sample_id,
+        bam_file = bam_file,
+        agg_project = agg_project,
+        data_type = data_type,
+        file_size = file_size,
+        md5 = md5,
+        program = program,
+        project = project,
+        read_groups = reads.reads_json,
         gdc_token = token_value
     }
 
@@ -39,30 +55,33 @@ workflow TransferToGdc {
 
     call TransferBamToGdc {
       input:
-        bam_path          = submitMetadataToGDC.bam_path,
-        bam_name          = submitMetadataToGDC.bam_name,
-        manifest          = RetrieveGdcManifest.manifest,
-        gdc_token         = gdc_token,
-        dry_run           = dry_run,
+        bam_path = submitMetadataToGDC.bam_path,
+        bam_name = submitMetadataToGDC.bam_file_name,
+        manifest = RetrieveGdcManifest.manifest,
+        gdc_token = gdc_token,
+        dry_run = dry_run,
         monitoring_script = monitoring_script
     }
 
     call validateFileStatus {
       input:
-        program      = program,
-        project      = project,
-        metadata     = metadata,
-        gdc_token    = token_value,
+        program = program,
+        project = project,
+        sample_id = sample_id,
+        agg_project = agg_project,
+        data_type = data_type,
+        gdc_token = token_value,
         transfer_log = TransferBamToGdc.gdc_transfer_log
     }
 
     call tasks.CreateTableLoadFile as tsv_file {
       input:
-        sample_id           = sample_id,
-        uuid                = submitMetadataToGDC.UUID,
-        file_state          = validateFileStatus.file_state,
-        state               = validateFileStatus.state,
-        registration_status = registration_status
+        sample_id = sample_id,
+        uuid = submitMetadataToGDC.UUID,
+        file_state = validateFileStatus.file_state,
+        state = validateFileStatus.state,
+        registration_status = registration_status,
+        read_json_file = submitMetadataToGDC.read_json_file
     }
 
     call tasks.UpsertMetadataToDataModel {
@@ -100,6 +119,7 @@ task RetrieveGdcManifest {
     memory: "3.75 GB"
     docker: "schaluvadi/horsefish:submissionV2GDC"
     cpu: 1
+    preemptible: 3
     disks: "local-disk " + 20 + " HDD"
   }
 
@@ -158,6 +178,7 @@ task TransferBamToGdc {
     memory: "7.5 GB"
     docker: "schaluvadi/horsefish:submissionV2GDC"
     cpu: 2
+    preemptible: 3
     disks: "local-disk " + disk_size + " HDD"
   }
 
@@ -169,54 +190,75 @@ task TransferBamToGdc {
 
 task submitMetadataToGDC {
     input {
-      String  program
-      String  project
-      File    metadata
-      String  gdc_token
+      String sample_id
+      String bam_file
+      String agg_project
+      String data_type
+      String file_size
+      String md5
+      String program
+      String project
+      String read_groups
+      String gdc_token
     }
 
+    File json_file = write_json(read_groups)
+
     command {
-      python3 /main.py --metadata ~{metadata} \
-                       --step "submit_metadata" \
-                       --token ~{gdc_token} \
-                       --program ~{program} \
-                       --project ~{project}
+        python3 /main.py --step "submit_metadata" \
+                        --alias_value ~{sample_id} \
+                        --program ~{program} \
+                        --project ~{project} \
+                        --agg_path ~{bam_file} \
+                        --agg_project ~{agg_project} \
+                        --data_type ~{data_type} \
+                        --file_size ~{file_size} \
+                        --md5 ~{md5} \
+                        --read_groups ~{json_file} \
+                        --token ~{gdc_token}
     }
 
     runtime {
-        docker: "schaluvadi/horsefish:submissionV1"
+      preemptible: 3
+      docker: "schaluvadi/horsefish:submissionV1"
     }
 
     output {
-        String UUID = read_lines("UUID.txt")[0]
-        String bam_path = read_lines("bam.txt")[0]
-        String bam_name = read_lines("bam.txt")[1]
+      String UUID = read_lines("UUID.txt")[0]
+      String bam_path = read_lines("bam.txt")[0]
+      String bam_file_name = read_lines("bam.txt")[1]
+      File read_json_file = json_file
     }
 }
 
 task validateFileStatus {
     input {
-        String  program
-        String  project
-        File    metadata
-        String  gdc_token
-        File    transfer_log
+      String program
+      String project
+      String sample_id
+      String agg_project
+      String data_type
+      String gdc_token
+      File transfer_log
     }
 
     command {
-        python3 /main.py --program ~{program} \
+        python3 /main.py --alias_value ~{sample_id} \
+                        --agg_project ~{agg_project} \
+                        --data_type ~{data_type} \
+                        --program ~{program} \
                         --project ~{project} \
-                        --metadata ~{metadata} \
                         --step "validate_status" \
                         --token ~{gdc_token}
     }
 
     runtime {
-        docker: "schaluvadi/horsefish:submissionV1"
+      preemptible: 3
+      docker: "schaluvadi/horsefish:submissionV1"
     }
 
     output {
-        String state = read_lines("fileStatus.txt")[0]
-        String file_state = read_lines("fileStatus.txt")[1]
+      String state = read_lines("fileStatus.txt")[0]
+      String file_state = read_lines("fileStatus.txt")[1]
     }
 }
