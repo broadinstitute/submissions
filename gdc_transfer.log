@@ -33,3 +33,32 @@
 2022-08-24 09:21:43,108: INFO: File size smaller than part size 1073745920, do simple upload
 2022-08-24 09:28:22,147: INFO: Upload finished for file f5847613-bd9f-4afc-ac2a-9bd3c9aff4f6
 2022-08-24 09:32:34,905: INFO: Delete file f5847613-bd9f-4afc-ac2a-9bd3c9aff4f6
+2022-09-12 10:51:41,167: INFO: Attempting to upload to https://api.gdc.cancer.gov/v0/submission/BROAD/TEST4/files/f5847613-bd9f-4afc-ac2a-9bd3c9aff4f6
+2022-09-12 10:51:41,167: INFO: File size smaller than part size 1073745920, do simple upload
+2022-09-12 10:51:42,128: ERROR: Can't upload: b'{"message":"Your token is invalid or expired. Please get a new token from GDC Data Portal."}\n'
+2022-09-12 10:52:55,121: INFO: Attempting to upload to https://api.gdc.cancer.gov/v0/submission/BROAD/TEST4/files/f5847613-bd9f-4afc-ac2a-9bd3c9aff4f6
+2022-09-12 10:52:55,121: INFO: File size smaller than part size 1073745920, do simple upload
+2022-09-12 10:56:46,231: INFO: Upload finished for file f5847613-bd9f-4afc-ac2a-9bd3c9aff4f6
+2022-09-12 10:57:37,250: INFO: Attempting to upload to https://api.gdc.cancer.gov/v0/submission/BROAD/TEST4/files/f5847613-bd9f-4afc-ac2a-9bd3c9aff4f6
+2022-09-12 10:57:37,251: INFO: File size smaller than part size 1073745920, do simple upload
+2022-09-12 10:58:59,453: WARNING: Process cancelled by user.
+2022-09-12 10:59:12,827: INFO: Attempting to upload to https://api.gdc.cancer.gov/v0/submission/BROAD/TEST4/files/f5847613-bd9f-4afc-ac2a-9bd3c9aff4f6
+2022-09-12 10:59:12,828: INFO: File size smaller than part size 1073745920, do simple upload
+2022-09-12 11:00:48,016: WARNING: Process cancelled by user.
+2022-09-12 11:00:53,911: INFO: Attempting to upload to https://api.gdc.cancer.gov/v0/submission/BROAD/TEST4/files/f5847613-bd9f-4afc-ac2a-9bd3c9aff4f6
+2022-09-12 11:00:53,911: INFO: File size smaller than part size 1073745920, do simple upload
+2022-09-12 11:01:52,223: WARNING: Process cancelled by user.
+2022-09-13 13:21:28,170: INFO: Attempting to upload to https://api.gdc.cancer.gov/v0/submission/BROAD/TEST4/files/f5847613-bd9f-4afc-ac2a-9bd3c9aff4f6
+2022-09-13 13:21:28,171: INFO: File size smaller than part size 1073745920, do simple upload
+2022-09-13 13:22:34,712: WARNING: Process cancelled by user.
+2022-09-13 13:34:44,862: ERROR: [Errno 2] No such file or directory: 'Test_aligned_4.bam'
+2022-09-13 13:35:15,547: ERROR: [Errno 2] No such file or directory: 'Test_aligned_4.bam'
+2022-09-13 13:36:06,975: ERROR: [Errno 2] No such file or directory: 'Test_aligned_4.bam'
+2022-09-13 13:36:49,712: ERROR: [Errno 2] No such file or directory: 'Test_aligned_4.bam'
+2022-09-13 13:37:21,270: ERROR: [Errno 2] No such file or directory: 'Test_aligned_4.bam'
+2022-09-13 13:39:00,227: ERROR: [Errno 2] No such file or directory: 'Test_aligned_4.bam'
+2022-09-13 13:44:44,528: ERROR: [Errno 2] No such file or directory: 'Test_aligned_4.bam'
+2022-09-13 13:46:08,982: ERROR: [Errno 2] No such file or directory: 'Test_aligned_4.bam'
+2022-09-13 13:47:53,720: ERROR: [Errno 2] No such file or directory: 'Test_aligned_4.bam'
+2022-09-13 13:49:37,080: ERROR: [Errno 2] No such file or directory: 'Test_aligned_4.bam'
+2022-09-13 15:50:09,526: ERROR: [Errno 2] No such file or directory: 'Test_aligned_4.bam'
