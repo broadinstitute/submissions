@@ -46,11 +46,11 @@ workflow TransferToGdc {
 
     call RetrieveGdcManifest {
       input:
-        program = program,
-        project = project,
-        sar_id = submitMetadataToGDC.UUID,
+        program   = program,
+        project   = project,
+        sar_id    = submitMetadataToGDC.UUID,
         gdc_token = token_value,
-        dry_run = dry_run
+        dry_run   = dry_run
     }
 
     call TransferBamToGdc {
@@ -59,7 +59,8 @@ workflow TransferToGdc {
         bam_name = submitMetadataToGDC.bam_file_name,
         manifest = RetrieveGdcManifest.manifest,
         gdc_token = gdc_token,
-        dry_run = dry_run
+        dry_run = dry_run,
+        monitoring_script = monitoring_script
     }
 
     call validateFileStatus {
@@ -85,9 +86,9 @@ workflow TransferToGdc {
 
     call tasks.UpsertMetadataToDataModel {
       input:
-        workspace_name = workspace_name,
+        workspace_name    = workspace_name,
         workspace_project = workspace_project,
-        tsv = tsv_file.load_tsv
+        tsv               = tsv_file.load_tsv
     }
   }
 }
@@ -95,10 +96,10 @@ workflow TransferToGdc {
 task RetrieveGdcManifest {
 
   input {
-    String program
-    String project
-    String sar_id
-    String gdc_token
+    String  program
+    String  project
+    String  sar_id
+    String  gdc_token
     Boolean dry_run
   }
 
@@ -130,11 +131,12 @@ task RetrieveGdcManifest {
 task TransferBamToGdc {
 
   input {
-    String bam_path
-    String bam_name
-    File manifest
-    File gdc_token
+    String  bam_path
+    String  bam_name
+    File    manifest
+    File    gdc_token
     Boolean dry_run
+    File?   monitoring_script
   }
 
   File bam_file = bam_path
@@ -142,10 +144,25 @@ task TransferBamToGdc {
 
   command {
     set -e
+
+    pwd
+    # if the WDL/task contains a monitoring script as input
+    if [ ! -z "~{monitoring_script}" ]; then
+      chmod a+x ~{monitoring_script}
+      ~{monitoring_script} > monitoring.log &
+    else
+      echo "No monitoring script given as input" > monitoring.log &
+    fi
+
+    pwd
+    # put the localized bam file in the same place as the gdc-client
     mv ~{bam_file} ./~{bam_name}
+    pwd
     ls /cromwell_root
+    pwd
 
     if ~{dry_run}; then
+      pwd
       echo "This was a dry run of uploading to GDC" > gdc_transfer.log
       echo "BAM_FILE=~{bam_path}" >> gdc_transfer.log
       echo "MANIFEST=~{manifest}" >> gdc_transfer.log
@@ -153,6 +170,8 @@ task TransferBamToGdc {
       gdc-client --version
       gdc-client upload -t ~{gdc_token} -m ~{manifest} --debug --log-file gdc_transfer.log
     fi
+
+    pwd
   }
 
   runtime {
@@ -164,7 +183,8 @@ task TransferBamToGdc {
   }
 
   output {
-    File gdc_transfer_log = "gdc_transfer.log"
+    File  gdc_transfer_log = "gdc_transfer.log"
+    File? monitoring_log = "monitoring.log"
   }
 }
 
