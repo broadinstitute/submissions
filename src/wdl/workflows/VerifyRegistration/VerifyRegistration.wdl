@@ -1,10 +1,14 @@
 version 1.0
 
+f"{data['sample_alias']}.{data['data_type']}.{data['aggregation_project']}"
 workflow VerifyRegistration {
   input {
     File gdc_token
     String program
     String project
+    String sample_alias
+    String data_type
+    String aggregation_project
     Boolean dry_run = false
   }
 
@@ -14,7 +18,10 @@ workflow VerifyRegistration {
     input:
       program = program,
       project = project,
-      gdc_token = token_value
+      gdc_token = token_value,
+      sample_alias = sample_alias,
+      data_type = data_type,
+      aggregation_project = aggregation_project
   }
 
   output {
@@ -27,19 +34,25 @@ task verifyGDCRegistration {
         String program
         String project
         String alias_value
+        String sample_alias
+        String data_type
+        String aggregation_project
         String gdc_token
     }
 
     command {
         python3 /main.py --program ~{program} \
                         --project ~{project} \
-                        --alias_value ~{alias_value} \
+                        --sample_alias ~{sample_alias} \
+                        --data_type ~{data_type} \
+                        --aggregation_project ~{aggregation_project} \
                         --step "verify_registration" \
                         --token ~{gdc_token}
     }
 
     runtime {
-        docker: "schaluvadi/horsefish:submissionV1"
+        docker: "schaluvadi/horsefish:submissionV1",
+        preemptible: 1
     }
 
     output {

@@ -1,7 +1,7 @@
 import argparse
 import requests
 import json
-
+from google.cloud import storage
 
 def link_entity(sample_file, token):
     """Creates all entities such as case, sample, aliquot and readGroup and pushes to gdc"""
