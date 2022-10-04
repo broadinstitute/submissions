@@ -9,6 +9,7 @@ workflow TransferToDbGap {
     String       ftp_path_prefix
 
     File         sra_meta_tsv
+    File         asession_table
     File?        ncbi_ftp_config_js
   }
 
@@ -34,6 +35,26 @@ workflow TransferToDbGap {
   output {
     Array[File] reports = sra_upload.reports_xmls
   }
+}
+
+task write_asession_to_table {
+    input {
+        File sra_meta_tsv
+        File asession_table
+    }
+
+    command {
+      python3 /main.py -s ~{sra_meta_tsv} \
+                       -a ~{asession_table}
+    }
+
+    output {
+        File meta_tsv = "sra_meta_tsv.tsv"
+    }
+
+    runtime {
+      docker: "schaluvadi/horsefish:submissionV1"
+    }
 }
 
 task ncbi_sftp_upload {
@@ -119,3 +140,5 @@ task sra_tsv_to_xml {
         maxRetries: 2
     }
 }
+
+task upload_file_
