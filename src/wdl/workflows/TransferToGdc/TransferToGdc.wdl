@@ -141,7 +141,7 @@ task TransferBamToGdc {
   }
 
   File bam_file = bam_path
-  Int disk_size = ceil(size(bam_file, "GiB") * 1.5)
+  Int disk_size = 500
 
   command {
     set -e
