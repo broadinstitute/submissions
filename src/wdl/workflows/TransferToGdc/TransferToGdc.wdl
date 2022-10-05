@@ -18,6 +18,7 @@ workflow TransferToGdc {
     File gdc_token
     Boolean dry_run = false
     Boolean registration_status
+    File?   monitoring_script
   }
 
   call tasks.addReadsField as reads {
