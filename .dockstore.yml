@@ -11,4 +11,4 @@ workflows:
     primaryDescriptorPath: /src/wdl/workflows/VerifyRegistration/VerifyRegistration.wdl
   - name: trasferToDBGap
     subclass: WDL
-    primaryDescriptorPath: /src/wdl/workflows/TransferToDbGap/TransferToDbGap.wdl
+    primaryDescriptorPath: /src/wdl/workflows/TransferToDbGap/TransferFile.wdl
