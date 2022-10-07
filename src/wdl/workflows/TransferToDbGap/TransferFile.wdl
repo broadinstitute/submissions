@@ -1,25 +1,25 @@
 task ascpFile {
     File uploadFile
+    File key
     String uploadSite
     String uploadPath
     String ascpUser
 
-    String gcr_project
-
     command {
       set -e
       mkdir upload &&
-      ascp -k0 -Q -l 500M -i /keys/ncbi_id_rsa.private -T -L upload ${uploadFile} ${ascpUser}@${uploadSite}:${uploadPath};
+      ascp -k0 -Q -l 500M -i ${key} -T -L upload ${uploadFile} ${ascpUser}@${uploadSite}:${uploadPath};
       ERRORS=$(grep "Source file transfers failed" upload/aspera-scp-transfer.log | rev | cut -f 1 -d ' ');
       [[ $ERRORS[*] =~ '!' ]] && echo "An error was detected during aspera upload." && exit 1
       cat upload/aspera-scp-transfer.log
     }
 
     runtime {
-      docker: "gcr.io/" + gcr_project + "/ascp-client:latest"
+      memory: "7.5 GB"
+      docker: "schaluvadi/horsefish:submissionV2GDC"
+      cpu: 2
+      preemptible: 3
       disks: "local-disk 200 HDD"
-      memory: "8 GB"
-      maxRetries: 1
     }
 
     output {
