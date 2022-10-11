@@ -141,7 +141,7 @@ task TransferBamToGdc {
   }
 
   File bam_file = bam_path
-  Int disk_size = ceil(size(bam_file, "GiB") * 1.5)
+  Int disk_size = 500
 
   command {
     set -e
@@ -156,8 +156,10 @@ task TransferBamToGdc {
     fi
 
     pwd
+    gcloud components install alpha
+    gcloud alpha storage cp -r ~{bam_file} ./~{bam_name}
     # put the localized bam file in the same place as the gdc-client
-    mv ~{bam_file} ./~{bam_name}
+    # mv ~{bam_file} ./~{bam_name}
     pwd
     ls /cromwell_root
     pwd
