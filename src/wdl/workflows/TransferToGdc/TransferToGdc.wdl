@@ -141,7 +141,7 @@ task TransferBamToGdc {
   }
 
   File bam_file = bam_path
-  Int disk_size = ceil(size(bam_file, "GiB") * 1.5)
+  # Int disk_size = ceil(size(bam_file, "GiB") * 1.5)
 
   command {
     set -e
@@ -180,7 +180,7 @@ task TransferBamToGdc {
     docker: "schaluvadi/horsefish:submissionV2GDC"
     cpu: 8
     preemptible: 3
-    disks: "local-disk " + "1000" + " HDD"
+    disks: "local-disk " + "1000" + " SSD"
   }
 
   output {
