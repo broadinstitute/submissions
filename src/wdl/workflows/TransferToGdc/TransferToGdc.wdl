@@ -176,11 +176,11 @@ task TransferBamToGdc {
   }
 
   runtime {
-    memory: "7.5 GB"
+    memory: "32 GB"
     docker: "schaluvadi/horsefish:submissionV2GDC"
-    cpu: 2
+    cpu: 8
     preemptible: 3
-    disks: "local-disk " + disk_size + " HDD"
+    disks: "local-disk " + "1000" + " HDD"
   }
 
   output {
