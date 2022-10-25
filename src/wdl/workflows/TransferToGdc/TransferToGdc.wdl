@@ -141,6 +141,7 @@ task TransferBamToGdc {
   }
 
   File bam_file = bam_path
+  # dynamically size disk size
   # Int disk_size = ceil(size(bam_file, "GiB") * 1.5)
 
   command {
