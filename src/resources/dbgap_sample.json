@@ -1,0 +1,31 @@
+{
+  "parameters": {
+    "fields": {},
+    "filterOperator": "and",
+    "page": 1,
+    "pageSize": 24,
+    "sortDirection": "asc",
+    "sortField": "name"
+  },
+  "resultMetadata": {
+    "filteredCount": 1,
+    "filteredPageCount": 1,
+    "unfilteredCount": 1
+  },
+  "results": [
+    {
+      "attributes": {
+        "aggregation_project": "G96830",
+        "location": "GCP",
+        "aggregation_index_path": "gs://broad-gotc-prod-storage/pipeline/G96830/NA12878/v2454/NA12878.cram.crai",
+        "version": 2454,
+        "md5": "gs://broad-gotc-prod-storage/pipeline/G96830/NA12878/v2454/NA12878.cram.md5",
+        "aggregation_path": "gs://broad-gotc-prod-storage/pipeline/G96830/NA12878/v2454/NA12878.cram",
+        "phs_id": 123,
+        "data_type": "WGS"
+      },
+      "entityType": "sample",
+      "name": "G96830_NA12878_v2454_WGS_DBGAP"
+    }
+  ]
+}
