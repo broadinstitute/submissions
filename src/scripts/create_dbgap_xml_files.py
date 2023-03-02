@@ -16,7 +16,8 @@ def run(sample_id, project, workspace_name, sample_file, read_file):
 
     sample = Sample(sample_json["results"])
     read_group = ReadGroup(readGroup_json["results"])
-    get_telemetry_report_info(sample.phs)
+    print("before call")
+    get_telemetry_report_info(sample.phs, sample.sample_alias)
 
     print("sample", sample)
     print("read group", read_group.read_group_ids)

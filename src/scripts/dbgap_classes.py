@@ -1,10 +1,15 @@
 import requests
+import json
+import uuid
 import xml.etree.ElementTree as ET
+
+BROAD_ABBREVIATION = "BI"
 
 class Sample:
     def __init__(self, json_object):
-        sample_json = json_object[0]["attributes"]
         # Here we are making the assumption that we are only running once per sample. If we need t
+        sample_json = json_object[0]["attributes"]
+        self.sample_alias = json_object[0]["name"].split("_")[1]
         self.project = sample_json["aggregation_project"]
         self.location = sample_json["location"]
         self.index = sample_json["aggregation_index_path"]
@@ -21,6 +26,31 @@ class Sample:
     def get_study_info(self):
         return self.study_info
 
+    def formatted_data_type(self):
+        DATA_TYPE_MAPPING = {
+            "WGS": {
+                "constant": "Whole Genome",
+                "name": "Whole Genome Sequencing"
+            },
+            "RNA": {
+                "constant": "RNA Seq",
+                "name": "RNA Sequencing"
+            },
+            "Exome": {
+                "constant": "Whole Exome",
+                "name": "Whole Exome Sequencing"
+            },
+            "Custom_Selection": {
+                "constant": "Custom_Selection",
+                "name": "Genomic Sequencing for Select Targets of Interest"
+            },
+            "N/A": {
+                "constant": "Unknown",
+                "name": "Unknown"
+            }
+        }
+
+        return DATA_TYPE_MAPPING[self.data_type]
 
 class ReadGroup:
     def __init__(self, json_object):
@@ -68,21 +98,69 @@ class ReadGroup:
         self.instrument_names = {x["attributes"]["machine_name"] for x in json_object}
         self.flowcell_barcodes = {x["attributes"]["flowcell_barcode"] for x in json_object}
 
-def call_telemetry_report(phs_id)
-    baseUrl = f"https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi"
-    parameters = {
-        'rettype': 'xml',
-        'study_id': 'phs001977.v1.p1'
-    }
+    def pairing_code(self):
+        if self.paired_run:
+            return "P"
+        else:
+            return "S"
+
+    def is_paired_end(self):
+        if self.paired_run:
+            return "paired-end"
+        else:
+            return "single-end"
+
+    def get_pdo_or_wr(self):
+        if self.product_order_id:
+            return self.product_order_id
+        elif work_request_id:
+            return self.work_request_id
+        else:
+            return ""
+
+
+class Experiment:
+    def __init__(self, sample, read_group):
+        self.sample = sample
+        self.read_group = read_group
+
+    def create_submitter_id(self):
+        pairing_code = self.read_group.pairing_code()
+        pdo_or_wr = self.read_group.get_pdo_or_wr()
+
+        return f"{self.sample.phs}.{pdo_or_wr}.{self.read_group.library_name}.{pairing_code}.{self.sample.sample_alias}.{self.sample.project}.{self.sample.formatted_data_type}.{self.sample.version}"
+
+    def create_title(self):
+        subject_string = ""
+
+def create_random_uuid():
+    uuid.uuid1()
+
+def call_telemetry_report(phs_id):
+    baseUrl = f"https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id=phs002458.v1.p1"
     headers = {"Content-Type": "application/json"}
+    print("before again")
+    response = requests.get(baseUrl, headers=headers)
+    status_code = response.status_code
 
-    return requests.get(baseUrl, headers=headers, params=parameters)
+    return response.text
 
-def get_telemetry_report_info(phs_id):
+def get_telemetry_report_info(phs_id, sample_id):
     def is_bioproject_admin(xml_object):
-        if xml_object['bp_type'] == 'admin'
+        return xml_object.attrib['bp_type'] == 'admin'
+    
+    def is_sample(xml_object, sample_id):
+        print("sample id xml", xml_object.attrib['submitted_sample_id'])
+        return xml_object.attrib['submitted_sample_id'] == sample_id
 
-    root = ET.fromstring(call_telemetry_report(phs_id).text)
-
+    print("sample_id", sample_id)
+    root = ET.fromstring(call_telemetry_report(phs_id))
     study = root[0].attrib
-    ioProject = [is_bioproject_admin(x) for x in root.iter('BioProject')]
+    bioProject = [x.attrib['bp_id'] for x in root.iter('BioProject') if is_bioproject_admin(x)]
+    sample = [x.attrib for x in root.iter('Sample') if is_sample(x, sample_id)]
+
+    print("sample", sample)
+
+
+def get_center_name():
+    print("Need to figure out how to do this")
