@@ -4,7 +4,12 @@ import pandas
 import requests
 
 from batch_upsert_entities import get_access_token
-from dbgap_classes import Sample, ReadGroup, get_telemetry_report_info
+from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission
+
+############### Things still needed from Motorcade #####################
+# 1. NOMINAL_LENGTH and NOMINAL_SDEV
+# 2. INSTRUMENT_MODEL
+# 3. Pass back requester from Motorcade
 
 def run(sample_id, project, workspace_name, sample_file, read_file):
     # sample = callTerraApi(sample_id, project, workspace_name, "sample")
@@ -16,11 +21,17 @@ def run(sample_id, project, workspace_name, sample_file, read_file):
 
     sample = Sample(sample_json["results"])
     read_group = ReadGroup(readGroup_json["results"])
-    print("before call")
-    get_telemetry_report_info(sample.phs, sample.sample_alias)
 
-    print("sample", sample)
-    print("read group", read_group.read_group_ids)
+    experiment = Experiment(sample, read_group)
+    experiment.create_file()
+
+    run = Run(sample, read_group, experiment)
+    run.create_file()
+
+    submission = Submission(experiment, run, sample.phs)
+    submission.create_file()
+
+    print("Done creating xml files")
 
 def parse_terra_file(file):
     """Reads the dummy json file"""
