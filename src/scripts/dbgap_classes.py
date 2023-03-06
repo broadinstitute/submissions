@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 
 BROAD_ABBREVIATION = "BI"
+NONAMESPACESCHEMALOCATION = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.submission.xsd?view=co"
+XSI = "http://www.w3.org/2001/XMLSchema-instance"
 
 class Sample:
     def __init__(self, json_object):
@@ -48,6 +50,7 @@ class Sample:
             raise Exception('Could not find specific sample in report')
         
         self.dbgap_sample_info = sample[0]
+        self.center_project_name = root[0].attrib['study_name']
 
     def formatted_data_type(self):
         DATA_TYPE_MAPPING = {
@@ -167,6 +170,7 @@ class ReadGroup:
                 "ncbi_string": "GENOMIC",
                 "humanized_string": "genomic DNA"
             }
+            library_descriptor["selection"] = "random"
         elif (self.library_type == "cDNAShotgunReadTwoSense" or self.library_type == "cDNAShotgunStrandAgnostic" or
               self.analysis_type == "cDNA") and self.analysis_type != "AssemblyWithoutReference":
             library_descriptor["strategy"] = {
@@ -177,6 +181,7 @@ class ReadGroup:
                 "ncbi_string": "TRANSCRIPTOMIC",
                 "humanized_string": "transcriptome"
             }
+            library_descriptor["selection"] = "cDNA"
         elif self.library_type == "HybridSelection":
             library_descriptor["strategy"] = {
                 "ncbi_string": "WXS",
@@ -186,6 +191,7 @@ class ReadGroup:
                 "ncbi_string": "GENOMIC",
                 "humanized_string": "genomic DNA"
             }
+            library_descriptor["selection"] = "Hybrid Selection"
 
         return library_descriptor
 
@@ -194,6 +200,7 @@ class Experiment:
     def __init__(self, sample, read_group):
         self.sample = sample
         self.read_group = read_group
+        self.uuid = create_random_uuid()
 
     def get_submitter_id(self):
         pairing_code = self.read_group.pairing_code()
@@ -202,7 +209,7 @@ class Experiment:
 
         return f"{self.sample.phs}.{pdo_or_wr}.{self.read_group.library_name}.{pairing_code}.{self.sample.sample_alias}.{self.sample.project}.{formatted_data_type}.{self.sample.version}"
 
-    def create_title(self):
+    def get_title(self):
         repo = self.sample.get_biospecimen_repo()
         library_strategy_string = self.read_group.library_descriptor()["strategy"]["humanized_string"]
         library_source_string = self.read_group.library_descriptor()["source"]["humanized_string"]
@@ -230,14 +237,90 @@ class Experiment:
             "read_class": "Application Read"
         }
 
+    def set_identifiers(self, experiment):
+        identifier = ET.SubElement(experiment, "IDENTIFIERS")
+        ET.SubElement(
+            identifier, 
+            "SUBMITTER_ID",
+            namespace=BROAD_ABBREVIATION
+        ).text = self.get_submitter_id()
+        ET.SubElement(identifier, "UUID").text = self.uuid
+
+    def set_study_ref(experiment):
+        study_ref = ET.SubElement(experiment, "STUDY_REF")
+        identifiers = ET.SubElement(study_ref, "IDENTIFIERS")
+
+        ET.SubElement(
+            identifiers, 
+            "EXTERNAL_ID",
+            namespace="bioproject"
+        ).text = self.sample.bio_project
+
+        ET.SubElement(
+            identifiers, 
+            "EXTERNAL_ID",
+            namespace="gap"
+        ).text = self.sample.phs
+
+        ET.SubElement(
+            identifiers, 
+            "EXTERNAL_ID",
+            namespace="WE NEED TO FIND OUT HOW TO GET CENTER INFO!!!!!!!!!!!!!!!!!!",
+            label=self.sample.center_project_name
+        ).text = self.sample.phs
+
+    def set_design(experiment):
+        ET.SubElement(
+            experiment, 
+            "DESIGN_DESCRIPTION" 
+        ).text = "Need to call mercury in motorcade to get this info"
+
+        sample_descriptor = ET.SubElement(experiment, "SAMPLE_DESCRIPTOR")
+        identifiers = ET.SubElement(sample_descriptor, "IDENTIFIERS")
+
+        ET.SubElement(
+            identifiers, 
+            "EXTERNAL_ID",
+            namespace="biosample"
+        ).text = self.sample.dbgap_sample_info["sra_sample_id"]
+
+        ET.SubElement(
+            identifiers, 
+            "EXTERNAL_ID",
+            namespace=self.sample.phs
+            label=self.sample.dbgap_sample_info["repository"]
+        ).text = self.sample.dbgap_sample_info["submitted_sample_id"]
+
+    def set_library_descriptor(experiment):
+        library_descriptor = ET.SubElement(experiment, "LIBRARY_DESCRIPTOR")
+
+        ET.SubElement(library_descriptor, "LIBRARY_NAME").text = self.read_group.library_name
+        ET.SubElement(library_descriptor, "LIBRARY_STRATEGY").text = self.read_group.get_library_descriptor()["strategy"]["ncbi_string"]
+        
+
     def create_file(self):
-        print("creating xml files")
+        print("creating experiment xml files")
+
+        root = ET.Element(
+            "EXPERIMENT_SET",
+            noNamespaceSchemaLocation=NONAMESPACESCHEMALOCATION,
+            xsi=XSI
+        )
+        experiment = ET.SubElement(root, "EXPERIMENT")
+
+        self.set_identifiers(experiment)
+        ET.SubElement(experiment, "TITLE").text = self.get_title()
+        self.set_study_ref(experiment)
+        self.set_design(experiment)
+        self.set_library_descriptor(experiment)
+
 
 class Run:
     def __init__(self, sample, read_group, experiment):
         self.sample = sample
         self.read_group = read_group
         self.experiment = experiment
+        self.uuid = create_random_uuid()
 
     def file_type(self):
         return self.sample.data_file.split(".")[-1]
@@ -315,7 +398,11 @@ class Submission:
     def create_file(self):
         print("Creating submission xml file")
 
-        root = ET.Element("SUBMISSION_SET")
+        root = ET.Element(
+            "SUBMISSION_SET",
+            noNamespaceSchemaLocation=NONAMESPACESCHEMALOCATION,
+            xsi=XSI
+        )
         submission = ET.SubElement(
             root, 
             "SUBMISSION", 
