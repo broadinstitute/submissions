@@ -19,7 +19,7 @@ class Sample:
         self.version = sample_json["version"]
         self.md5 = sample_json["md5"]
         self.data_file = sample_json["aggregation_path"]
-        self.phs = sample_json["phs_id"]
+        self.phs = str(sample_json["phs_id"])
         self.data_type = sample_json["data_type"]
         self.set_telemetry_report_info()
 
@@ -40,7 +40,7 @@ class Sample:
         root = ET.fromstring(call_telemetry_report(self.phs))
         sample = [x.attrib for x in root.iter('Sample') if is_sample(x)]
         self.study = root[0].attrib
-        self.bio_project = [x.attrib['bp_id'] for x in root.iter('BioProject') if is_bioproject_admin(x)]
+        self.bio_project = [x.attrib['bp_id'] for x in root.iter('BioProject') if is_bioproject_admin(x)][0]
 
         if not self.study:
             raise Exception('Study not registered with Dbgap')
@@ -109,6 +109,9 @@ class ReadGroup:
         self.product_part_number = first_read_group["product_part_number"]
         self.sample_barcode = first_read_group["sample_barcode"]
         self.sample_lsid = first_read_group["sample_lsid"]
+        self.project = first_read_group["project"]
+        self.primary_disease = first_read_group.get("primary_disease")
+        self.bait_set = "This will be passed in"
 
         self.set_aggregate_values(json_object)
 
@@ -195,6 +198,12 @@ class ReadGroup:
 
         return library_descriptor
 
+    def get_read_length(self):
+        if self.read_structure:
+            return int(self.read_structure.split("T")[0])
+        else:
+            raise Exception(f'read structure not populated for read {self.root_sample_id}')
+
 
 class Experiment:
     def __init__(self, sample, read_group):
@@ -211,8 +220,8 @@ class Experiment:
 
     def get_title(self):
         repo = self.sample.get_biospecimen_repo()
-        library_strategy_string = self.read_group.library_descriptor()["strategy"]["humanized_string"]
-        library_source_string = self.read_group.library_descriptor()["source"]["humanized_string"]
+        library_strategy_string = self.read_group.get_library_descriptor()["strategy"]["humanized_string"]
+        library_source_string = self.read_group.get_library_descriptor()["source"]["humanized_string"]
         paired_end = self.read_group.is_paired_end()
 
         return f"{repo} Illumina {library_strategy_string} sequencing of '{library_source_string}\
@@ -223,8 +232,8 @@ class Experiment:
         return {
             "read_label": "forward",
             "read_type": "Forward",
-            "read_index": 0,
-            "base_coord": 1,
+            "read_index": "0",
+            "base_coord": "1",
             "read_class": "Application Read"
         }
 
@@ -232,10 +241,33 @@ class Experiment:
         return {
             "read_label": "reverse",
             "read_type": "Reverse",
-            "read_index": 1,
-            "base_coord": self.read_group.read_structure + 1,
+            "read_index": "1",
+            "base_coord": str(self.read_group.get_read_length() + 1),
             "read_class": "Application Read"
         }
+
+    def get_spot_length(self):
+        if self.read_group.paired_run:
+            return str(self.read_group.get_read_length() * 2)
+        else:
+            return str(self.read_group.get_read_length())
+
+    def generate_experiment_attributes(self):
+        attributes_dict = {
+            "aggregation_project": self.read_group.project,
+            "analysis_type": self.read_group.analysis_type,
+            "gssr_id": str(self.read_group.sample_barcode),
+            "library": self.read_group.library_name,
+            "library_type": self.read_group.library_type,
+            "lsid": self.read_group.sample_lsid,
+            "material_type": self.read_group.sample_material_type,
+            "project": self.read_group.project,
+            "research_project": self.read_group.research_project_id,
+            "target_set": self.read_group.bait_set,
+            "work_request_or_pdo": self.read_group.get_pdo_or_wr()
+        }
+
+        return attributes_dict
 
     def set_identifiers(self, experiment):
         identifier = ET.SubElement(experiment, "IDENTIFIERS")
@@ -244,9 +276,11 @@ class Experiment:
             "SUBMITTER_ID",
             namespace=BROAD_ABBREVIATION
         ).text = self.get_submitter_id()
+        print("submitterid", self.get_submitter_id())
+        print("uuid", self.uuid)
         ET.SubElement(identifier, "UUID").text = self.uuid
 
-    def set_study_ref(experiment):
+    def set_study_ref(self, experiment):
         study_ref = ET.SubElement(experiment, "STUDY_REF")
         identifiers = ET.SubElement(study_ref, "IDENTIFIERS")
 
@@ -255,7 +289,7 @@ class Experiment:
             "EXTERNAL_ID",
             namespace="bioproject"
         ).text = self.sample.bio_project
-
+        
         ET.SubElement(
             identifiers, 
             "EXTERNAL_ID",
@@ -269,7 +303,7 @@ class Experiment:
             label=self.sample.center_project_name
         ).text = self.sample.phs
 
-    def set_design(experiment):
+    def set_design(self, experiment):
         ET.SubElement(
             experiment, 
             "DESIGN_DESCRIPTION" 
@@ -277,7 +311,8 @@ class Experiment:
 
         sample_descriptor = ET.SubElement(experiment, "SAMPLE_DESCRIPTOR")
         identifiers = ET.SubElement(sample_descriptor, "IDENTIFIERS")
-
+        print("type 1", type(self.sample.phs))
+        print("type 2", type(self.sample.dbgap_sample_info["submitted_sample_id"]))
         ET.SubElement(
             identifiers, 
             "EXTERNAL_ID",
@@ -287,24 +322,59 @@ class Experiment:
         ET.SubElement(
             identifiers, 
             "EXTERNAL_ID",
-            namespace=self.sample.phs
+            namespace=self.sample.phs,
             label=self.sample.dbgap_sample_info["repository"]
         ).text = self.sample.dbgap_sample_info["submitted_sample_id"]
 
-    def set_library_descriptor(experiment):
+    def set_library_descriptor(self, experiment):
         library_descriptor = ET.SubElement(experiment, "LIBRARY_DESCRIPTOR")
 
         ET.SubElement(library_descriptor, "LIBRARY_NAME").text = self.read_group.library_name
         ET.SubElement(library_descriptor, "LIBRARY_STRATEGY").text = self.read_group.get_library_descriptor()["strategy"]["ncbi_string"]
+        ET.SubElement(library_descriptor, "LIBRARY_SOURCE").text = self.read_group.get_library_descriptor()["source"]["ncbi_string"]
+        ET.SubElement(library_descriptor, "LIBRARY_SELECTION").text = self.read_group.get_library_descriptor()["selection"]
         
+        layout = ET.SubElement(library_descriptor, "LIBRARY_LAYOUT")
+        ET.SubElement(layout, "PAIRED", NOMINAL_LENGTH="NEED TO PASS THIS IN", NOMINAL_SDEV="NEDD TO PASS THIS IN")
+
+    def set_spec_values(self, dict, decode_spec):
+            read_spec = ET.SubElement(decode_spec, "READ_SPEC")
+
+            ET.SubElement(read_spec, "READ_INDEX").text = dict["read_index"]
+            ET.SubElement(read_spec, "READ_LABEL").text = dict["read_label"]
+            ET.SubElement(read_spec, "READ_CLASS").text = dict["read_class"]
+            ET.SubElement(read_spec, "READ_TYPE").text = dict["read_type"]
+            ET.SubElement(read_spec, "READ_COORD").text = dict["base_coord"]
+
+    def set_spot_descriptor(self, experiment):
+         spot_descriptor = ET.SubElement(experiment, "SPOT_DESCRIPTOR")
+         decode_spec = ET.SubElement(spot_descriptor, "SPOT_DECODE_SPEC")
+
+         ET.SubElement(decode_spec, "SPOT_LENGTH").text = self.get_spot_length()
+         read_spec = ET.SubElement(decode_spec, "READ_SPEC")
+
+         self.set_spec_values(self.get_read_spec_forward(), read_spec)
+         self.set_spec_values(self.get_read_spec_reverse(), read_spec)
+
+    def set_platform(self, experiment):
+        illumina = ET.SubElement(experiment, "ILLUMINA")
+
+        ET.SubElement(illumina, "INSTRUMENT_MODEL").text = "We need to get these values from motorcade"
+
+    def set_experiment_attributes(self, experiment):
+        experiment_attrs = ET.SubElement(experiment, "EXPERIMENT_ATTRIBUTES")
+
+        for key, value in self.generate_experiment_attributes().items():
+            experiment_attr = ET.SubElement(experiment_attrs, "EXPERIMENT_ATTRIBUTE")
+
+            ET.SubElement(experiment_attr, "TAG").text = key
+            ET.SubElement(experiment_attr, "VALUE").text = value
 
     def create_file(self):
         print("creating experiment xml files")
 
         root = ET.Element(
-            "EXPERIMENT_SET",
-            noNamespaceSchemaLocation=NONAMESPACESCHEMALOCATION,
-            xsi=XSI
+            "EXPERIMENT_SET"
         )
         experiment = ET.SubElement(root, "EXPERIMENT")
 
@@ -313,6 +383,14 @@ class Experiment:
         self.set_study_ref(experiment)
         self.set_design(experiment)
         self.set_library_descriptor(experiment)
+        self.set_spot_descriptor(experiment)
+        self.set_platform(experiment)
+        self.set_experiment_attributes(experiment)
+
+        print(ET.tostring(root, encoding="ASCII"))
+
+        with open("experiment.xml", 'wb') as xfile:
+            xfile.write(ET.tostring(root, encoding="ASCII"))
 
 
 class Run:
@@ -336,7 +414,7 @@ class Run:
 
 class Submission:
     def __init__(self, experiment, run, phs):
-        self.phs = phs
+        self.phs = str(phs)
         self.experiment = experiment
         self.run = run
         self.name = "sra_submissions"
@@ -434,7 +512,7 @@ def get_submission_comment_formatted_date():
     return datetime.strftime(datetime.now(), "%A %B %d %H:%M:%S")
 
 def get_submission_date():
-    return f"{datetime.now().date()}T{datetime.strftime(datetime.now(), '%H:%M:%S')}-5:00"
+    return f"{str(datetime.now().date())}T{datetime.strftime(datetime.now(), '%H:%M:%S')}-5:00"
 
 def get_run_date():
     return datetime.now()
