@@ -112,6 +112,7 @@ class ReadGroup:
         self.project = first_read_group["project"]
         self.primary_disease = first_read_group.get("primary_disease")
         self.bait_set = "This will be passed in"
+        self.reference_sequence = first_read_group["reference_sequence"]
 
         self.set_aggregate_values(json_object)
 
@@ -252,6 +253,7 @@ class Experiment:
         else:
             return str(self.read_group.get_read_length())
 
+    # could consolidate some of the next two functions
     def generate_experiment_attributes(self):
         attributes_dict = {
             "aggregation_project": self.read_group.project,
@@ -374,7 +376,9 @@ class Experiment:
         print("creating experiment xml files")
 
         root = ET.Element(
-            "EXPERIMENT_SET"
+            "EXPERIMENT_SET",
+            noNamespaceSchemaLocation=NONAMESPACESCHEMALOCATION,
+            xsi=XSI
         )
         experiment = ET.SubElement(root, "EXPERIMENT")
 
@@ -409,8 +413,87 @@ class Run:
 
         return f"{flowcell_barcodes}.{sample_id}.{self.sample.project}.{self.sample.version}.{self.file_type()}"
 
+    
+    def generate_run_attributes(self):
+        attributes_dict = {
+            "aggregation_project": self.read_group.project,
+            "analysis_type": self.read_group.analysis_type,
+            "assembly": self.read_group.reference_sequence[16:39],
+            "bait_set": self.read_group.bait_set,
+            "data_type": self.sample.data_type,
+            "flowcell_barcode": ", ".join(self.read_group.flowcell_barcodes),
+            "instrument_name": ", ".join(self.read_group.instrument_names),
+            "library": self.read_group.library_name,
+            "library_type": self.read_group.library_type,
+            "lsid": self.read_group.sample_lsid,
+            "molecular_idx_scheme": ", ".join(self.read_group.molecular_idx_schemes),
+            "read_group_id": ", ".join(self.read_group.read_group_ids),
+            "research_project": self.read_group.research_project_id,
+            "rg_platform_unit": ", ".join(self.read_group.rg_platform_unit),
+            "rg_platform_unit_lib": ", ".join(self.read_group.rg_platform_unit_lib),
+            "run_barcode": ", ".join(self.read_group.run_barcode),
+            "run_name": ", ".join(self.read_group.run_name),
+            "work_request_or_pdo": self.read_group.get_pdo_or_wr()
+        }
+
+        return attributes_dict
+
+    def create_identifiers(self, parent, submitter_id, uuid):
+        identifier = ET.SubElement(parent, "IDENTIFIERS")
+
+        ET.SubElement(identifier, "SUBMITTER_ID").text = submitter_id
+        ET.SubElement(identifier, "UUID").text = uuid
+
+    def create_experiment_ref(self, run):
+        experiment_ref = ET.SubElement(run, "EXPERIMENT_REF")
+
+        self.create_identifiers(experiment_ref, self.experiment.get_submitter_id(), self.experiment.uuid)
+
+    def create_data_blocks(self, run):
+        data_block = ET.SubElement(run, "DATA_BLOCK")
+        files = ET.SubElement(data_block, "FILES")
+
+        ET.SubElement(
+            data_block, 
+            "FILE",
+            file_name=self.sample.data_file,
+            file_type=self.file_type(),
+            checksum_method="MD5",
+            checksum=self.sample.md5,
+        )
+
+    def create_run_attrs(self, run):
+        run_attrs = ET.SubElement(run, "RUN_ATTRIBUTES")
+
+        for key, value in self.generate_run_attributes().items():
+            run_attr = ET.SubElement(run_attrs, "RUN_ATTRIBUTE")
+            print(f"key - {key} value - {type(value)}")
+
+            ET.SubElement(run_attr, "TAG").text = key
+            ET.SubElement(run_attr, "VALUE").text = value
+
     def create_file(self):
-        print("creating xml files")
+        print("creating run xml files")
+
+        root = ET.Element(
+            "RUN_SET",
+            noNamespaceSchemaLocation=NONAMESPACESCHEMALOCATION,
+            xsi=XSI
+        )
+        run = ET.SubElement(
+            root, 
+            "RUN",
+            run_date=get_date(),
+            run_center=BROAD_ABBREVIATION
+        )
+
+        self.create_identifiers(run, self.get_submitter_id(), self.uuid)
+        self.create_experiment_ref(run)
+        self.create_data_blocks(run)
+        self.create_run_attrs(run)
+
+        with open("run.xml", 'wb') as xfile:
+            xfile.write(ET.tostring(root, encoding="ASCII"))
 
 class Submission:
     def __init__(self, experiment, run, phs):
@@ -484,7 +567,7 @@ class Submission:
         submission = ET.SubElement(
             root, 
             "SUBMISSION", 
-            submission_date=get_submission_date(),
+            submission_date=get_date(),
             submission_comment=self.get_submission_comment(),
             lab_name="Genome Sequencing",
             alias=self.get_alias(),
@@ -511,14 +594,14 @@ class Submission:
 def get_submission_comment_formatted_date():
     return datetime.strftime(datetime.now(), "%A %B %d %H:%M:%S")
 
-def get_submission_date():
+def get_date():
     return f"{str(datetime.now().date())}T{datetime.strftime(datetime.now(), '%H:%M:%S')}-5:00"
 
 def get_run_date():
     return datetime.now()
 
 def create_random_uuid():
-    uuid.uuid1()
+    return str(uuid.uuid1())
 
 def call_telemetry_report(phs_id):
     baseUrl = f"https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id=phs002458.v1.p1"
