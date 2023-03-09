@@ -51,6 +51,7 @@ class Sample:
         
         self.dbgap_sample_info = sample[0]
         self.center_project_name = root[0].attrib['study_name']
+        self.center_name = root[0].attrib['ic']
 
     def formatted_data_type(self):
         DATA_TYPE_MAPPING = {
@@ -301,7 +302,7 @@ class Experiment:
         ET.SubElement(
             identifiers, 
             "EXTERNAL_ID",
-            namespace="WE NEED TO FIND OUT HOW TO GET CENTER INFO!!!!!!!!!!!!!!!!!!",
+            namespace=self.sample.center_name,
             label=self.sample.center_project_name
         ).text = self.sample.phs
 
@@ -313,8 +314,6 @@ class Experiment:
 
         sample_descriptor = ET.SubElement(experiment, "SAMPLE_DESCRIPTOR")
         identifiers = ET.SubElement(sample_descriptor, "IDENTIFIERS")
-        print("type 1", type(self.sample.phs))
-        print("type 2", type(self.sample.dbgap_sample_info["submitted_sample_id"]))
         ET.SubElement(
             identifiers, 
             "EXTERNAL_ID",
@@ -610,7 +609,6 @@ def call_telemetry_report(phs_id):
     status_code = response.status_code
 
     return response.text
-
 
 def get_center_name():
     print("Need to figure out how to do this")
