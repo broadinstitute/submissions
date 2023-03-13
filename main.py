@@ -124,7 +124,7 @@ def verifyRegistration(inputData):
     else:
         f.write("false")
         f.close()
-        print("Not a valid response from GDC")
+        print("Not a valid response from GDC", response)
 
         return False
 

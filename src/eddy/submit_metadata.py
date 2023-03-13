@@ -112,6 +112,7 @@ def getEntity(queryType, program, project, submitterId, token):
             "query": f"{{\n \n  submitted_aligned_reads (project_id: \"{program}-{project}\", submitter_id: \"{submitterId}\") {{\n    id\n    submitter_id\n    state\n     file_state\n    error_type\n}}\n}}",
         }
 
+    print(f"Query to gdc {query}")
     return requests.post(
         f"{endpoint}/graphql",
         json = query,
