@@ -113,6 +113,19 @@ class ReadGroup:
         self.project = first_read_group["project"]
         self.primary_disease = first_read_group.get("primary_disease")
         self.bait_set = "This will be passed in"
+        self.model = first_read_group["model"]
+        self.nominal_length = first_read_group["mean_insert_size"]
+        self.nominal_sdex = first_read_group["standard_deviation"]
+        self.target_capture_kit_target_region = first_read_group["target_capture_kit_target_region"]
+        self.target_capture_kit_catalog_number = first_read_group["target_capture_kit_catalog_number"]
+        self.target_capture_kit_vendor = first_read_group["target_capture_kit_vendor"]
+        self.library_preparation_kit_catalog_number = first_read_group["library_preparation_kit_catalog_number"]
+        self.library_preparation_kit_vendor = first_read_group["library_preparation_kit_vendor"]
+        self.library_preparation_kit_name = first_read_group["library_preparation_kit_name"]
+        self.library_preparation_kit_version = first_read_group["library_preparation_kit_version"]
+        self.target_capture_kit_name = first_read_group["target_capture_kit_name"]
+        self.target_capture_kit_version = first_read_group["target_capture_kit_version"]
+
         self.reference_sequence = first_read_group["reference_sequence"]
 
         self.set_aggregate_values(json_object)
@@ -272,6 +285,24 @@ class Experiment:
 
         return attributes_dict
 
+
+private def generateLibraryConstructionDescription(runLaneLibrarySubmissionMetadataValues: Option[Seq[SubmissionMetadata]]): String = {
+    val libraryPreparationKitCatalogNumber = getSubmissionMetadataKeyValue(LibraryPreparationKitKeys.libraryKitCatNum.toString, runLaneLibrarySubmissionMetadataValues).getOrElse(defaultNotAvailable)
+    val libraryPreparationKitName = getSubmissionMetadataKeyValue(LibraryPreparationKitKeys.libraryKitName.toString, runLaneLibrarySubmissionMetadataValues).getOrElse(defaultNotAvailable)
+    val libraryPreparationKitVendor = getSubmissionMetadataKeyValue(LibraryPreparationKitKeys.libraryKitVendor.toString, runLaneLibrarySubmissionMetadataValues).getOrElse(defaultNotAvailable)
+    val libraryPreparationKitVersion = getSubmissionMetadataKeyValue(LibraryPreparationKitKeys.libraryKitVersion.toString, runLaneLibrarySubmissionMetadataValues).getOrElse(defaultNotAvailable)
+    s" Library Preparation Kit: ${LibraryPreparationKitKeys.libraryKitName.toString}=$libraryPreparationKitName, ${LibraryPreparationKitKeys.libraryKitVersion.toString}=$libraryPreparationKitVersion, ${LibraryPreparationKitKeys.libraryKitVendor.toString}=$libraryPreparationKitVendor, ${LibraryPreparationKitKeys.libraryKitCatNum.toString}=$libraryPreparationKitCatalogNumber."
+  }
+
+    def get_library_construction(self):
+        kit_catalog = 
+
+    def get_design_description(self):
+        library_description = f"Illumina sequencing of Homo sapiens via "
+        selection = self.read_group.get_library_descriptor()["selection"]
+        library_construction = ""
+        target_kit_info = ""
+
     def set_identifiers(self, experiment):
         identifier = ET.SubElement(experiment, "IDENTIFIERS")
         ET.SubElement(
@@ -310,7 +341,7 @@ class Experiment:
         ET.SubElement(
             experiment, 
             "DESIGN_DESCRIPTION" 
-        ).text = "Need to call mercury in motorcade to get this info"
+        ).text = self.get_design_description()
 
         sample_descriptor = ET.SubElement(experiment, "SAMPLE_DESCRIPTOR")
         identifiers = ET.SubElement(sample_descriptor, "IDENTIFIERS")
@@ -360,7 +391,7 @@ class Experiment:
     def set_platform(self, experiment):
         illumina = ET.SubElement(experiment, "ILLUMINA")
 
-        ET.SubElement(illumina, "INSTRUMENT_MODEL").text = "We need to get these values from motorcade"
+        ET.SubElement(illumina, "INSTRUMENT_MODEL").text = self.read_group.model
 
     def set_experiment_attributes(self, experiment):
         experiment_attrs = ET.SubElement(experiment, "EXPERIMENT_ATTRIBUTES")
