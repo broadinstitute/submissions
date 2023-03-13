@@ -35,7 +35,7 @@ task verifyGDCRegistration {
     command {
         python3 /main.py --program ~{program} \
                         --project ~{project} \
-                        --sample_alias ~{sample_alias} \
+                        --alias_value ~{sample_alias} \
                         --step "verify_registration" \
                         --token ~{gdc_token}
     }
