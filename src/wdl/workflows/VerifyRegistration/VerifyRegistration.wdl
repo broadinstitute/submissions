@@ -28,7 +28,6 @@ task verifyGDCRegistration {
     input {
         String program
         String project
-        String alias_value
         String sample_alias
         String gdc_token
     }
