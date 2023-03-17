@@ -21,16 +21,19 @@ workflow TransferToGdc {
     File?   monitoring_script
   }
 
+  String token_value = (read_lines(gdc_token))[0]
+
   call tasks.addReadsField as reads {
     input:
       workspace_name = workspace_name,
       workspace_project = workspace_project,
-      sample_id = sample_id
+      sample_id = sample_id,
+      gdc_token = token_value
+      project = project
+      program = program
   }
 
   if (registration_status) {
-    String token_value = (read_lines(gdc_token))[0]
-
     call submitMetadataToGDC {
       input:
         sample_id = sample_id,

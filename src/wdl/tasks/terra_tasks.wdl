@@ -113,12 +113,18 @@ task addReadsField {
         String workspace_name
         String workspace_project
         String sample_id
+        String gdc_token
+        String project
+        String program
     }
 
     command {
         python3 /src/scripts/extract_reads_data.py -w ~{workspace_name} \
                                                       -p ~{workspace_project} \
-                                                      -s ~{sample_id}
+                                                      -s ~{sample_id} \
+                                                      -t ~{gdc_token} \
+                                                      -pj ~{project} \
+                                                      -pg ~{program}
     }
 
     runtime {

@@ -5,18 +5,27 @@ import requests
 
 from batch_upsert_entities import get_access_token
 
-def extractReadsData(sample_id, project, workspace_name):
+def extractReadsData(sample_id, project, workspace_name, file):
     """Grab the reads data for the given sample_id"""
 
     readsData = callTerraApi(sample_id, project, workspace_name)
-    # readsData = returnTestObj()
     formattedReads = formatReads(readsData)
 
     f = open("/cromwell_root/reads.json", 'w')
     f.write(json.dumps(formattedReads))
     f.close()
 
-    print("Done writing read json to file") 
+    print("Done writing read json to file")
+
+    return formattedReads
+
+def parse_terra_file(file):
+    """Reads the dummy json file"""
+
+    with open(file, 'r') as my_file:
+        return json.load(my_file) # TODO - Need to be more defensive here
+
+    print("Error when trying to parse the input file")
 
 def formatReads(readsData):
     """Normalize data returned from Terra API"""
@@ -24,11 +33,7 @@ def formatReads(readsData):
     readsArray = []
 
     if readsData['results']:
-        for read in readsData['results']:
-            if read['attributes']:
-                readsArray.append(read['attributes'])
-            else:
-                print("Reads data is not correct", read)
+        readsArray = [read['attributes'] for read in readsData['results']]
     else:
         print("No result fields in response")
 
@@ -52,49 +57,74 @@ def callTerraApi(sample_id, project, workspace_name):
 
     return json.loads(response.text)
 
-def returnTestObj():
+def getHeaders(token):
+    """Returns general headers for gdc api call"""
+
     return {
-        "results": [
-            {
-                "attributes": {
-                    "read_length": 151,
-                    "library_strand": "Not Applicable",
-                    "library_preparation_kit_name": "KAPA HyperPrep Kit (no amp)",
-                    "flow_cell_barcode": "HMH72DSX3",
-                    "library_name": "0415052444_Illumina_P5-Fezex_P7-Halex",
-                    "library_selection": "Random",
-                    "is_paired_end": True,
-                    "includes_spike_ins": False,
-                    "library_strategy": "WGS",
-                    "library_preparation_kit_vendor": "Kapa BioSystems",
-                    "type": "read_group",
-                    "sequencing_center": "BI",
-                    "library_preparation_kit_version": "v1.1",
-                    "experiment_name": "CTSP-B6F9-TTP1-A-1-0-D-A92B-36.WGS.RP-1329",
-                    "to_trim_adapter_sequence": True,
-                    "instrument_model": "Other",
-                    "sample_identifier": "CTSP-B6F9-TTP1-A-1-0-D-A92B-36.WGS.RP-1329",
-                    "multiplex_barcode": "ATCTTCTC+CAACTCTC",
-                    "platform": "Illumina",
-                    "lane_number": 1,
-                    "reference_sequence": "Homo_sapiens_assembly38",
-                    "library_preparation_kit_catalog_number": "KK8505",
-                    "target_capture_kit": "Not Applicable",
-                    "sequencing_date": "2022-07-13T11:06:01",
-                    "reference_sequence_version": 0,
-                    "read_group_name": "HMH72.1"
-                },
-                "entityType": "read_group",
-                "name": "HMH72DSX3.1.RP-1329.CTSP-B6F9-TTP1-A-1-0-D-A92B-36"
-            }
-        ]
+        "Content-Type": "application/json",
+        "X-Auth-Token": token
     }
+
+def linkAliqout(linkData, token, program, project):
+    """Helper function to create entities inside of gdc"""
+
+    endpoint = 'https://api.gdc.cancer.gov/v0/submission'
+    url = f"{endpoint}/{program}/{project}"
+
+    response = requests.put(url,
+        data = json.dumps(linkData),
+        headers = getHeaders(token)
+    )
+
+    print("response for creating links", response.text)
+
+def createSubmittableReadGroups(reads):
+    """Creates an array of readGroups"""
+
+    def formatReadGroup(read):
+        submitterIdConstant = f"{read['aggregation_project']}.{read['sample_identifier']}"
+
+        return {
+            "type": "read_group",
+            "aliquots": {
+                "submitter_id": read['sample_identifier']
+            },
+            "submitter_id": f"{read['flow_cell_barcode']}.{read['lane_number']}.{submitterIdConstant}",
+            "experiment_name": read['experiment_name'],
+            "sequencing_center": read['sequencing_center'],
+            "platform": read['platform'],
+            "library_selection": read['library_selection'],
+            "library_strategy": read['data_type'],
+            "library_name": read['library_name'],
+            "lane_number": read['lane_number'],
+            "is_paired_end": read['is_paired_end'],
+            "read_length": read['read_length'],
+            "read_group_name": f"{read['flow_cell_barcode'][:5]}.{read['lane_number']}",
+            "target_capture_kit": read['target_capture_kit'],
+            "to_trim_adapter_sequence": True,
+            "platform": "Illumina"
+        }
+
+    return [formatReadGroup(read) for read in reads]
+
+def submitReads(reads, token, project, program):
+    formattedReads = createSubmittableReadGroups(reads)
+
+    print(formattedReads)
+
+    linkAliqout(formattedReads, token, program, project)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-w', '--workspace_name', required=True, help='name of workspace in which to make changes')
-    parser.add_argument('-p', '--project', required=True, help='billing project (namespace) of workspace in which to make changes')
+    parser.add_argument('-p', '--billing_project', required=True, help='billing project (namespace) of workspace in which to make changes')
     parser.add_argument('-s', '--sample_id', required=True, help='sample_id to extract read data')
+    parser.add_argument('-t', '--token', required=True, help='Api token to communicate with GDC')
+    parser.add_argument('-pj', '--project', required=True, help='GDC project')
+    parser.add_argument('-pg', '--program', required=True, help='GDC program')
+    parser.add_argument('-rf', '--read_file', required=True, help='.json file that contains all the data for the given sample')
     args = parser.parse_args()
 
-    extractReadsData(args.sample_id, args.project, args.workspace_name)
+    reads = extractReadsData(args.sample_id, args.billing_project, args.workspace_name, args.read_file)
+
+    submitReads(reads, args.token, args.project, args.program)
