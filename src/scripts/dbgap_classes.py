@@ -12,7 +12,6 @@ class Sample:
     def __init__(self, json_object):
         # Here we are making the assumption that we are only running once per sample. If we need t
         sample_json = json_object[0]["attributes"]
-        self.sample_alias = json_object[0]["name"].split("_")[1]
         self.project = sample_json["aggregation_project"]
         self.location = sample_json["location"]
         self.index = sample_json["aggregation_index_path"]
@@ -21,6 +20,7 @@ class Sample:
         self.data_file = sample_json["aggregation_path"]
         self.phs = str(sample_json["phs_id"])
         self.data_type = sample_json["data_type"]
+        self.alias = sample_json["alias"]
         self.set_telemetry_report_info()
 
     # study_info will be a dict of all the values from the telemetry report
@@ -35,7 +35,7 @@ class Sample:
             return xml_object.attrib['bp_type'] == 'admin'
         
         def is_sample(xml_object):
-            return xml_object.attrib['submitted_sample_id'] == self.sample_alias
+            return xml_object.attrib['submitted_sample_id'] == self.alias
 
         root = ET.fromstring(call_telemetry_report(self.phs))
         sample = [x.attrib for x in root.iter('Sample') if is_sample(x)]
@@ -83,9 +83,9 @@ class Sample:
         subject_id = self.dbgap_sample_info["submitted_subject_id"]
 
         if subject_id:
-            return f' from subject {subject_id}'
+            return f"from subject '{subject_id}'"
         else:
-            return ''
+            return ""
 
     def get_biospecimen_repo(self):
         return self.dbgap_sample_info["repository"]
@@ -108,34 +108,41 @@ class ReadGroup:
         self.read_structure = first_read_group["read_structure"]
         self.root_sample_id = first_read_group["root_sample_id"]
         self.product_part_number = first_read_group["product_part_number"]
-        self.sample_barcode = first_read_group["sample_barcode"]
+        self.sample_barcode = first_read_group.get("sample_barcode")
         self.sample_lsid = first_read_group["sample_lsid"]
-        self.project = first_read_group["project"]
         self.primary_disease = first_read_group.get("primary_disease")
-        self.bait_set = "This will be passed in"
-        self.model = first_read_group["model"]
-        self.nominal_length = first_read_group["mean_insert_size"]
-        self.nominal_sdex = first_read_group["standard_deviation"]
-        self.target_capture_kit_target_region = first_read_group["target_capture_kit_target_region"]
-        self.target_capture_kit_catalog_number = first_read_group["target_capture_kit_catalog_number"]
-        self.target_capture_kit_vendor = first_read_group["target_capture_kit_vendor"]
-        self.library_preparation_kit_catalog_number = first_read_group["library_preparation_kit_catalog_number"]
-        self.library_preparation_kit_vendor = first_read_group["library_preparation_kit_vendor"]
-        self.library_preparation_kit_name = first_read_group["library_preparation_kit_name"]
-        self.library_preparation_kit_version = first_read_group["library_preparation_kit_version"]
-        self.target_capture_kit_name = first_read_group["target_capture_kit_name"]
-        self.target_capture_kit_version = first_read_group["target_capture_kit_version"]
-
         self.reference_sequence = first_read_group["reference_sequence"]
-
+        self.bait_set = first_read_group["bait_set"]
+        self.model = first_read_group["model"]
+        self.nominal_length = str(first_read_group["mean_insert_size"])
+        self.nominal_sdex = str(first_read_group["standard_deviation"])
+        self.submission_metadata = self.sub_data_to_dict(first_read_group["submission_metadata"]["items"])
         self.set_aggregate_values(json_object)
+
+    def sub_data_to_dict(self, submissionMetadata):
+        if submissionMetadata and len(submissionMetadata):
+            library_construction = {}
+            target_capture = {}
+            for read in submission_metadata:
+                if "library" in read["key"]:
+                    library_construction[read["key"]] = read["value"] if read["value"] else ""
+                else:
+                    target_capture[read["key"]] = read["value"] if read["value"] else ""
+
+            return {
+                "library_construction": library_construction,
+                "target_capture": target_capture
+            }
+        else:
+            return None
+
 
     def set_aggregate_values(self, json_object):
         def construct_read_group_id(row):
             return f"{row['run_barcode'][:5]}.{row['lane']}"
 
         def construct_molecular_idx(row):
-            return f"{row['molecular_barcode_name']} {row['molecular_barcode_sequence']}"
+            return f"{row['molecular_barcode_name']} [{row['molecular_barcode_sequence']}]"
 
         def construct_rg_platform(row):
             return f"{row['run_barcode']}.{row['lane']}.{row['molecular_barcode_sequence']}"
@@ -231,7 +238,7 @@ class Experiment:
         pdo_or_wr = self.read_group.get_pdo_or_wr()
         formatted_data_type = self.sample.formatted_data_type()["constant"].replace(" ", "_")
 
-        return f"{self.sample.phs}.{pdo_or_wr}.{self.read_group.library_name}.{pairing_code}.{self.sample.sample_alias}.{self.sample.project}.{formatted_data_type}.{self.sample.version}"
+        return f"{self.sample.phs}.{pdo_or_wr}.{self.read_group.library_name}.{pairing_code}.{self.sample.alias}.{self.sample.project}.{formatted_data_type}.{self.sample.version}"
 
     def get_title(self):
         repo = self.sample.get_biospecimen_repo()
@@ -239,9 +246,7 @@ class Experiment:
         library_source_string = self.read_group.get_library_descriptor()["source"]["humanized_string"]
         paired_end = self.read_group.is_paired_end()
 
-        return f"{repo} Illumina {library_strategy_string} sequencing of '{library_source_string}\
-             ' {paired_end} library {self.read_group.library_name} 'containing sample {self.sample.sample_alias}\
-             ' {self.sample.subject_string}"
+        return f"{repo} Illumina {library_strategy_string} sequencing of '{library_source_string}' {paired_end} library '{self.read_group.library_name}' containing sample '{self.sample.alias}' {self.sample.subject_string()}"
 
     def get_read_spec_forward(self):
         return {
@@ -270,38 +275,46 @@ class Experiment:
     # could consolidate some of the next two functions
     def generate_experiment_attributes(self):
         attributes_dict = {
-            "aggregation_project": self.read_group.project,
+            "aggregation_project": self.sample.project,
             "analysis_type": self.read_group.analysis_type,
-            "gssr_id": str(self.read_group.sample_barcode),
             "library": self.read_group.library_name,
             "library_type": self.read_group.library_type,
             "lsid": self.read_group.sample_lsid,
             "material_type": self.read_group.sample_material_type,
-            "project": self.read_group.project,
+            "project": self.sample.project,
             "research_project": self.read_group.research_project_id,
             "target_set": self.read_group.bait_set,
             "work_request_or_pdo": self.read_group.get_pdo_or_wr()
         }
+        if self.read_group.sample_barcode and str(self.read_group.sample_barcode) != "":
+            attributes_dict["gssr_id"] = str(self.read_group.sample_barcode)
 
         return attributes_dict
 
+    def kit_construction(self, dict_value):
+        kit_str = ""
+        sub_metadata = self.read_group.submission_metadata
 
-private def generateLibraryConstructionDescription(runLaneLibrarySubmissionMetadataValues: Option[Seq[SubmissionMetadata]]): String = {
-    val libraryPreparationKitCatalogNumber = getSubmissionMetadataKeyValue(LibraryPreparationKitKeys.libraryKitCatNum.toString, runLaneLibrarySubmissionMetadataValues).getOrElse(defaultNotAvailable)
-    val libraryPreparationKitName = getSubmissionMetadataKeyValue(LibraryPreparationKitKeys.libraryKitName.toString, runLaneLibrarySubmissionMetadataValues).getOrElse(defaultNotAvailable)
-    val libraryPreparationKitVendor = getSubmissionMetadataKeyValue(LibraryPreparationKitKeys.libraryKitVendor.toString, runLaneLibrarySubmissionMetadataValues).getOrElse(defaultNotAvailable)
-    val libraryPreparationKitVersion = getSubmissionMetadataKeyValue(LibraryPreparationKitKeys.libraryKitVersion.toString, runLaneLibrarySubmissionMetadataValues).getOrElse(defaultNotAvailable)
-    s" Library Preparation Kit: ${LibraryPreparationKitKeys.libraryKitName.toString}=$libraryPreparationKitName, ${LibraryPreparationKitKeys.libraryKitVersion.toString}=$libraryPreparationKitVersion, ${LibraryPreparationKitKeys.libraryKitVendor.toString}=$libraryPreparationKitVendor, ${LibraryPreparationKitKeys.libraryKitCatNum.toString}=$libraryPreparationKitCatalogNumber."
-  }
+        if sub_metadata:
+            if dict_value == "library_construction":
+                kit_str += " Library Preparation Kit: "
+            else:
+                kit_str += " Target Capture Kit: "
 
-    def get_library_construction(self):
-        kit_catalog = 
+            for key, value in sub_metadata[dict_value].items():
+                kit_str += f"{key}={value}"
+
+            kit_str += "."
+
+        return kit_str
 
     def get_design_description(self):
-        library_description = f"Illumina sequencing of Homo sapiens via "
         selection = self.read_group.get_library_descriptor()["selection"]
-        library_construction = ""
-        target_kit_info = ""
+        library_description = f"Illumina sequencing of Homo sapiens via {selection}"
+        library_construction = self.kit_construction('library_construction')
+        target_construction = self.kit_construction('target_capture')
+
+        return f"{library_description}{library_construction}{target_construction}"
 
     def set_identifiers(self, experiment):
         identifier = ET.SubElement(experiment, "IDENTIFIERS")
@@ -365,9 +378,8 @@ private def generateLibraryConstructionDescription(runLaneLibrarySubmissionMetad
         ET.SubElement(library_descriptor, "LIBRARY_STRATEGY").text = self.read_group.get_library_descriptor()["strategy"]["ncbi_string"]
         ET.SubElement(library_descriptor, "LIBRARY_SOURCE").text = self.read_group.get_library_descriptor()["source"]["ncbi_string"]
         ET.SubElement(library_descriptor, "LIBRARY_SELECTION").text = self.read_group.get_library_descriptor()["selection"]
-        
         layout = ET.SubElement(library_descriptor, "LIBRARY_LAYOUT")
-        ET.SubElement(layout, "PAIRED", NOMINAL_LENGTH="NEED TO PASS THIS IN", NOMINAL_SDEV="NEDD TO PASS THIS IN")
+        ET.SubElement(layout, "PAIRED", NOMINAL_LENGTH=self.read_group.nominal_length, NOMINAL_SDEV=self.read_group.nominal_sdex)
 
     def set_spec_values(self, dict, decode_spec):
             read_spec = ET.SubElement(decode_spec, "READ_SPEC")
@@ -439,14 +451,14 @@ class Run:
 
     def get_submitter_id(self):
         flowcell_barcodes = ".".join(self.read_group.flowcell_barcodes)
-        sample_id = self.sample.sample_alias
+        sample_id = self.sample.alias
 
         return f"{flowcell_barcodes}.{sample_id}.{self.sample.project}.{self.sample.version}.{self.file_type()}"
 
     
     def generate_run_attributes(self):
         attributes_dict = {
-            "aggregation_project": self.read_group.project,
+            "aggregation_project": self.sample.project,
             "analysis_type": self.read_group.analysis_type,
             "assembly": self.read_group.reference_sequence[16:39],
             "bait_set": self.read_group.bait_set,
@@ -634,7 +646,7 @@ def create_random_uuid():
     return str(uuid.uuid1())
 
 def call_telemetry_report(phs_id):
-    baseUrl = f"https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id=phs002458.v1.p1"
+    baseUrl = f"https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id={phs_id}.v1.p1"
     headers = {"Content-Type": "application/json"}
     response = requests.get(baseUrl, headers=headers)
     status_code = response.status_code

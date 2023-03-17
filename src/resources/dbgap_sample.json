@@ -1,31 +1,32 @@
 {
-  "parameters": {
-    "fields": {},
-    "filterOperator": "and",
-    "page": 1,
-    "pageSize": 24,
-    "sortDirection": "asc",
-    "sortField": "name"
-  },
-  "resultMetadata": {
-    "filteredCount": 1,
-    "filteredPageCount": 1,
-    "unfilteredCount": 1
-  },
-  "results": [
-    {
-      "attributes": {
-        "aggregation_project": "G96830",
-        "location": "GCP",
-        "aggregation_index_path": "gs://broad-gotc-prod-storage/pipeline/G96830/NA12878/v2454/NA12878.cram.crai",
-        "version": 2454,
-        "md5": "gs://broad-gotc-prod-storage/pipeline/G96830/NA12878/v2454/NA12878.cram.md5",
-        "aggregation_path": "gs://broad-gotc-prod-storage/pipeline/G96830/NA12878/v2454/NA12878.cram",
-        "phs_id": 123,
-        "data_type": "WGS"
-      },
-      "entityType": "sample",
-      "name": "G96830_DFCI-5448-N-01_v2454_WGS_DBGAP"
-    }
-  ]
-}
+    "parameters": {
+      "fields": {},
+      "filterOperator": "and",
+      "page": 1,
+      "pageSize": 10,
+      "sortDirection": "asc",
+      "sortField": "name"
+    },
+    "resultMetadata": {
+      "filteredCount": 1,
+      "filteredPageCount": 1,
+      "unfilteredCount": 1
+    },
+    "results": [
+      {
+        "attributes": {
+          "aggregation_project": "RP-1291",
+          "location": "OnPrem",
+          "aggregation_index_path": "/seq/picard_aggregation/RP-1291/Exome/U-046046-0_N/v2/U-046046-0_N.bai",
+          "md5": "/seq/picard_aggregation/RP-1291/Exome/U-046046-0_N/v2/U-046046-0_N.bam.md5",
+          "aggregation_path": "/seq/picard_aggregation/RP-1291/Exome/U-046046-0_N/v2/U-046046-0_N.bam",
+          "alias": "U-046046-0_N",
+          "version": 2,
+          "phs_id": "phs003093",
+          "data_type": "Exome"
+        },
+        "entityType": "sample",
+        "name": "RP-1291_U-046046-0_N_v2_Exome_DBGAP"
+      }
+    ]
+  }
