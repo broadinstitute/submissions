@@ -121,7 +121,7 @@ task RetrieveGdcManifest {
 
   runtime {
     memory: "3.75 GB"
-    docker: "schaluvadi/horsefish:submissionV2GDC"
+    docker: "schaluvadi/horsefish:submissionV1"
     cpu: 1
     preemptible: 3
     disks: "local-disk " + 20 + " HDD"
@@ -180,7 +180,7 @@ task TransferBamToGdc {
 
   runtime {
     memory: "7.5 GB"
-    docker: "schaluvadi/horsefish:submissionV2GDC"
+    docker: "schaluvadi/horsefish:submissionV1"
     cpu: 2
     preemptible: 3
     disks: "local-disk " + disk_size + " HDD"
