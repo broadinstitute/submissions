@@ -28,8 +28,8 @@ workflow TransferToGdc {
       workspace_name = workspace_name,
       workspace_project = workspace_project,
       sample_id = sample_id,
-      gdc_token = token_value
-      project = project
+      gdc_token = token_value,
+      project = project,
       program = program
   }
 
