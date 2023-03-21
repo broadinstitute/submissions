@@ -11,6 +11,8 @@ task CreateDbgapXmlFiles {
         python3 /src/scripts/create_dbgap_xml_files.py -w ~{workspace_name} \
                                                       -p ~{billing_project} \
                                                       -s ~{sample_id}
+
+        tar czf xml_files.tgz /cromwell_root/xml
     }
 
     runtime {
@@ -18,7 +20,9 @@ task CreateDbgapXmlFiles {
       docker: "schaluvadi/horsefish:submissionV2GDC"
     }
 
-
+    output {
+        File xml_tar = "xml_files.tgz"
+    }
 }
 
 task CreateTableLoadFile {
@@ -154,9 +158,6 @@ task addReadsField {
     }
 
     output {
-        File run_xml = "/cromwell_root/run.xml"
-        File experiment_xml = "/cromwell_root/experiment.xml"
-        File submission_xml = "/cromwell_root/submission.xml"
         String reads_json = read_string("reads.json")
     }
 }
