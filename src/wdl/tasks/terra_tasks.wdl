@@ -1,5 +1,34 @@
 version 1.0
 
+task CreateDbgapXmlFiles {
+    input {
+        String sample_id
+        String workspace_name
+        String billing_project
+    }
+
+    command {
+        python3 /main.py --step "submit_metadata" \
+                        --alias_value ~{sample_id} \
+                        --program ~{program} \
+                        --project ~{project} \
+                        --agg_path ~{bam_file} \
+                        --agg_project ~{agg_project} \
+                        --data_type ~{data_type} \
+                        --file_size ~{file_size} \
+                        --md5 ~{md5} \
+                        --read_groups ~{json_file} \
+                        --token ~{gdc_token}
+    }
+
+    runtime {
+      preemptible: 3
+      docker: "schaluvadi/horsefish:submissionV2GDC"
+    }
+
+
+}
+
 task CreateTableLoadFile {
     input {
         # values to update to data model
@@ -129,7 +158,7 @@ task addReadsField {
 
     runtime {
         preemptible: 3
-        docker: "schaluvadi/horsefish:submissionV1"
+        docker: "schaluvadi/horsefish:submissionV2GDC"
     }
 
     output {
