@@ -8,17 +8,9 @@ task CreateDbgapXmlFiles {
     }
 
     command {
-        python3 /main.py --step "submit_metadata" \
-                        --alias_value ~{sample_id} \
-                        --program ~{program} \
-                        --project ~{project} \
-                        --agg_path ~{bam_file} \
-                        --agg_project ~{agg_project} \
-                        --data_type ~{data_type} \
-                        --file_size ~{file_size} \
-                        --md5 ~{md5} \
-                        --read_groups ~{json_file} \
-                        --token ~{gdc_token}
+        python3 /src/scripts/create_dbgap_xml_files.py -w ~{workspace_name} \
+                                                      -p ~{billing_project} \
+                                                      -s ~{sample_id}
     }
 
     runtime {
