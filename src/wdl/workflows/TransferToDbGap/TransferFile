@@ -1,3 +1,5 @@
+import "../../tasks/terra_tasks.wdl" as tasks
+
 task ascpFile {
     File uploadFile
     File key
@@ -27,8 +29,42 @@ task ascpFile {
     }
 }
 
-workflow TransferFile {
-    call ascpFile
+workflow TransferToDbgap {
+    input {
+        String sample_id
+        String workspace_name
+        String workspace_project
+        String uploadSite
+        String uploadPath
+        String ascpUser
+        File key
+        File dataFile
+    }
+
+    call tasks.CreateDbgapXmlFiles as xml {
+        input:
+            workspace_name = workspace_name,
+            billing_project = workspace_project,
+            sample_id = sample_id,
+    }
+
+    call ascpFile as transferXml {
+        input:
+            key = key,
+            uploadFile = xml.xml_tar,
+            uploadSite = uploadSite,
+            uploadPath = uploadPath,
+            ascpUser = "asp-bi"
+    }
+
+    call ascpFile as transferDataFile {
+        input:
+            key = key,
+            uploadFile = dataFile,
+            uploadSite = uploadSite,
+            uploadPath = uploadPath,
+            ascpUser = "asp-bi"
+    }
 
     output {
          ascpFile.*

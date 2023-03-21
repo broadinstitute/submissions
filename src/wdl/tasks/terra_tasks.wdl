@@ -154,6 +154,9 @@ task addReadsField {
     }
 
     output {
+        File run_xml = "/cromwell_root/run.xml"
+        File experiment_xml = "/cromwell_root/experiment.xml"
+        File submission_xml = "/cromwell_root/submission.xml"
         String reads_json = read_string("reads.json")
     }
 }

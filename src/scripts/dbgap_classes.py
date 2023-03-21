@@ -433,10 +433,7 @@ class Experiment:
         self.set_platform(experiment)
         self.set_experiment_attributes(experiment)
 
-        print(ET.tostring(root, encoding="ASCII"))
-
-        with open("experiment.xml", 'wb') as xfile:
-            xfile.write(ET.tostring(root, encoding="ASCII"))
+        write_xml_file("experiment.xml", root)
 
 
 class Run:
@@ -534,8 +531,7 @@ class Run:
         self.create_data_blocks(run)
         self.create_run_attrs(run)
 
-        with open("run.xml", 'wb') as xfile:
-            xfile.write(ET.tostring(root, encoding="ASCII"))
+        write_xml_file("run.xml", root)
 
 class Submission:
     def __init__(self, experiment, run, phs):
@@ -628,10 +624,14 @@ class Submission:
         self.create_actions(submission)
         self.create_submission_attributes(submission)
 
-        with open("submission.xml", 'wb') as xfile:
-            xfile.write(ET.tostring(root, encoding="ASCII"))
+        write_xml_file("submission.xml", root)
 
 ################### Helper Function ####################
+
+def write_xml_file(file_name, root):
+    f = open(f"/cromwell_root/xml/{file_name}.xml", 'wb') as xfile:
+        xfile.write(ET.tostring(root, encoding="ASCII"))
+    f.close()
 
 def get_submission_comment_formatted_date():
     return datetime.strftime(datetime.now(), "%A %B %d %H:%M:%S")

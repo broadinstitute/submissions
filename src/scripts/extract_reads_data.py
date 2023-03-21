@@ -42,7 +42,7 @@ def formatReads(readsData):
 def callTerraApi(sample_id, project, workspace_name):
     """Call the Terra api to retrieve reads data"""
 
-    baseUrl = f"https://rawls.dsde-prod.broadinstitute.org/api/workspaces/{project}/{workspace_name}/entityQuery/read_group"
+    baseUrl = f"https://rawls.dsde-prod.broadinstitute.org/api/workspaces/{project}/{workspace_name}/entityQuery/read-group"
     parameters = {
         'page': "1", # Need to add in paging
         'pageSize': "50",
