@@ -5,7 +5,7 @@ import requests
 
 from batch_upsert_entities import get_access_token
 
-def extractReadsData(sample_id, project, workspace_name, file):
+def extractReadsData(sample_id, project, workspace_name):
     """Grab the reads data for the given sample_id"""
 
     readsData = callTerraApi(sample_id, project, workspace_name)
@@ -122,9 +122,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--token', required=True, help='Api token to communicate with GDC')
     parser.add_argument('-pj', '--project', required=True, help='GDC project')
     parser.add_argument('-pg', '--program', required=True, help='GDC program')
-    parser.add_argument('-rf', '--read_file', required=True, help='.json file that contains all the data for the given sample')
     args = parser.parse_args()
 
-    reads = extractReadsData(args.sample_id, args.billing_project, args.workspace_name, args.read_file)
-
+    reads = extractReadsData(args.sample_id, args.billing_project, args.workspace_name)
     submitReads(reads, args.token, args.project, args.program)
