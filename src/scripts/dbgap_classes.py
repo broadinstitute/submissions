@@ -52,7 +52,30 @@ class Sample:
         
         self.dbgap_sample_info = sample[0]
         self.center_project_name = root[0].attrib['study_name']
-        self.center_name = root[0].attrib['ic']
+        self.center_name = get_center_name()
+
+    def get_center_name(self):
+        # file_path = "/cromwell_root/bioproject.xml"
+        file_path = "bioproject.xml"
+        is_correct_xml_obj = False
+        # download_bioproject_xml()
+
+        def get_center_value(elem):
+            if elem.tag == "ArchiveID":
+                if elem.attr["accession"] == self.bio_project:
+                    return None
+
+                if elem.tag == "Organization" and elem.attr["role"] == "participant" and is_correct_xml_obj:
+                    return elem.value
+
+        for event, elem in ET.iterparse(file_path, events=("start", "end")):
+            if event == "start":
+                center_value = get_center_value(elem)
+
+                if center_value:
+                    return center_value
+
+        # will need to delete this file once we are done with it
 
     def formatted_data_type(self):
         DATA_TYPE_MAPPING = {
@@ -631,10 +654,10 @@ class Submission:
 
 def download_bioproject_xml():
     ftp = FTP('ftp.ncbi.nlm.nih.gov')
+    ftp.login("anonymous", None)
     ftp.cwd('bioproject')
-    print(ftp.retrlines('LIST'))
 
-    with open('bioproject.xml', 'wb') as fp:
+    with open('/cromwell_root/bioproject.xml', 'wb') as fp:
         ftp.retrbinary('RETR bioproject.xml', fp.write)
 
 def write_xml_file(file_name, root):

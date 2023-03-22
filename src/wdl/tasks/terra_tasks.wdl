@@ -88,7 +88,7 @@ task UpsertMetadataToDataModel {
 
     runtime {
         preemptible: 3
-        docker: "schaluvadi/horsefish:submissionV1"
+        docker: "schaluvadi/horsefish:submissionV2GDC"
     }
 
     output {
