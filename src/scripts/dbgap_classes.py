@@ -3,6 +3,7 @@ import json
 import uuid
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from ftplib import FTP
 
 BROAD_ABBREVIATION = "BI"
 NONAMESPACESCHEMALOCATION = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.submission.xsd?view=co"
@@ -628,10 +629,17 @@ class Submission:
 
 ################### Helper Function ####################
 
+def download_bioproject_xml():
+    ftp = FTP('ftp.ncbi.nlm.nih.gov')
+    ftp.cwd('bioproject')
+    print(ftp.retrlines('LIST'))
+
+    with open('bioproject.xml', 'wb') as fp:
+        ftp.retrbinary('RETR bioproject.xml', fp.write)
+
 def write_xml_file(file_name, root):
-    f = open(f"/cromwell_root/xml/{file_name}.xml", 'wb') as xfile:
+    with open(f"/cromwell_root/xml/{file_name}.xml", 'wb') as xfile:
         xfile.write(ET.tostring(root, encoding="ASCII"))
-    f.close()
 
 def get_submission_comment_formatted_date():
     return datetime.strftime(datetime.now(), "%A %B %d %H:%M:%S")

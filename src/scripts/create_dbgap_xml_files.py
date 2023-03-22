@@ -2,14 +2,10 @@ import json
 import argparse
 import pandas
 import requests
+from ftplib import FTP
 
 from batch_upsert_entities import get_access_token
 from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission
-
-############### Things still needed from Motorcade #####################
-# 1. NOMINAL_LENGTH and NOMINAL_SDEV
-# 2. INSTRUMENT_MODEL
-# 3. Pass back requester from Motorcade
 
 def run(sample_id, project, workspace_name, sample_file, read_file):
     # sample = callTerraApi(sample_id, project, workspace_name, "sample")
@@ -59,6 +55,15 @@ def callTerraApi(sample_id, project, workspace_name, table):
 
     return json.loads(response.text)
 
+def download_bioproject_xml():
+    ftp = FTP('ftp.ncbi.nlm.nih.gov')
+    ftp.login("anonymous", None)
+    ftp.cwd('bioproject')
+    print(ftp.retrlines('LIST'))
+
+    with open('bioproject.xml', 'wb') as fp:
+        ftp.retrbinary('RETR bioproject.xml', fp.write)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
@@ -69,5 +74,6 @@ if __name__ == '__main__':
     parser.add_argument('-sf', '--sample_file', required=True, help='.json file that contains all the data for the given sample')
     parser.add_argument('-rf', '--read_file', required=True, help='.json file that contains all the data for the given sample')
     args = parser.parse_args()
+    download_bioproject_xml()
 
     run(args.sample_id, args.project, args.workspace_name, args.sample_file, args.read_file)

@@ -5,7 +5,7 @@
             "aggregation_path": "gs://fc-a881fb23-4d34-42ce-90cd-d0dc7e8595a7/test_data/Test_aligned_4.bam",
             "aggregation_project": "RP-1329",
             "data_type": "WGS",
-            "sample_alias": "CTSP-B6L9-TTP1-A-1-0-D-A91P-36",
+            "sample_alias": "TCGA-E9-A249-01A-11D-A899-36",
             "version": 1,
             "location": "GCP",
             "read_groups":
@@ -294,11 +294,11 @@
     "repository": "GDC",
     "output": "PO-51626_out.json",
     "requester_email": "rolson@broadinstitute.org",
-    "project": "DLBCL1",
+    "project": "TEST4",
     "batch-name": "PO-51626",
     "data_format": "BAM",
     "operator_email": "apardo@broadinstitute.org",
-    "program": "CTSP",
+    "program": "BROAD",
     "md5": "H6nUgaKKZtdIZxayKpSo9A==",
     "file_size": 565.41
 }

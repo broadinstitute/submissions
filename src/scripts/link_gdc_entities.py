@@ -47,9 +47,9 @@ def createLinkData(sampleMetadata, program, project):
     case = createCase(program, project)
     sample = createSample(sampleMetadata, program, project)
     aliquot = createAliquot(sampleMetadata)
-    readGroups = createReadGroups(sampleMetadata)
+    # readGroups = createReadGroups(sampleMetadata)
 
-    return [case, sample, aliquot] + readGroups
+    return [case, sample, aliquot]
 
 def createReadGroups(sampleMetadata):
     """Creates an array of readGroups"""
@@ -70,7 +70,7 @@ def createReadGroups(sampleMetadata):
             "library_selection": readGroup['library_selection'],
             "library_strategy": readGroup['library_strategy'],
             "library_name": readGroup['library_name'],
-            "lane_number": readGroup['lane_number']
+            "lane_number": readGroup['lane_number'],
             "is_paired_end": readGroup['is_paired_end'],
             "read_length": readGroup['read_length'],
             "read_group_name": readGroup['read_group_name'],
@@ -101,8 +101,11 @@ def createSample(sampleMetadata, program, project):
             "submitter_id": f"{program}-{project}-0001"
         },
         "submitter_id": f"{sampleMetadata['sample_alias']}-sample",
-        "sample_type": "Primary Tumor", # needed?
-        "tissue_type": "Tumor"# needed?
+        "sample_type": "Primary Tumor",
+        "tissue_type": "Not Reported",
+        "tumor_descriptor": "Not Reported",
+        "preservation_method": "Not Reported",
+        "specimen_type": "Not Reported"
     }
 
 def createCase(program, project):
