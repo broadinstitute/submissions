@@ -71,6 +71,29 @@ class Sample:
                 if elem.tag == "ArchiveID":
                     is_correct_xml_obj = is_correct_project(elem)
 
+                if is_correct_xml_obj and elem.tag == "Description":
+                    orgs = {}
+
+                    for child in elem:
+                        role = elem.attrib["role"]
+                        name = elem[0]
+
+                        if name.text:
+                            orgs[role] = name.text
+                        else:
+                            orgs[role] = name.attrib["attr"]
+
+                    print("orgs", orgs)
+
+                    if "owner" in orgs:
+                        return orgs["owner"]
+                    elif "participant" in orgs:
+                        return orgs["participant"]
+                    else:
+                        print("Houstan we have a problem. We couldnt find an organization for this bioproject")
+
+                        return ""
+
                 if is_correct_xml_obj and elem.tag == "Organization" and elem.attrib["role"] == "participant":
                     print("elem", elem.tag)
                     print("attrib", elem.attrib)
