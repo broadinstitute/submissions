@@ -1,6 +1,7 @@
 import requests
 import json
 import uuid
+import os
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from ftplib import FTP
@@ -52,28 +53,31 @@ class Sample:
         
         self.dbgap_sample_info = sample[0]
         self.center_project_name = root[0].attrib['study_name']
-        self.center_name = get_center_name()
+        self.center_name = self.get_center_name()
 
     def get_center_name(self):
-        # file_path = "/cromwell_root/bioproject.xml"
-        file_path = "bioproject.xml"
+        file_path = "./cromwell_root/bioproject.xml"
         is_correct_xml_obj = False
-        # download_bioproject_xml()
+        download_bioproject_xml()
 
-        def get_center_value(elem):
-            if elem.tag == "ArchiveID":
-                if elem.attr["accession"] == self.bio_project:
-                    return None
-
-                if elem.tag == "Organization" and elem.attr["role"] == "participant" and is_correct_xml_obj:
-                    return elem.value
+        def is_correct_project(elem):
+            if elem.attrib["accession"] == self.bio_project:
+                return True
+            else:
+                return False
 
         for event, elem in ET.iterparse(file_path, events=("start", "end")):
             if event == "start":
-                center_value = get_center_value(elem)
+                if elem.tag == "ArchiveID":
+                    is_correct_xml_obj = is_correct_project(elem)
 
-                if center_value:
-                    return center_value
+                if is_correct_xml_obj and elem.tag == "Organization" and elem.attrib["role"] == "participant":
+                    print("elem", elem.tag)
+                    print("attrib", elem.attrib)
+                    print("text", elem[0].text)
+                    return elem[0].text
+
+        return ""
 
         # will need to delete this file once we are done with it
 
@@ -457,7 +461,7 @@ class Experiment:
         self.set_platform(experiment)
         self.set_experiment_attributes(experiment)
 
-        write_xml_file("experiment.xml", root)
+        write_xml_file("experiment", root)
 
 
 class Run:
@@ -530,7 +534,6 @@ class Run:
 
         for key, value in self.generate_run_attributes().items():
             run_attr = ET.SubElement(run_attrs, "RUN_ATTRIBUTE")
-            print(f"key - {key} value - {type(value)}")
 
             ET.SubElement(run_attr, "TAG").text = key
             ET.SubElement(run_attr, "VALUE").text = value
@@ -555,7 +558,7 @@ class Run:
         self.create_data_blocks(run)
         self.create_run_attrs(run)
 
-        write_xml_file("run.xml", root)
+        write_xml_file("run", root)
 
 class Submission:
     def __init__(self, experiment, run, phs):
@@ -648,7 +651,7 @@ class Submission:
         self.create_actions(submission)
         self.create_submission_attributes(submission)
 
-        write_xml_file("submission.xml", root)
+        write_xml_file("submission", root)
 
 ################### Helper Function ####################
 
@@ -657,11 +660,11 @@ def download_bioproject_xml():
     ftp.login("anonymous", None)
     ftp.cwd('bioproject')
 
-    with open('/cromwell_root/bioproject.xml', 'wb') as fp:
+    with open('./cromwell_root/bioproject.xml', 'wb') as fp:
         ftp.retrbinary('RETR bioproject.xml', fp.write)
 
 def write_xml_file(file_name, root):
-    with open(f"/cromwell_root/xml/{file_name}.xml", 'wb') as xfile:
+    with open(f"./cromwell_root/xml/{file_name}.xml", 'wb') as xfile:
         xfile.write(ET.tostring(root, encoding="ASCII"))
 
 def get_submission_comment_formatted_date():

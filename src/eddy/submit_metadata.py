@@ -66,12 +66,12 @@ def createMetadata(inputData):
 
     return metadata
 
-def writeBamDataToFile(data):
+def writeBamDataToFile(submitterId):
     """Extracts bam path and bam name and writes to a file named bam.txt"""
 
-    bamFileName = data['agg_path'].split('/')[-1]
+    # Will need to update this once we deliver crams to gdc
     f = open("/cromwell_root/bam.txt", 'w')
-    f.write(f"{data['agg_path']}\n{bamFileName}")
+    f.write(f"{submitterId}.bam")
     f.close()
 
 def getSubmitterIdForReadGroups(data):

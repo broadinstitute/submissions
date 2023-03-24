@@ -10,11 +10,11 @@ workflow TransferToGdc {
     String agg_project
     String data_type
     String file_size
-    String md5
     String program
     String project
     String workspace_name
     String workspace_project
+    File md5_file
     File gdc_token
     Boolean dry_run = false
     Boolean registration_status
@@ -22,6 +22,7 @@ workflow TransferToGdc {
   }
 
   String token_value = (read_lines(gdc_token))[0]
+  String md5 = (read_lines(md5_file))[0]
 
   call tasks.addReadsField as reads {
     input:
@@ -59,7 +60,7 @@ workflow TransferToGdc {
 
     call TransferBamToGdc {
       input:
-        bam_path = submitMetadataToGDC.bam_path,
+        bam_path = bam_file
         bam_name = submitMetadataToGDC.bam_file_name,
         manifest = RetrieveGdcManifest.manifest,
         gdc_token = gdc_token,
@@ -229,8 +230,7 @@ task submitMetadataToGDC {
 
     output {
       String UUID = read_lines("UUID.txt")[0]
-      String bam_path = read_lines("bam.txt")[0]
-      String bam_file_name = read_lines("bam.txt")[1]
+      String bam_file_name = read_lines("bam.txt")[0]
       File read_json_file = json_file
     }
 }
