@@ -62,7 +62,7 @@ def createMetadata(inputData):
 
     print("metadata", metadata)
     # Need to write bam name and bam file to a file so we can access it in the wdl. Talk to Sushma!
-    writeBamDataToFile(inputData)
+    writeBamDataToFile(submitterId)
 
     return metadata
 
