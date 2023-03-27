@@ -60,7 +60,7 @@ workflow TransferToGdc {
 
     call TransferBamToGdc {
       input:
-        bam_path = bam_file
+        bam_path = bam_file,
         bam_name = submitMetadataToGDC.bam_file_name,
         manifest = RetrieveGdcManifest.manifest,
         gdc_token = gdc_token,
