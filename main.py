@@ -2,7 +2,6 @@ import sys
 import getopt
 import argparse
 import json
-from src import access
 from src import submit, getEntity
 import time
 
@@ -12,7 +11,6 @@ def main(argv):
     inputData = getCommandLineInput(argv)
     
     if "step" in inputData:
-        # if we have agg_project in the input we know this is a submit workflow
         if inputData['step'] == "submit_metadata":
             submitMetadata(inputData)
         elif inputData['step'] == "verify_registration":
@@ -124,7 +122,8 @@ def verifyRegistration(inputData):
     else:
         f.write("false")
         f.close()
-        print("Not a valid response from GDC", response)
+        print(f"this is the response from GDC {response}")
+        print("Not a valid response from GDC")
 
         return False
 
