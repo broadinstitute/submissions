@@ -1,0 +1,192 @@
+[
+    {
+        "type": "read_group",
+        "aliquots": {
+            "submitter_id": "CPT0378360006"
+        },
+        "submitter_id": "H7W7JDSX5.4.RP-2158.CPT0378360006",
+        "experiment_name": "CPT0378360006.WGS.RP-2158",
+        "sequencing_center": "BI",
+        "platform": "Illumina",
+        "library_selection": "Random",
+        "library_strategy": "WGS",
+        "library_name": "3553487788_Illumina_P5-Boyij_P7-Xedeb",
+        "lane_number": 4,
+        "is_paired_end": true,
+        "read_length": 151,
+        "read_group_name": "H7W7J.4",
+        "target_capture_kit": "Not Applicable",
+        "to_trim_adapter_sequence": true
+    },
+    {
+        "type": "read_group",
+        "aliquots": {
+            "submitter_id": "CPT0378360006"
+        },
+        "submitter_id": "HC2CNDSX5.3.RP-2158.CPT0378360006",
+        "experiment_name": "CPT0378360006.WGS.RP-2158",
+        "sequencing_center": "BI",
+        "platform": "Illumina",
+        "library_selection": "Random",
+        "library_strategy": "WGS",
+        "library_name": "3553487788_Illumina_P5-Boyij_P7-Xedeb",
+        "lane_number": 3,
+        "is_paired_end": true,
+        "read_length": 151,
+        "read_group_name": "HC2CN.3",
+        "target_capture_kit": "Not Applicable",
+        "to_trim_adapter_sequence": true
+    },
+    {
+        "type": "read_group",
+        "aliquots": {
+            "submitter_id": "CPT0378360006"
+        },
+        "submitter_id": "HC3MTDSX5.4.RP-2158.CPT0378360006",
+        "experiment_name": "CPT0378360006.WGS.RP-2158",
+        "sequencing_center": "BI",
+        "platform": "Illumina",
+        "library_selection": "Random",
+        "library_strategy": "WGS",
+        "library_name": "3553487788_Illumina_P5-Boyij_P7-Xedeb",
+        "lane_number": 4,
+        "is_paired_end": true,
+        "read_length": 151,
+        "read_group_name": "HC3MT.4",
+        "target_capture_kit": "Not Applicable",
+        "to_trim_adapter_sequence": true
+    },
+    {
+        "type": "read_group",
+        "aliquots": {
+            "submitter_id": "CPT0378360006"
+        },
+        "submitter_id": "HC3N3DSX5.4.RP-2158.CPT0378360006",
+        "experiment_name": "CPT0378360006.WGS.RP-2158",
+        "sequencing_center": "BI",
+        "platform": "Illumina",
+        "library_selection": "Random",
+        "library_strategy": "WGS",
+        "library_name": "3553487788_Illumina_P5-Boyij_P7-Xedeb",
+        "lane_number": 4,
+        "is_paired_end": true,
+        "read_length": 151,
+        "read_group_name": "HC3N3.4",
+        "target_capture_kit": "Not Applicable",
+        "to_trim_adapter_sequence": true
+    },
+    {
+        "type": "read_group",
+        "aliquots": {
+            "submitter_id": "CPT0378360006"
+        },
+        "submitter_id": "HCMC5DSX5.4.RP-2158.CPT0378360006",
+        "experiment_name": "CPT0378360006.WGS.RP-2158",
+        "sequencing_center": "BI",
+        "platform": "Illumina",
+        "library_selection": "Random",
+        "library_strategy": "WGS",
+        "library_name": "3553487788_Illumina_P5-Boyij_P7-Xedeb",
+        "lane_number": 4,
+        "is_paired_end": true,
+        "read_length": 151,
+        "read_group_name": "HCMC5.4",
+        "target_capture_kit": "Not Applicable",
+        "to_trim_adapter_sequence": true
+    },
+    {
+        "type": "read_group",
+        "aliquots": {
+            "submitter_id": "CPT0378360006"
+        },
+        "submitter_id": "HCMNMDSX5.4.RP-2158.CPT0378360006",
+        "experiment_name": "CPT0378360006.WGS.RP-2158",
+        "sequencing_center": "BI",
+        "platform": "Illumina",
+        "library_selection": "Random",
+        "library_strategy": "WGS",
+        "library_name": "3553487788_Illumina_P5-Boyij_P7-Xedeb",
+        "lane_number": 4,
+        "is_paired_end": true,
+        "read_length": 151,
+        "read_group_name": "HCMNM.4",
+        "target_capture_kit": "Not Applicable",
+        "to_trim_adapter_sequence": true
+    },
+    {
+        "type": "read_group",
+        "aliquots": {
+            "submitter_id": "CPT0378360006"
+        },
+        "submitter_id": "HCMNVDSX5.4.RP-2158.CPT0378360006",
+        "experiment_name": "CPT0378360006.WGS.RP-2158",
+        "sequencing_center": "BI",
+        "platform": "Illumina",
+        "library_selection": "Random",
+        "library_strategy": "WGS",
+        "library_name": "3553487788_Illumina_P5-Boyij_P7-Xedeb",
+        "lane_number": 4,
+        "is_paired_end": true,
+        "read_length": 151,
+        "read_group_name": "HCMNV.4",
+        "target_capture_kit": "Not Applicable",
+        "to_trim_adapter_sequence": true
+    },
+    {
+        "type": "read_group",
+        "aliquots": {
+            "submitter_id": "CPT0378360006"
+        },
+        "submitter_id": "HCT27DSX5.4.RP-2158.CPT0378360006",
+        "experiment_name": "CPT0378360006.WGS.RP-2158",
+        "sequencing_center": "BI",
+        "platform": "Illumina",
+        "library_selection": "Random",
+        "library_strategy": "WGS",
+        "library_name": "3553487788_Illumina_P5-Boyij_P7-Xedeb",
+        "lane_number": 4,
+        "is_paired_end": true,
+        "read_length": 151,
+        "read_group_name": "HCT27.4",
+        "target_capture_kit": "Not Applicable",
+        "to_trim_adapter_sequence": true
+    },
+    {
+        "type": "read_group",
+        "aliquots": {
+            "submitter_id": "CPT0378360006"
+        },
+        "submitter_id": "HTWVMDSX5.4.RP-2158.CPT0378360006",
+        "experiment_name": "CPT0378360006.WGS.RP-2158",
+        "sequencing_center": "BI",
+        "platform": "Illumina",
+        "library_selection": "Random",
+        "library_strategy": "WGS",
+        "library_name": "3553487788_Illumina_P5-Boyij_P7-Xedeb",
+        "lane_number": 4,
+        "is_paired_end": true,
+        "read_length": 151,
+        "read_group_name": "HTWVM.4",
+        "target_capture_kit": "Not Applicable",
+        "to_trim_adapter_sequence": true
+    },
+    {
+        "type": "read_group",
+        "aliquots": {
+            "submitter_id": "CPT0378360006"
+        },
+        "submitter_id": "HTYNFDSX5.4.RP-2158.CPT0378360006",
+        "experiment_name": "CPT0378360006.WGS.RP-2158",
+        "sequencing_center": "BI",
+        "platform": "Illumina",
+        "library_selection": "Random",
+        "library_strategy": "WGS",
+        "library_name": "3553487788_Illumina_P5-Boyij_P7-Xedeb",
+        "lane_number": 4,
+        "is_paired_end": true,
+        "read_length": 151,
+        "read_group_name": "HTYNF.4",
+        "target_capture_kit": "Not Applicable",
+        "to_trim_adapter_sequence": true
+    }
+]
