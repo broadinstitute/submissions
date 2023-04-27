@@ -1,3 +1,5 @@
+version 1.0
+
 import "../../tasks/terra_tasks.wdl" as tasks
 
 workflow TransferToDbgap {
