@@ -58,7 +58,7 @@ class Sample:
     def get_center_name(self):
         file_path = "./cromwell_root/bioproject.xml"
         is_correct_xml_obj = False
-        download_bioproject_xml()
+        # download_bioproject_xml()
 
         def is_correct_project(elem):
             if elem.attrib["accession"] == self.bio_project:
@@ -66,39 +66,39 @@ class Sample:
             else:
                 return False
 
-        for event, elem in ET.iterparse(file_path, events=("start", "end")):
-            if event == "start":
-                if elem.tag == "ArchiveID":
-                    is_correct_xml_obj = is_correct_project(elem)
+        for event, elem in ET.iterparse(file_path, events=("start",), tag=("ArchiveID", "Description")):
+            if elem.tag == "ArchiveID":
+                is_correct_xml_obj = is_correct_project(elem)
 
-                if is_correct_xml_obj and elem.tag == "Description":
-                    orgs = {}
+            if is_correct_xml_obj and elem.tag == "Description":
+                orgs = {}
 
-                    for child in elem:
-                        role = elem.attrib["role"]
-                        name = elem[0]
+                for child in elem:
+                    print("child", child)
+                    role = elem.attrib["role"]
+                    name = elem[0]
 
-                        if name.text:
-                            orgs[role] = name.text
-                        else:
-                            orgs[role] = name.attrib["attr"]
-
-                    print("orgs", orgs)
-
-                    if "owner" in orgs:
-                        return orgs["owner"]
-                    elif "participant" in orgs:
-                        return orgs["participant"]
+                    if name.text:
+                        orgs[role] = name.text
                     else:
-                        print("Houstan we have a problem. We couldnt find an organization for this bioproject")
+                        orgs[role] = name.attrib["attr"]
 
-                        return ""
+                print("orgs", orgs)
 
-                if is_correct_xml_obj and elem.tag == "Organization" and elem.attrib["role"] == "participant":
-                    print("elem", elem.tag)
-                    print("attrib", elem.attrib)
-                    print("text", elem[0].text)
-                    return elem[0].text
+                if "owner" in orgs:
+                    return orgs["owner"]
+                elif "participant" in orgs:
+                    return orgs["participant"]
+                else:
+                    print("Houstan we have a problem. We couldnt find an organization for this bioproject")
+
+                    return ""
+
+            if is_correct_xml_obj and elem.tag == "Organization" and elem.attrib["role"] == "participant":
+                print("elem", elem.tag)
+                print("attrib", elem.attrib)
+                print("text", elem[0].text)
+                return elem[0].text
 
         return ""
 

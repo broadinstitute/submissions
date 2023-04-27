@@ -9,3 +9,6 @@ workflows:
   - name: verify
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/VerifyRegistration/VerifyRegistration.wdl
+  - name: dbgapTransfer
+    subclass: WDL
+    primaryDescriptorPath: /src/wdl/workflows/TransferToDbGap/TransferFile.wdl
