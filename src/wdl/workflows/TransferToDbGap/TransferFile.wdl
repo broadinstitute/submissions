@@ -38,10 +38,6 @@ workflow TransferToDbgap {
             uploadPath = uploadPath,
             ascpUser = "asp-bi"
     }
-
-    output {
-         ascpFile.*
-    }
 }
 
 task ascpFile {
