@@ -1,34 +1,5 @@
 import "../../tasks/terra_tasks.wdl" as tasks
 
-task ascpFile {
-    File uploadFile
-    File key
-    String uploadSite
-    String uploadPath
-    String ascpUser
-
-    command {
-      set -e
-      mkdir upload &&
-      ascp -k0 -Q -l 500M -i ${key} -T -L upload ${uploadFile} ${ascpUser}@${uploadSite}:${uploadPath};
-      ERRORS=$(grep "Source file transfers failed" upload/aspera-scp-transfer.log | rev | cut -f 1 -d ' ');
-      [[ $ERRORS[*] =~ '!' ]] && echo "An error was detected during aspera upload." && exit 1
-      cat upload/aspera-scp-transfer.log
-    }
-
-    runtime {
-      memory: "7.5 GB"
-      docker: "schaluvadi/horsefish:submissionV1"
-      cpu: 2
-      preemptible: 3
-      disks: "local-disk 200 HDD"
-    }
-
-    output {
-        File transferLog = "upload/aspera-scp-transfer.log"
-    }
-}
-
 workflow TransferToDbgap {
     input {
         String sample_id
@@ -68,5 +39,34 @@ workflow TransferToDbgap {
 
     output {
          ascpFile.*
+    }
+}
+
+task ascpFile {
+    File uploadFile
+    File key
+    String uploadSite
+    String uploadPath
+    String ascpUser
+
+    command {
+      set -e
+      mkdir upload &&
+      ascp -k0 -Q -l 500M -i ${key} -T -L upload ${uploadFile} ${ascpUser}@${uploadSite}:${uploadPath};
+      ERRORS=$(grep "Source file transfers failed" upload/aspera-scp-transfer.log | rev | cut -f 1 -d ' ');
+      [[ $ERRORS[*] =~ '!' ]] && echo "An error was detected during aspera upload." && exit 1
+      cat upload/aspera-scp-transfer.log
+    }
+
+    runtime {
+      memory: "7.5 GB"
+      docker: "schaluvadi/horsefish:submissionV1"
+      cpu: 2
+      preemptible: 3
+      disks: "local-disk 200 HDD"
+    }
+
+    output {
+        File transferLog = "upload/aspera-scp-transfer.log"
     }
 }
