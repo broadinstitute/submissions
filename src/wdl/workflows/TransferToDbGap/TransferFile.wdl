@@ -41,11 +41,13 @@ workflow TransferToDbgap {
 }
 
 task ascpFile {
-    File uploadFile
-    File key
-    String uploadSite
-    String uploadPath
-    String ascpUser
+    input {
+        File uploadFile
+        File key
+        String uploadSite
+        String uploadPath
+        String ascpUser
+    }
 
     command {
       set -e
