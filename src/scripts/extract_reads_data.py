@@ -45,7 +45,7 @@ def callTerraApi(sample_id, project, workspace_name):
     baseUrl = f"https://rawls.dsde-prod.broadinstitute.org/api/workspaces/{project}/{workspace_name}/entityQuery/read-group"
     parameters = {
         'page': "1", # Need to add in paging
-        'pageSize': "50",
+        'pageSize': "1000",
         'filterTerms': sample_id
     }
     headers = {"Authorization": "Bearer " + get_access_token(), "accept": "*/*", "Content-Type": "application/json"}

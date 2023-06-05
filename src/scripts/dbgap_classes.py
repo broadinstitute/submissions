@@ -56,9 +56,9 @@ class Sample:
         self.center_name = self.get_center_name()
 
     def get_center_name(self):
-        file_path = "./cromwell_root/bioproject.xml"
+        file_path = "/cromwell_root/temp.xml"
         is_correct_xml_obj = False
-        # download_bioproject_xml()
+        download_bioproject_xml()
 
         def is_correct_project(elem):
             if elem.attrib["accession"] == self.bio_project:
@@ -66,43 +66,35 @@ class Sample:
             else:
                 return False
 
-        for event, elem in ET.iterparse(file_path, events=("start",), tag=("ArchiveID", "Description")):
+        def format_name(orgs):
+            if "owner" in orgs:
+                return orgs["owner"]
+            elif "participant" in orgs:
+                return orgs["participant"]
+            else:
+                print("Housten we have a problem. We couldnt find an organization for this bioproject")
+
+                return ""
+
+        for event, elem in ET.iterparse(file_path, events=("start",)):
             if elem.tag == "ArchiveID":
                 is_correct_xml_obj = is_correct_project(elem)
 
-            if is_correct_xml_obj and elem.tag == "Description":
+            if is_correct_xml_obj and elem.tag == "Submission":
                 orgs = {}
+                description_elements = elem[0]
 
-                for child in elem:
-                    print("child", child)
-                    role = elem.attrib["role"]
-                    name = elem[0]
+                for child in description_elements:
+                    if child.tag == "Organization":
+                        role = child.attrib["role"]
+                        name = child[0]
 
-                    if name.text:
-                        orgs[role] = name.text
-                    else:
-                        orgs[role] = name.attrib["attr"]
+                        if name.text:
+                            orgs[role] = name.text
+                        else:
+                            orgs[role] = name.attrib["attr"]
 
-                print("orgs", orgs)
-
-                if "owner" in orgs:
-                    return orgs["owner"]
-                elif "participant" in orgs:
-                    return orgs["participant"]
-                else:
-                    print("Houstan we have a problem. We couldnt find an organization for this bioproject")
-
-                    return ""
-
-            if is_correct_xml_obj and elem.tag == "Organization" and elem.attrib["role"] == "participant":
-                print("elem", elem.tag)
-                print("attrib", elem.attrib)
-                print("text", elem[0].text)
-                return elem[0].text
-
-        return ""
-
-        # will need to delete this file once we are done with it
+                return format_name(orgs)
 
     def formatted_data_type(self):
         DATA_TYPE_MAPPING = {
@@ -233,7 +225,7 @@ class ReadGroup:
 
     def get_library_descriptor(self):
         library_descriptor = {
-            "strategy": { },
+            "strategy": {},
             "source": {}
         }
 
@@ -433,13 +425,13 @@ class Experiment:
         ET.SubElement(layout, "PAIRED", NOMINAL_LENGTH=self.read_group.nominal_length, NOMINAL_SDEV=self.read_group.nominal_sdex)
 
     def set_spec_values(self, dict, decode_spec):
-            read_spec = ET.SubElement(decode_spec, "READ_SPEC")
+        read_spec = ET.SubElement(decode_spec, "READ_SPEC")
 
-            ET.SubElement(read_spec, "READ_INDEX").text = dict["read_index"]
-            ET.SubElement(read_spec, "READ_LABEL").text = dict["read_label"]
-            ET.SubElement(read_spec, "READ_CLASS").text = dict["read_class"]
-            ET.SubElement(read_spec, "READ_TYPE").text = dict["read_type"]
-            ET.SubElement(read_spec, "READ_COORD").text = dict["base_coord"]
+        ET.SubElement(read_spec, "READ_INDEX").text = dict["read_index"]
+        ET.SubElement(read_spec, "READ_LABEL").text = dict["read_label"]
+        ET.SubElement(read_spec, "READ_CLASS").text = dict["read_class"]
+        ET.SubElement(read_spec, "READ_TYPE").text = dict["read_type"]
+        ET.SubElement(read_spec, "READ_COORD").text = dict["base_coord"]
 
     def set_spot_descriptor(self, experiment):
          spot_descriptor = ET.SubElement(experiment, "SPOT_DESCRIPTOR")
@@ -710,5 +702,3 @@ def call_telemetry_report(phs_id):
 
     return response.text
 
-def get_center_name():
-    print("Need to figure out how to do this")

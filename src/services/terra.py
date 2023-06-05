@@ -12,18 +12,25 @@ def get_access_token():
 
     return credentials.get_access_token().access_token
 
+def get_headers():
+    return {
+        "Authorization": "Bearer " + get_access_token(),
+        "accept": "*/*", 
+        "Content-Type": "application/json"
+    }
+
 def callTerraApi(sample_id, project, workspace_name, table):
     """Call the Terra api to retrieve reads data"""
+    results = []
     page_number = 1
     more_results = True
-    results = []
+    headers = get_headers()
     baseUrl = f"{base_url}/{project}/{workspace_name}/entityQuery/{table}"
-    headers = {"Authorization": "Bearer " + get_access_token(), "accept": "*/*", "Content-Type": "application/json"}
 
     while more_results:
         parameters = {
             'page': page_number,
-            'pageSize': 50,
+            'pageSize': 100,
             'filterTerms': sample_id
         }
 
@@ -33,7 +40,7 @@ def callTerraApi(sample_id, project, workspace_name, table):
         status_code = response.status_code
         data = json.loads(response.text)
 
-        if len(data.results) > 0:
+        if data and data.results and len(data.results) > 0:
             results += data.results
             page_number += 1
         else:

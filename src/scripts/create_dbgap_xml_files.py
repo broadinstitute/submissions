@@ -11,7 +11,6 @@ def run(sample_id, project, workspace_name, sample_file, read_file):
     # sample = callTerraApi(sample_id, project, workspace_name, "sample")
     # readGroups = callTerraApi(sample_id, project, workspace_name, "read_group")
 
-    # Dummy data
     sample_json = parse_terra_file(sample_file)
     readGroup_json = parse_terra_file(read_file)
 
@@ -43,7 +42,7 @@ def callTerraApi(sample_id, project, workspace_name, table):
     baseUrl = f"https://rawls.dsde-prod.broadinstitute.org/api/workspaces/{project}/{workspace_name}/entityQuery/{table}"
     parameters = {
         'page': "1", # Need to add in paging
-        'pageSize': "10",
+        'pageSize': "1000",
         'filterTerms': sample_id
     }
     headers = {"Authorization": "Bearer " + get_access_token(), "accept": "*/*", "Content-Type": "application/json"}

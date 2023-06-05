@@ -1,32 +1,33 @@
 {
-    "parameters": {
-      "fields": {},
-      "filterOperator": "and",
-      "page": 1,
-      "pageSize": 10,
-      "sortDirection": "asc",
-      "sortField": "name"
-    },
-    "resultMetadata": {
-      "filteredCount": 1,
-      "filteredPageCount": 1,
-      "unfilteredCount": 1
-    },
-    "results": [
-      {
-        "attributes": {
-          "aggregation_project": "RP-1291",
-          "location": "OnPrem",
-          "aggregation_index_path": "/seq/picard_aggregation/RP-1291/Exome/U-046046-0_N/v2/U-046046-0_N.bai",
-          "md5": "/seq/picard_aggregation/RP-1291/Exome/U-046046-0_N/v2/U-046046-0_N.bam.md5",
-          "aggregation_path": "/seq/picard_aggregation/RP-1291/Exome/U-046046-0_N/v2/U-046046-0_N.bam",
-          "alias": "U-046046-0_N",
-          "version": 2,
-          "phs_id": "phs003093",
-          "data_type": "Exome"
-        },
-        "entityType": "sample",
-        "name": "RP-1291_U-046046-0_N_v2_Exome_DBGAP"
-      }
-    ]
-  }
+  "parameters": {
+    "fields": {},
+    "filterOperator": "and",
+    "filterTerms": "CBUPOJVQN",
+    "page": 1,
+    "pageSize": 10,
+    "sortDirection": "asc",
+    "sortField": "name"
+  },
+  "resultMetadata": {
+    "filteredCount": 1,
+    "filteredPageCount": 1,
+    "unfilteredCount": 20
+  },
+  "results": [
+    {
+      "attributes": {
+        "aggregation_project": "RP-1879",
+        "location": "OnPrem",
+        "aggregation_index_path": "/seq/picard_aggregation/RP-1879/RNA/CBUPOJVQN.01/v2/CBUPOJVQN.01.bai",
+        "md5": "/seq/picard_aggregation/RP-1879/RNA/CBUPOJVQN.01/v2/CBUPOJVQN.01.bam.md5",
+        "aggregation_path": "/seq/picard_aggregation/RP-1879/RNA/CBUPOJVQN.01/v2/CBUPOJVQN.01.bam",
+        "alias": "CBUPOJVQN.01",
+        "version": 2,
+        "phs_id": "phs003015",
+        "data_type": "RNA"
+      },
+      "entityType": "sample",
+      "name": "RP-1879_CBUPOJVQN.01_v2_RNA_DBGAP"
+    }
+  ]
+}
