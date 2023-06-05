@@ -8,11 +8,11 @@ from batch_upsert_entities import get_access_token
 from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission
 
 def run(sample_id, project, workspace_name, sample_file, read_file):
-    # sample = callTerraApi(sample_id, project, workspace_name, "sample")
-    # readGroups = callTerraApi(sample_id, project, workspace_name, "read_group")
+    sample_json = callTerraApi(sample_id, project, workspace_name, "sample")
+    readGroup_json = callTerraApi(sample_id, project, workspace_name, "read_group")
 
-    sample_json = parse_terra_file(sample_file)
-    readGroup_json = parse_terra_file(read_file)
+    # sample_json = parse_terra_file(sample_file)
+    # readGroup_json = parse_terra_file(read_file)
 
     sample = Sample(sample_json["results"])
     read_group = ReadGroup(readGroup_json["results"])
@@ -60,8 +60,9 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--project', required=True, help='billing project (namespace) of workspace in which to make changes')
     parser.add_argument('-s', '--sample_id', required=True, help='sample_id to extract read data')
     # These will not be required once deployed
-    parser.add_argument('-sf', '--sample_file', required=True, help='.json file that contains all the data for the given sample')
-    parser.add_argument('-rf', '--read_file', required=True, help='.json file that contains all the data for the given sample')
+    # parser.add_argument('-sf', '--sample_file', required=True, help='.json file that contains all the data for the given sample')
+    # parser.add_argument('-rf', '--read_file', required=True, help='.json file that contains all the data for the given sample')
     args = parser.parse_args()
 
-    run(args.sample_id, args.project, args.workspace_name, args.sample_file, args.read_file)
+    # run(args.sample_id, args.project, args.workspace_name, args.sample_file, args.read_file)
+    run(args.sample_id, args.project, args.workspace_name)
