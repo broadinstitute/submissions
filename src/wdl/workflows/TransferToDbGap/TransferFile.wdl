@@ -34,8 +34,8 @@ workflow TransferToDbgap {
         input:
             key = key,
             uploadFile = dataFile,
-            uploadSite = uploadSite,
-            uploadPath = uploadPath,
+            uploadSite = transferXml.site,
+            uploadPath = transferXml.path,
             ascpUser = "asp-bi"
     }
 }
@@ -68,5 +68,7 @@ task ascpFile {
 
     output {
         File transferLog = "upload/aspera-scp-transfer.log"
+        String site = uploadSite
+        String path = uploadPath
     }
 }

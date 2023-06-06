@@ -63,6 +63,6 @@ if __name__ == '__main__':
     # parser.add_argument('-sf', '--sample_file', required=True, help='.json file that contains all the data for the given sample')
     # parser.add_argument('-rf', '--read_file', required=True, help='.json file that contains all the data for the given sample')
     args = parser.parse_args()
-
+    # not building
     # run(args.sample_id, args.project, args.workspace_name, args.sample_file, args.read_file)
     run(args.sample_id, args.project, args.workspace_name)
