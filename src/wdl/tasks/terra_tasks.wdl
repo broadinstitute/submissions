@@ -12,8 +12,6 @@ task CreateDbgapXmlFiles {
         python3 /src/scripts/create_dbgap_xml_files.py -w ~{workspace_name} \
                                                       -p ~{billing_project} \
                                                       -s ~{sample_id}
-
-        tar czf xml_files.tgz /cromwell_root/xml
     }
 
     runtime {

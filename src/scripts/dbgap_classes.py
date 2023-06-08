@@ -675,7 +675,7 @@ def download_bioproject_xml():
     ftp.login("anonymous", None)
     ftp.cwd('bioproject')
 
-    with open('/cromwell_root/bioproject.xml', 'wb') as fp:
+    with open('./cromwell_root/bioproject.xml', 'wb') as fp:
         ftp.retrbinary('RETR bioproject.xml', fp.write)
 
 def write_xml_file(file_name, root):

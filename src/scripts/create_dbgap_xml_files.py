@@ -1,13 +1,16 @@
 import json
+import os
 import argparse
 import pandas
 import requests
 from ftplib import FTP
 
 from batch_upsert_entities import get_access_token
-from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission
+from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission, download_bioproject_xml
 
 def run(sample_id, project, workspace_name):
+    print(os.getcwd())
+    download_bioproject_xml()
     sample_json = callTerraApi(sample_id, project, workspace_name, "sample")
     readGroup_json = callTerraApi(sample_id, project, workspace_name, "read-group")
 
