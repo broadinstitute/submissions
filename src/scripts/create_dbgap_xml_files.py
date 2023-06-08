@@ -7,9 +7,9 @@ from ftplib import FTP
 from batch_upsert_entities import get_access_token
 from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission
 
-def run(sample_id, project, workspace_name, sample_file, read_file):
+def run(sample_id, project, workspace_name):
     sample_json = callTerraApi(sample_id, project, workspace_name, "sample")
-    readGroup_json = callTerraApi(sample_id, project, workspace_name, "read_group")
+    readGroup_json = callTerraApi(sample_id, project, workspace_name, "read-group")
 
     # sample_json = parse_terra_file(sample_file)
     # readGroup_json = parse_terra_file(read_file)

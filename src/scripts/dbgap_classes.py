@@ -56,7 +56,7 @@ class Sample:
         self.center_name = self.get_center_name()
 
     def get_center_name(self):
-        file_path = "/cromwell_root/temp.xml"
+        file_path = "/cromwell_root/bioproject.xml"
         is_correct_xml_obj = False
         download_bioproject_xml()
 
@@ -675,11 +675,11 @@ def download_bioproject_xml():
     ftp.login("anonymous", None)
     ftp.cwd('bioproject')
 
-    with open('./cromwell_root/bioproject.xml', 'wb') as fp:
+    with open('/cromwell_root/bioproject.xml', 'wb') as fp:
         ftp.retrbinary('RETR bioproject.xml', fp.write)
 
 def write_xml_file(file_name, root):
-    with open(f"./cromwell_root/xml/{file_name}.xml", 'wb') as xfile:
+    with open(f"/cromwell_root/xml/{file_name}.xml", 'wb') as xfile:
         xfile.write(ET.tostring(root, encoding="ASCII"))
 
 def get_submission_comment_formatted_date():

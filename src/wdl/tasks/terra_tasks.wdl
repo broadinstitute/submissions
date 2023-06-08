@@ -6,6 +6,7 @@ task CreateDbgapXmlFiles {
         String workspace_name
         String billing_project
     }
+    Int disk_size = 15
 
     command {
         python3 /src/scripts/create_dbgap_xml_files.py -w ~{workspace_name} \
@@ -16,8 +17,9 @@ task CreateDbgapXmlFiles {
     }
 
     runtime {
-      preemptible: 3
+      memory: "8 GB"
       docker: "schaluvadi/horsefish:submissionV2GDC"
+      disks: "local-disk " + disk_size + " HDD"
     }
 
     output {
