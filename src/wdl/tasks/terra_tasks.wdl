@@ -15,8 +15,9 @@ task CreateDbgapXmlFiles {
     }
 
     runtime {
-      memory: "8 GB"
+      memory: "12 GB"
       docker: "schaluvadi/horsefish:submissionV2GDC"
+      cpu: 4
       disks: "local-disk " + disk_size + " HDD"
     }
 
