@@ -146,6 +146,14 @@ task addReadsField {
     }
 
     command {
+        # if the WDL/task contains a monitoring script as input
+        if [ ! -z "~{monitoring_script}" ]; then
+        chmod a+x ~{monitoring_script}
+        ~{monitoring_script} > monitoring.log &
+        else
+        echo "No monitoring script given as input" > monitoring.log &
+        fi
+
         python3 /src/scripts/extract_reads_data.py -w ~{workspace_name} \
                                                       -p ~{workspace_project} \
                                                       -s ~{sample_id} \
