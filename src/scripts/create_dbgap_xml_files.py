@@ -9,12 +9,12 @@ from batch_upsert_entities import get_access_token
 from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission, download_bioproject_xml
 
 def run(sample_id, project, workspace_name):
-    #download_bioproject_xml()
+    download_bioproject_xml()
     sample_json = callTerraApi(sample_id, project, workspace_name, "sample")
     readGroup_json = callTerraApi(sample_id, project, workspace_name, "read-group")
 
-    #sample_json = parse_terra_file(sample_file)
-    #readGroup_json = parse_terra_file(read_file)
+    # sample_json = parse_terra_file(sample_file)
+    # readGroup_json = parse_terra_file(read_file)
 
     sample = Sample(sample_json["results"])
     read_group = ReadGroup(readGroup_json["results"])
@@ -66,5 +66,5 @@ if __name__ == '__main__':
     # parser.add_argument('-rf', '--read_file', required=True, help='.json file that contains all the data for the given sample')
     args = parser.parse_args()
     # not building
-    #run(args.sample_id, args.project, args.workspace_name, args.sample_file, args.read_file)
+    # run(args.sample_id, args.project, args.workspace_name, args.sample_file, args.read_file)
     run(args.sample_id, args.project, args.workspace_name)

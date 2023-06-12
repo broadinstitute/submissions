@@ -58,12 +58,14 @@ class Sample:
     def get_center_name(self):
         file_path = "/cromwell_root/bioproject.xml"
         is_correct_xml_obj = False
+        print("before downloading bioproject")
         download_bioproject_xml()
 
         def is_correct_project(elem):
             if elem.attrib["accession"] == self.bio_project:
                 return True
             else:
+                elem.clear()
                 return False
 
         def format_name(orgs):
@@ -76,7 +78,7 @@ class Sample:
 
                 return ""
 
-        for event, elem in ET.iterparse(file_path, events=("start",)):
+        for event, elem in ET.iterparse(file_path, events=("end",)):
             if elem.tag == "ArchiveID":
                 is_correct_xml_obj = is_correct_project(elem)
 
@@ -675,7 +677,8 @@ def download_bioproject_xml():
     ftp.login("anonymous", None)
     ftp.cwd('bioproject')
 
-    with open('./cromwell_root/bioproject.xml', 'wb') as fp:
+    with open('/cromwell_root/bioproject.xml', 'wb') as fp:
+        #ftp.retrbinary('RETR bioproject.xml', fp.write, blocksize=262144)
         ftp.retrbinary('RETR bioproject.xml', fp.write)
 
 def write_xml_file(file_name, root):

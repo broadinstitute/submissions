@@ -142,6 +142,7 @@ task addReadsField {
         String gdc_token
         String project
         String program
+        File? monitoring_script
     }
 
     command {

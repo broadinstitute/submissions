@@ -12,6 +12,7 @@ workflow TransferToDbgap {
         String ascpUser
         File key
         File dataFile
+        File? monitoring_script
     }
 
     call tasks.CreateDbgapXmlFiles as xml {
@@ -19,6 +20,7 @@ workflow TransferToDbgap {
             workspace_name = workspace_name,
             billing_project = workspace_project,
             sample_id = sample_id,
+            monitoring_script = monitoring_script
     }
 
     call ascpFile as transferXml {
