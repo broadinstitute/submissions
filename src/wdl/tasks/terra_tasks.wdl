@@ -7,7 +7,7 @@ task CreateDbgapXmlFiles {
         String billing_project
         File? monitoring_script
     }
-    Int disk_size = 15
+    Int disk_size = 32
 
     command {
         # if the WDL/task contains a monitoring script as input
@@ -24,7 +24,7 @@ task CreateDbgapXmlFiles {
     }
 
     runtime {
-      memory: "12 GB"
+      memory: "32 GB"
       docker: "schaluvadi/horsefish:submissionV2GDC"
       cpu: 4
       disks: "local-disk " + disk_size + " HDD"
