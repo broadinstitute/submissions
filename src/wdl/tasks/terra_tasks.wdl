@@ -5,10 +5,19 @@ task CreateDbgapXmlFiles {
         String sample_id
         String workspace_name
         String billing_project
+        File? monitoring_script
     }
     Int disk_size = 15
 
     command {
+        # if the WDL/task contains a monitoring script as input
+        if [ ! -z "~{monitoring_script}" ]; then
+            chmod a+x ~{monitoring_script}
+            ~{monitoring_script} > monitoring.log &
+        else
+            echo "No monitoring script given as input" > monitoring.log &
+        fi
+
         python3 /src/scripts/create_dbgap_xml_files.py -w ~{workspace_name} \
                                                       -p ~{billing_project} \
                                                       -s ~{sample_id}
@@ -142,18 +151,9 @@ task addReadsField {
         String gdc_token
         String project
         String program
-        File? monitoring_script
     }
 
     command {
-        # if the WDL/task contains a monitoring script as input
-        if [ ! -z "~{monitoring_script}" ]; then
-        chmod a+x ~{monitoring_script}
-        ~{monitoring_script} > monitoring.log &
-        else
-        echo "No monitoring script given as input" > monitoring.log &
-        fi
-
         python3 /src/scripts/extract_reads_data.py -w ~{workspace_name} \
                                                       -p ~{workspace_project} \
                                                       -s ~{sample_id} \
