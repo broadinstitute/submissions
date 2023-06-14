@@ -29,7 +29,7 @@ workflow TransferToDbgap {
             uploadFile = xml.xml_tar,
             uploadSite = uploadSite,
             uploadPath = uploadPath,
-            ascpUser = "asp-bi"
+            ascpUser = "asp-bi",
             filename = "xml_tar.xml"
     }
 
