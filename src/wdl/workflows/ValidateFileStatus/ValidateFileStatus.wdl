@@ -8,9 +8,10 @@ workflow VerifyRegistration {
     String program
     String project
     String workspace
-    String project
+    String billing_project
     String sample_id
     Boolean delete = false
+    File? aggregation_path
   }
 
   String token_value = (read_lines(gdc_token))[0]
@@ -24,14 +25,24 @@ workflow VerifyRegistration {
       delete = delete
   }
 
-  call tasks.CreateValidationStatusTable {
+  call tasks.CreateValidationStatusTable as tsv {
       input:
         file_state = file_status.file_state
   }
 
   call tasks.UpsertMetadataToDataModel {
       input:
+        workspace_name = workspace,
+        workspace_project = billing_project,
+        tsv = tsv.load_tsv
+  }
 
+  if (delete) {
+      if (file_status.file_state == 'validated')
+      call tasks.DeleteFileFromWorkspace {
+          input:
+            aggregation_path = aggregation_path
+      }
   }
 
   output {
@@ -62,6 +73,6 @@ task validateFileStatus {
     }
 
     output {
-        String file_state = read_boolean("file_state.txt")
+        String file_state = read_string("file_state.txt")
     }
 }

@@ -37,7 +37,7 @@ task CreateDbgapXmlFiles {
     }
 }
 
-task UploadValidationStatusToDataTable {
+task CreateValidationStatusTable {
     input {
         # values to update to data model
         String file_state
@@ -64,6 +64,32 @@ task UploadValidationStatusToDataTable {
 
     output {
         File load_tsv = "sample_metadata.tsv"
+    }
+}
+
+task verifyGDCRegistration {
+    input {
+        String program
+        String project
+        String sample_alias
+        String gdc_token
+    }
+
+    command {
+        python3 /main.py --program ~{program} \
+                        --project ~{project} \
+                        --alias_value ~{sample_alias} \
+                        --step "verify_registration" \
+                        --token ~{gdc_token}
+    }
+
+    runtime {
+        docker: "schaluvadi/horsefish:submissionV2GDC"
+        preemptible: 1
+    }
+
+    output {
+        Boolean registration_status = read_boolean("isValid.txt")
     }
 }
 
@@ -98,6 +124,24 @@ task CreateTableLoadFile {
 
     runtime {
         preemptible: 3
+        docker: "schaluvadi/horsefish:submissionV1"
+    }
+
+    output {
+        File load_tsv = "sample_metadata.tsv"
+    }
+}
+
+task DeleteFileFromWorkspace {
+    input {
+        File aggregation_path
+    }
+
+    command {
+        gsutil rm aggregation_path
+    }
+
+    runtime {
         docker: "schaluvadi/horsefish:submissionV1"
     }
 

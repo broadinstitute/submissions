@@ -6,9 +6,9 @@ workflows:
   - name: delete
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/DeleteFromGdc/DeleteFromGdc.wdl
-  - name: verify
-    subclass: WDL
-    primaryDescriptorPath: /src/wdl/workflows/VerifyRegistration/VerifyRegistration.wdl
   - name: dbgapTransfer
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/TransferToDbGap/TransferFile.wdl
+  - name: validateGDCStatus
+    subclass: WDL
+    primaryDescriptorPath: /src/wdl/workflows/ValidateFileStatus/ValidateFileStatus.wdl

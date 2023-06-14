@@ -24,17 +24,25 @@ workflow TransferToGdc {
   String token_value = (read_lines(gdc_token))[0]
   String md5 = (read_lines(md5_file))[0]
 
-  call tasks.addReadsField as reads {
+  call verifyGDCRegistration {
     input:
-      workspace_name = workspace_name,
-      workspace_project = workspace_project,
-      sample_id = sample_id,
-      gdc_token = token_value,
+      program = program,
       project = project,
-      program = program
+      gdc_token = token_value,
+      sample_alias = sample_alias
   }
 
-  if (registration_status) {
+  if (verifyGDCRegistration.registration_status) {
+    call tasks.addReadsField as reads {
+      input:
+        workspace_name = workspace_name,
+        workspace_project = workspace_project,
+        sample_id = sample_id,
+        gdc_token = token_value,
+        project = project,
+        program = program
+    }
+
     call submitMetadataToGDC {
       input:
         sample_id = sample_id,
@@ -99,7 +107,6 @@ workflow TransferToGdc {
 }
 
 task RetrieveGdcManifest {
-
   input {
     String  program
     String  project
@@ -134,7 +141,6 @@ task RetrieveGdcManifest {
 }
 
 task TransferBamToGdc {
-
   input {
     String  bam_path
     String  bam_name
@@ -180,7 +186,7 @@ task TransferBamToGdc {
   }
 
   runtime {
-    memory: "7.5 GB"
+    memory: "8 GB"
     docker: "schaluvadi/horsefish:submissionV1"
     cpu: 2
     disks: "local-disk " + disk_size + " HDD"
