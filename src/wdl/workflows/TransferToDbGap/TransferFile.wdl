@@ -38,7 +38,7 @@ workflow TransferToDbgap {
             uploadFile = dataFile,
             uploadSite = transferXml.site,
             uploadPath = transferXml.path,
-            ascpUser = "asp-bi"
+            ascpUser = "asp-bi",
     }
 }
 
@@ -53,8 +53,9 @@ task ascpFile {
 
     command {
       set -e
+      mv ~{key} ./private.openssh
       mkdir upload &&
-      ascp -k0 -Q -l 500M -i ${key} -T -L upload ${uploadFile} ${ascpUser}@${uploadSite}:${uploadPath};
+      ascp -k0 -Q -l 500M -i ./private.openssh -T -L upload ./~{sample_id} ${ascpUser}@${uploadSite}:${uploadPath};
       ERRORS=$(grep "Source file transfers failed" upload/aspera-scp-transfer.log | rev | cut -f 1 -d ' ');
       [[ $ERRORS[*] =~ '!' ]] && echo "An error was detected during aspera upload." && exit 1
       cat upload/aspera-scp-transfer.log
