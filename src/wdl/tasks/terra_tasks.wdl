@@ -37,7 +37,7 @@ task CreateDbgapXmlFiles {
     }
 }
 
-task UploadValidationStatusToDataTable
+task UploadValidationStatusToDataTable {
     input {
         # values to update to data model
         String file_state
@@ -65,6 +65,7 @@ task UploadValidationStatusToDataTable
     output {
         File load_tsv = "sample_metadata.tsv"
     }
+}
 
 task CreateTableLoadFile {
     input {
