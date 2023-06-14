@@ -18,9 +18,11 @@ task CreateDbgapXmlFiles {
             echo "No monitoring script given as input" > monitoring.log &
         fi
 
+        mkdir /cromwell_root/xml
         python3 /src/scripts/create_dbgap_xml_files.py -w ~{workspace_name} \
                                                       -p ~{billing_project} \
                                                       -s ~{sample_id}
+        tar czf xml_files.tgz /cromwell_root/xml
     }
 
     runtime {
@@ -34,6 +36,35 @@ task CreateDbgapXmlFiles {
         File xml_tar = "xml_files.tgz"
     }
 }
+
+task UploadValidationStatusToDataTable
+    input {
+        # values to update to data model
+        String file_state
+    }
+
+    parameter_meta {
+        file_state: "State of file from transferBamFile."
+    }
+
+    command {
+        # write header to file
+        echo -e "entity:file_state" \
+        > sample_metadata.tsv
+
+        # write metadata values to row in tsv file
+        echo -e "~{file_state}" \
+        >> sample_metadata.tsv
+    }
+
+    runtime {
+        preemptible: 3
+        docker: "schaluvadi/horsefish:submissionV1"
+    }
+
+    output {
+        File load_tsv = "sample_metadata.tsv"
+    }
 
 task CreateTableLoadFile {
     input {

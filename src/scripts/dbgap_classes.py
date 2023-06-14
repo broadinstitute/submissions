@@ -2,6 +2,7 @@ import requests
 import json
 import uuid
 import os
+import re
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from ftplib import FTP
@@ -267,7 +268,14 @@ class ReadGroup:
 
     def get_read_length(self):
         if self.read_structure:
-            return int(self.read_structure.split("T")[0])
+            reg_expr = re.search("[SBM](\d+)T", self.read_structure)
+
+            if reg_expr:
+                return int(reg_expr.group(1))
+            else:
+                # Right now it looks like Dbgap just calculates their own read lenght
+                # but keeping this here to be consistent with epsilon9. but will probably remove this dtl
+                return 0
         else:
             raise Exception(f'read structure not populated for read {self.root_sample_id}')
 
