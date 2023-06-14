@@ -1,9 +1,13 @@
 version 1.0
 
+import "../../tasks/terra_tasks.wdl" as tasks
+
 workflow VerifyRegistration {
   input {
     File gdc_token
     String program
+    String project
+    String workspace
     String project
     String sample_id
     Boolean delete = false
@@ -11,7 +15,7 @@ workflow VerifyRegistration {
 
   String token_value = (read_lines(gdc_token))[0]
 
-  call validateFileStatus {
+  call validateFileStatus as file_status {
     input:
       program = program,
       project = project,
@@ -20,8 +24,18 @@ workflow VerifyRegistration {
       delete = delete
   }
 
+  call tasks.CreateValidationStatusTable {
+      input:
+        file_state = file_status.file_state
+  }
+
+  call tasks.UpsertMetadataToDataModel {
+      input:
+
+  }
+
   output {
-    Boolean file_state = validateFileStatus.file_state
+    Boolean file_state = file_status.file_state
   }
 }
 

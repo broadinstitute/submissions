@@ -22,5 +22,6 @@ RUN /bin/bash gcloud_install.sh --disable-prompts && \
   ln -s /root/google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud && \
   ln -s /root/google-cloud-sdk/bin/gsutil /usr/local/bin/gsutil && \
   pip3 install --upgrade oauth2client
+RUN wget http://download.asperasoft.com/download/sw/ascp-client/3.5.4/ascp-install-3.5.4.102989-linux-64.sh
 
 CMD ["/bin/bash"]
