@@ -48,7 +48,7 @@ workflow ValidateGDCFileStatus {
   }
 
   output {
-    Boolean file_state = file_status.file_state
+    String file_state = file_status.file_state
   }
 }
 
