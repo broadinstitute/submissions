@@ -39,10 +39,10 @@ workflow VerifyRegistration {
 
   if (delete) {
       if (file_status.file_state == "validated")
-      call tasks.DeleteFileFromWorkspace {
-          input:
-            aggregation_path = aggregation_path
-      }
+        call tasks.DeleteFileFromWorkspace {
+            input:
+              aggregation_path = aggregation_path
+        }
   }
 
   output {
