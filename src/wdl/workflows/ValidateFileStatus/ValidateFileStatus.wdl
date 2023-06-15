@@ -2,7 +2,7 @@ version 1.0
 
 import "../../tasks/terra_tasks.wdl" as tasks
 
-workflow VerifyRegistration {
+workflow ValidateGDCFileStatus {
   input {
     File gdc_token
     String program
@@ -11,7 +11,7 @@ workflow VerifyRegistration {
     String billing_project
     String sample_id
     Boolean delete = false
-    File? aggregation_path
+    File aggregation_path
   }
 
   String token_value = (read_lines(gdc_token))[0]
