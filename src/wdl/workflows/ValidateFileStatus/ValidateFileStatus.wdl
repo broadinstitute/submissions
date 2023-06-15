@@ -61,7 +61,7 @@ task validateFileStatus {
     }
 
     command {
-        python3 /src/scripts/validateFileStatus.py -pg ~{program} \
+        python3 /src/scripts/validate_gdc_file_status.py -pg ~{program} \
                                                 -pj ~{project} \
                                                 -s ~{sample_id} \
                                                 -d ~{delete} \
