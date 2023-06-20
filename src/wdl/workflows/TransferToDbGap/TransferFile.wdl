@@ -59,9 +59,7 @@ task ascpFile {
       mkdir upload
       mv ~{key} upload/private.openssh
       mv ~{uploadFile} upload/~{filename}
-      cat upload/private.openssh
-      head -n 10 upload/~{filename}
-      ascp -k0 -Q -l 500M -i upload/private.openssh -T -L upload upload/~{filename} ${ascpUser}@${uploadSite}:${uploadPath};
+      ascp -k0 -Q -l 500M -i upload/private.openssh -L upload upload/~{filename} ${ascpUser}@${uploadSite}:${uploadPath};
       ERRORS=$(grep "Source file transfers failed" upload/aspera-scp-transfer.log | rev | cut -f 1 -d ' ');
       [[ $ERRORS[*] =~ '!' ]] && echo "An error was detected during aspera upload." && exit 1
       cat upload/aspera-scp-transfer.log
