@@ -147,7 +147,8 @@ task DeleteFileFromWorkspace {
     }
 
     output {
-        File load_tsv = "sample_metadata.tsv"
+        this.aggregation_path = ""
+        this.file_deleted = true
     }
 }
 

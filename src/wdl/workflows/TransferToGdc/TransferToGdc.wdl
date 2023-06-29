@@ -24,7 +24,7 @@ workflow TransferToGdc {
   String token_value = (read_lines(gdc_token))[0]
   String md5 = (read_lines(md5_file))[0]
 
-  call verifyGDCRegistration {
+  call verifyGDCRegistration as verified {
     input:
       program = program,
       project = project,
@@ -32,7 +32,7 @@ workflow TransferToGdc {
       sample_alias = sample_alias
   }
 
-  if (verifyGDCRegistration.registration_status) {
+  if (verified.registration_status) {
     call tasks.addReadsField as reads {
       input:
         workspace_name = workspace_name,
