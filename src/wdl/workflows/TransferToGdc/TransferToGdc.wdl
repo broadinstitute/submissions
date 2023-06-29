@@ -29,7 +29,7 @@ workflow TransferToGdc {
       program = program,
       project = project,
       gdc_token = token_value,
-      sample_alias = sample_alias
+      sample_alias = sample_id
   }
 
   if (verified.registration_status) {
