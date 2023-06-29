@@ -147,7 +147,7 @@ task DeleteFileFromWorkspace {
     }
 
     output {
-        deleted = true
+        boolean deleted = true
     }
 }
 
