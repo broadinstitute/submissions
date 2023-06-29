@@ -24,7 +24,7 @@ workflow TransferToGdc {
   String token_value = (read_lines(gdc_token))[0]
   String md5 = (read_lines(md5_file))[0]
 
-  call verifyGDCRegistration as verified {
+  call tasks.verifyGDCRegistration as verified {
     input:
       program = program,
       project = project,
