@@ -147,8 +147,7 @@ task DeleteFileFromWorkspace {
     }
 
     output {
-        this.aggregation_path = ""
-        this.file_deleted = true
+        deleted = true
     }
 }
 
