@@ -1,26 +1,25 @@
 FROM python:3
 
 RUN pip install requests
-RUN wget -q 'https://github.com/samtools/samtools/releases/download/1.10/samtools-1.10.tar.bz2' -O samtools.tar.bz && \
-  tar xf samtools.tar.bz && \
-  rm samtools.tar.bz && \
-  cd samtools-1.10 && \
-  make && \
-  make install && \
-  cd ../ && \
-  rm -rf samtools-1.10
-RUN wget -q https://gdc.cancer.gov/files/public/file/gdc-client_v1.6.0_Ubuntu_x64-py3.7.zip -O gdc-client.zip && \
-    unzip gdc-client.zip && \
-    unzip gdc-client_v1.6.0_Ubuntu_x64.zip -d bin && \
-    rm gdc-client_v1.6.0_Ubuntu_x64.zip && \
-    rm gdc-client.zip
-RUN wget https://releases.hashicorp.com/vault/1.4.0/vault_1.4.0_linux_amd64.zip -O vault.zip && \
-  unzip vault.zip -d /usr/bin && \
-  rm vault.zip
-RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/install_google_cloud_sdk.bash -O gcloud_install.sh
-RUN /bin/bash gcloud_install.sh --disable-prompts && \
-  ln -s /root/google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud && \
-  ln -s /root/google-cloud-sdk/bin/gsutil /usr/local/bin/gsutil && \
-  pip3 install --upgrade oauth2client
+
+# Download and install Aspera client
+RUN curl -o /tmp/aspera.tar.gz https://d3gcli72yxqn2z.cloudfront.net/downloads/connect/latest/bin/ibm-aspera-connect_4.2.6.393_linux_x86_64.tar.gz \
+    && tar -xzf /tmp/aspera.tar.gz \
+    && rm /tmp/aspera.tar.gz
+
+RUN chmod +x /ibm-aspera-connect_4.2.6.393_linux_x86_64.sh
+
+# Create a non-root user
+RUN useradd -ms /bin/bash aspera-user
+
+# Switch to the non-root user
+USER aspera-user
+
+# Set the default shell to bash
+SHELL ["/bin/bash", "-c"]
+
+RUN /ibm-aspera-connect_4.2.6.393_linux_x86_64.sh
+
+ENV PATH="/home/aspera-user/.aspera/connect/bin:${PATH}"
 
 CMD ["/bin/bash"]
