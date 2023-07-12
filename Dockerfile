@@ -22,12 +22,5 @@ RUN /bin/bash gcloud_install.sh --disable-prompts && \
   ln -s /root/google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud && \
   ln -s /root/google-cloud-sdk/bin/gsutil /usr/local/bin/gsutil && \
   pip3 install --upgrade oauth2client
-  # Download and install Aspera client
-RUN curl -o /tmp/aspera.tar.gz https://example.com/path/to/aspera-client-4.2.6.393.tar.gz \
-    && tar -xzvf /tmp/aspera.tar.gz -C /opt/ \
-    && rm /tmp/aspera.tar.gz
-
-# Set the PATH environment variable
-ENV PATH="/opt/aspera-client-4.2.6.393/bin:${PATH}"
 
 CMD ["/bin/bash"]

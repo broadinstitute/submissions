@@ -22,9 +22,5 @@ RUN /bin/bash gcloud_install.sh --disable-prompts && \
   ln -s /root/google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud && \
   ln -s /root/google-cloud-sdk/bin/gsutil /usr/local/bin/gsutil && \
   pip3 install --upgrade oauth2client
-ADD http://download.asperasoft.com/download/sw/ascp-client/4.2.6/ascp-install-4.2.6.393-linux-64.sh /tmp/
-# No https, so verify sha1
-RUN test $(sha1sum /tmp/ascp-install-4.2.6.393-linux-64.sh |cut -f1 -d\ ) = a99a63a85fee418d16000a1a51cc70b489755957 && \
-    sh /tmp/ascp-install-4.2.6.393-linux-64.sh
 
 CMD ["/bin/bash"]
