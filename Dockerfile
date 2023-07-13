@@ -22,4 +22,6 @@ RUN /ibm-aspera-connect_4.2.6.393_linux_x86_64.sh
 
 ENV PATH="/home/aspera-user/.aspera/connect/bin:${PATH}"
 
+USER root
+
 CMD ["/bin/bash"]
