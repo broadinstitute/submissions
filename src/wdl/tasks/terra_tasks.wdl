@@ -23,7 +23,7 @@ task CreateDbgapXmlFiles {
                                                       -p ~{billing_project} \
                                                       -s ~{sample_id}
         ls
-        tar czf xml_files.tgz -C xml/*.xml
+        tar czf xml_files.tgz -C cromwell_root/xml xml/*.xml
     }
 
     runtime {

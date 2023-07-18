@@ -510,6 +510,7 @@ class Run:
 
     def get_file_name(self):
         return f"{self.get_submitter_id()}.add.run.xml"
+
     def generate_run_attributes(self):
         attributes_dict = {
             "aggregation_project": self.sample.project,
@@ -633,6 +634,7 @@ class Submission:
             source=self.experiment.get_file_name(),
             schema="experiment"
         )
+        print("this is the experiment file name ", self.experiment.get_file_name())
         action_run = ET.SubElement(
             actions,
             "ACTION"
@@ -643,6 +645,7 @@ class Submission:
             source=self.run.get_file_name(),
             schema="run"
         )
+        print("this is the run file name ", self.run.get_file_name())
 
     def create_submission_attributes(self, submission):
         submission_attributes = ET.SubElement(submission, "SUBMISSION_ATTRIBUTES")
@@ -694,7 +697,7 @@ def download_bioproject_xml():
         ftp.retrbinary('RETR bioproject.xml', fp.write)
 
 def write_xml_file(file_name, root):
-    with open(f"/cromwell_root/xml/{file_name}.xml", 'wb') as xfile:
+    with open(f"/cromwell_root/xml/{file_name}", 'wb') as xfile:
         xfile.write(ET.tostring(root, encoding="ASCII"))
 
 def get_submission_comment_formatted_date():
