@@ -23,6 +23,7 @@ task CreateDbgapXmlFiles {
                                                       -p ~{billing_project} \
                                                       -s ~{sample_id}
         cd /cromwell_root/xml
+        ls
         tar czf xml_files.tgz *.xml
         mv xml_files.tgz /cromwell_root
     }
