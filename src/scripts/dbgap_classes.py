@@ -489,7 +489,7 @@ class Experiment:
         self.set_platform(experiment)
         self.set_experiment_attributes(experiment)
 
-        write_xml_file("experiment", root)
+        write_xml_file(self.get_file_name(), root)
 
 
 class Run:
@@ -588,7 +588,7 @@ class Run:
         self.create_data_blocks(run)
         self.create_run_attrs(run)
 
-        write_xml_file("run", root)
+        write_xml_file(self.get_file_name(), root)
 
 class Submission:
     def __init__(self, experiment, run, phs):
@@ -683,7 +683,7 @@ class Submission:
         self.create_actions(submission)
         self.create_submission_attributes(submission)
 
-        write_xml_file("submission", root)
+        write_xml_file("submission.xml", root)
 
 ################### Helper Function ####################
 
