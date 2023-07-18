@@ -158,7 +158,7 @@ class ReadGroup:
         self.sample_lsid = first_read_group["sample_lsid"]
         self.primary_disease = first_read_group.get("primary_disease")
         self.reference_sequence = first_read_group["reference_sequence"]
-        self.bait_set = first_read_group["bait_set"]
+        self.bait_set = first_read_group["bait_set"] if "bait_set" in first_read_group else ""
         self.model = first_read_group["model"]
         self.nominal_length = str(first_read_group["mean_insert_size"])
         self.nominal_sdex = str(first_read_group["standard_deviation"])
@@ -292,6 +292,9 @@ class Experiment:
         formatted_data_type = self.sample.formatted_data_type()["constant"].replace(" ", "_")
 
         return f"{self.sample.phs}.{pdo_or_wr}.{self.read_group.library_name}.{pairing_code}.{self.sample.alias}.{self.sample.project}.{formatted_data_type}.{self.sample.version}"
+
+    def get_file_name(self):
+        return f"{self.get_submitter_id()}.add.experiment.xml"
 
     def get_title(self):
         repo = self.sample.get_biospecimen_repo()
@@ -505,7 +508,8 @@ class Run:
 
         return f"{flowcell_barcodes}.{sample_id}.{self.sample.project}.{self.sample.version}.{self.file_type()}"
 
-    
+    def get_file_name(self):
+        return f"{self.get_submitter_id()}.add.run.xml"
     def generate_run_attributes(self):
         attributes_dict = {
             "aggregation_project": self.sample.project,
@@ -626,7 +630,7 @@ class Submission:
         ET.SubElement(
             action_experiment,
             "ADD",
-            source=f"{self.experiment.get_submitter_id()}.add.experiment.xml",
+            source=self.experiment.get_file_name(),
             schema="experiment"
         )
         action_run = ET.SubElement(
@@ -636,7 +640,7 @@ class Submission:
         ET.SubElement(
             action_run,
             "ADD",
-            source=f"{self.run.get_submitter_id()}.add.run.xml",
+            source=self.run.get_file_name(),
             schema="run"
         )
 
@@ -706,7 +710,7 @@ def create_random_uuid():
     return str(uuid.uuid1())
 
 def call_telemetry_report(phs_id):
-    baseUrl = f"https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id={phs_id}.v1.p1"
+    baseUrl = f"https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id={phs_id}"
     headers = {"Content-Type": "application/json"}
     response = requests.get(baseUrl, headers=headers)
     status_code = response.status_code

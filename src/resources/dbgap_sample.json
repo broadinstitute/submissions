@@ -2,7 +2,7 @@
   "parameters": {
     "fields": {},
     "filterOperator": "and",
-    "filterTerms": "CBUPOJVQN",
+    "filterTerms": "RP-1917_JB-0370-CF01_v3_WGS_DBGAP",
     "page": 1,
     "pageSize": 10,
     "sortDirection": "asc",
@@ -11,23 +11,23 @@
   "resultMetadata": {
     "filteredCount": 1,
     "filteredPageCount": 1,
-    "unfilteredCount": 20
+    "unfilteredCount": 2
   },
   "results": [
     {
       "attributes": {
-        "aggregation_project": "RP-1879",
+        "aggregation_project": "RP-1917",
         "location": "OnPrem",
-        "aggregation_index_path": "/seq/picard_aggregation/RP-1879/RNA/CBUPOJVQN.01/v2/CBUPOJVQN.01.bai",
-        "md5": "/seq/picard_aggregation/RP-1879/RNA/CBUPOJVQN.01/v2/CBUPOJVQN.01.bam.md5",
-        "aggregation_path": "/seq/picard_aggregation/RP-1879/RNA/CBUPOJVQN.01/v2/CBUPOJVQN.01.bam",
-        "alias": "CBUPOJVQN.01",
-        "version": 2,
-        "phs_id": "phs003015",
-        "data_type": "RNA"
+        "aggregation_index_path": "gs://fc-1a5ed93b-f523-4f8e-a033-2db46de08347/RP-1917/WGS/JB-0370-CF01/v3/JB-0370-CF01.bai",
+        "md5": "gs://fc-1a5ed93b-f523-4f8e-a033-2db46de08347/RP-1917/WGS/JB-0370-CF01/v3/JB-0370-CF01.bam.md5",
+        "aggregation_path": "gs://fc-1a5ed93b-f523-4f8e-a033-2db46de08347/RP-1917/WGS/JB-0370-CF01/v3/JB-0370-CF01.bam",
+        "alias": "JB-0370-CF01",
+        "version": 3,
+        "phs_id": "phs002458",
+        "data_type": "WGS"
       },
       "entityType": "sample",
-      "name": "RP-1879_CBUPOJVQN.01_v2_RNA_DBGAP"
+      "name": "RP-1917_JB-0370-CF01_v3_WGS_DBGAP"
     }
   ]
 }

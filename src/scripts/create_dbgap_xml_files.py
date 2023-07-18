@@ -42,17 +42,19 @@ def callTerraApi(sample_id, project, workspace_name, table):
     """Call the Terra api to retrieve reads data"""
 
     baseUrl = f"https://rawls.dsde-prod.broadinstitute.org/api/workspaces/{project}/{workspace_name}/entityQuery/{table}"
+    print(f"baseurl {baseUrl}")
     parameters = {
         'page': "1", # Need to add in paging
         'pageSize': "1000",
         'filterTerms': sample_id
     }
+    print(f"params {parameters}")
     headers = {"Authorization": "Bearer " + get_access_token(), "accept": "*/*", "Content-Type": "application/json"}
 
     response = requests.get(baseUrl, headers=headers, params=parameters)
     status_code = response.status_code
 
-    print("respose", response.text)
+    print("response", response.text)
 
     return json.loads(response.text)
 

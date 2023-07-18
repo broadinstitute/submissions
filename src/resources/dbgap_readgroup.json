@@ -2,7 +2,7 @@
   "parameters": {
     "fields": {},
     "filterOperator": "and",
-    "filterTerms": "CBUPOJVQN",
+    "filterTerms": "H33FLDRX2.1.3.RP-1917.JB-0370-CF01",
     "page": 1,
     "pageSize": 10,
     "sortDirection": "asc",
@@ -11,52 +11,52 @@
   "resultMetadata": {
     "filteredCount": 1,
     "filteredPageCount": 1,
-    "unfilteredCount": 20
+    "unfilteredCount": 2
   },
   "results": [
     {
       "attributes": {
-        "product_order_id": "PDO-24673",
+        "product_order_id": "PDO-27127",
         "sample_type": "Tumor",
-        "machine_name": "SL-HDE",
-        "sample_material_type": "RNA:Total RNA",
+        "machine_name": "SL-NVL",
+        "sample_material_type": "DNA:DNA Cell Free",
         "paired_run": 1,
-        "library_name": "3532679286_tagged_357",
-        "run_date": "2021-08-16 00:00:00",
-        "library_type": "cDNAShotgunReadTwoSense",
-        "lane": 5,
-        "run_barcode": "CD89RANXX210813",
-        "version": 2,
-        "data_type": "RNA",
-        "sample_alias": "CBUPOJVQN.01",
+        "library_name": "0409853367_Illumina_P5-Fefaj_P7-Dizax",
+        "run_date": "2022-03-21 00:00:00",
+        "library_type": "WholeGenomeShotgun",
+        "lane": 1,
+        "run_barcode": "H33FLDRX2220321",
+        "version": 3,
+        "data_type": "WGS",
+        "sample_alias": "JB-0370-CF01",
         "reference_sequence": "/seq/references/Homo_sapiens_assembly19/v1/Homo_sapiens_assembly19.fasta",
-        "mean_insert_size": 156.43355,
-        "molecular_barcode_sequence": "CAGGAGCC",
+        "mean_insert_size": 165.42382,
+        "molecular_barcode_sequence": "AGGTTATC-GGTATGAT",
         "work_request_id": 0,
-        "aggregation_project": "RP-1879",
-        "model": "Illumina HiSeq 2500",
-        "research_project_id": "RP-1879",
+        "aggregation_project": "RP-1917",
+        "model": "Illumina NovaSeq 6000",
+        "research_project_id": "RP-1917",
         "analysis_type": "Resequencing",
-        "sample_id": ".CBUPOJVQN.01.2.RNA_DBGAP",
+        "sample_id": ".JB-0370-CF01.3.WGS_DBGAP",
         "submission_metadata": {
           "itemsType": "AttributeValue",
           "items": []
         },
-        "standard_deviation": 102.35968,
-        "read_structure": "76T8B76T",
-        "analysis_date": "2021-08-17 00:00:00",
-        "molecular_barcode_name": "tagged_357",
-        "root_sample_id": "SM-L8S75",
-        "flowcell_barcode": "CD89RANXX",
-        "individual_alias": "CBUPOJV",
-        "run_name": "210813_SL-HDE_1182_ACD89RANXX",
-        "product_part_number": "P-RNA-0016",
+        "standard_deviation": 27.16917,
+        "read_structure": "3M2S146T8B8B3M2S146T",
+        "analysis_date": "2023-06-13 00:00:00",
+        "molecular_barcode_name": "Illumina_P5-Fefaj_P7-Dizax",
+        "root_sample_id": "SM-LVK99",
+        "flowcell_barcode": "H33FLDRX2",
+        "individual_alias": "JB-0370",
+        "run_name": "220321_SL-NVL_0664_AH33FLDRX2",
+        "product_part_number": "P-WG-0126",
         "reference_sequence_name": "Homo_sapiens_assembly19",
-        "research_project_name": "CIMAC",
-        "sample_lsid": "broadinstitute.org:bsp.prod.sample:L8S75"
+        "research_project_name": "IBM_Wu_Richters",
+        "sample_lsid": "broadinstitute.org:bsp.prod.sample:LXW2R"
       },
       "entityType": "read-group",
-      "name": "CD89RANXX.5.2.RP-1879.CBUPOJVQN.01"
+      "name": "H33FLDRX2.1.3.RP-1917.JB-0370-CF01"
     }
   ]
 }
