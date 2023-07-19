@@ -8,7 +8,7 @@ from ftplib import FTP
 from batch_upsert_entities import get_access_token
 from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission, download_bioproject_xml
 
-def run(sample_id, project, workspace_name):
+def run(sample_id, project, workspace_name, md5):
     download_bioproject_xml()
     sample_json = callTerraApi(sample_id, project, workspace_name, "sample")
     readGroup_json = callTerraApi(sample_id, project, workspace_name, "read-group")
@@ -16,7 +16,7 @@ def run(sample_id, project, workspace_name):
     # sample_json = parse_terra_file(sample_file)
     # readGroup_json = parse_terra_file(read_file)
 
-    sample = Sample(sample_json["results"])
+    sample = Sample(sample_json["results"], md5)
     read_group = ReadGroup(readGroup_json["results"])
 
     experiment = Experiment(sample, read_group)
@@ -63,10 +63,11 @@ if __name__ == '__main__':
     parser.add_argument('-w', '--workspace_name', required=True, help='name of workspace in which to make changes')
     parser.add_argument('-p', '--project', required=True, help='billing project (namespace) of workspace in which to make changes')
     parser.add_argument('-s', '--sample_id', required=True, help='sample_id to extract read data')
+    parser.add_argument('-m', '--md5', required=True, help='md5 value for the sample')
     # These will not be required once deployed
     # parser.add_argument('-sf', '--sample_file', required=True, help='.json file that contains all the data for the given sample')
     # parser.add_argument('-rf', '--read_file', required=True, help='.json file that contains all the data for the given sample')
     args = parser.parse_args()
     # not building
     # run(args.sample_id, args.project, args.workspace_name, args.sample_file, args.read_file)
-    run(args.sample_id, args.project, args.workspace_name)
+    run(args.sample_id, args.project, args.workspace_name, args.md5)

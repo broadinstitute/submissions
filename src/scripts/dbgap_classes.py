@@ -1,6 +1,5 @@
 import requests
 import json
-import uuid
 import os
 import re
 import xml.etree.ElementTree as ET
@@ -12,14 +11,14 @@ NONAMESPACESCHEMALOCATION = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc
 XSI = "http://www.w3.org/2001/XMLSchema-instance"
 
 class Sample:
-    def __init__(self, json_object):
+    def __init__(self, json_object, md5):
         # Here we are making the assumption that we are only running once per sample. If we need t
         sample_json = json_object[0]["attributes"]
         self.project = sample_json["aggregation_project"]
         self.location = sample_json["location"]
         self.index = sample_json["aggregation_index_path"]
         self.version = sample_json["version"]
-        self.md5 = sample_json["md5"]
+        self.md5 = md5
         self.data_file = sample_json["aggregation_path"]
         self.phs = str(sample_json["phs_id"])
         self.data_type = sample_json["data_type"]
@@ -284,7 +283,6 @@ class Experiment:
     def __init__(self, sample, read_group):
         self.sample = sample
         self.read_group = read_group
-        self.uuid = create_random_uuid()
 
     def get_submitter_id(self):
         pairing_code = self.read_group.pairing_code()
@@ -379,9 +377,6 @@ class Experiment:
             "SUBMITTER_ID",
             namespace=BROAD_ABBREVIATION
         ).text = self.get_submitter_id()
-        print("submitterid", self.get_submitter_id())
-        print("uuid", self.uuid)
-        ET.SubElement(identifier, "UUID").text = self.uuid
 
     def set_study_ref(self, experiment):
         study_ref = ET.SubElement(experiment, "STUDY_REF")
@@ -407,15 +402,24 @@ class Experiment:
         ).text = self.sample.phs
 
     def set_design(self, experiment):
-        ET.SubElement(
+        design = ET.SubElement(
             experiment, 
+            "DESIGN" 
+        )
+        ET.SubElement(
+            design, 
             "DESIGN_DESCRIPTION" 
         ).text = self.get_design_description()
 
-        sample_descriptor = ET.SubElement(experiment, "SAMPLE_DESCRIPTOR")
+        sample_descriptor = ET.SubElement(
+            design,
+            "SAMPLE_DESCRIPTOR",
+            refname=self.sample.alias,
+            refcenter=self.sample.phs
+        )
         identifiers = ET.SubElement(sample_descriptor, "IDENTIFIERS")
         ET.SubElement(
-            identifiers, 
+            identifiers,
             "EXTERNAL_ID",
             namespace="biosample"
         ).text = self.sample.dbgap_sample_info["sra_sample_id"]
@@ -435,7 +439,7 @@ class Experiment:
         ET.SubElement(library_descriptor, "LIBRARY_SOURCE").text = self.read_group.get_library_descriptor()["source"]["ncbi_string"]
         ET.SubElement(library_descriptor, "LIBRARY_SELECTION").text = self.read_group.get_library_descriptor()["selection"]
         layout = ET.SubElement(library_descriptor, "LIBRARY_LAYOUT")
-        ET.SubElement(layout, "PAIRED", NOMINAL_LENGTH=self.read_group.nominal_length, NOMINAL_SDEV=self.read_group.nominal_sdex)
+        ET.SubElement(layout, "PAIRED")
 
     def set_spec_values(self, dict, decode_spec):
         read_spec = ET.SubElement(decode_spec, "READ_SPEC")
@@ -473,11 +477,7 @@ class Experiment:
     def create_file(self):
         print("creating experiment xml files")
 
-        root = ET.Element(
-            "EXPERIMENT_SET",
-            noNamespaceSchemaLocation=NONAMESPACESCHEMALOCATION,
-            xsi=XSI
-        )
+        root = ET.Element()
         experiment = ET.SubElement(root, "EXPERIMENT")
 
         self.set_identifiers(experiment)
@@ -497,7 +497,7 @@ class Run:
         self.sample = sample
         self.read_group = read_group
         self.experiment = experiment
-        self.uuid = create_random_uuid()
+        
 
     def file_type(self):
         return self.sample.data_file.split(".")[-1]
@@ -535,16 +535,15 @@ class Run:
 
         return attributes_dict
 
-    def create_identifiers(self, parent, submitter_id, uuid):
+    def create_identifiers(self, parent, submitter_id):
         identifier = ET.SubElement(parent, "IDENTIFIERS")
 
         ET.SubElement(identifier, "SUBMITTER_ID").text = submitter_id
-        ET.SubElement(identifier, "UUID").text = uuid
 
     def create_experiment_ref(self, run):
         experiment_ref = ET.SubElement(run, "EXPERIMENT_REF")
 
-        self.create_identifiers(experiment_ref, self.experiment.get_submitter_id(), self.experiment.uuid)
+        self.create_identifiers(experiment_ref, self.experiment.get_submitter_id())
 
     def create_data_blocks(self, run):
         data_block = ET.SubElement(run, "DATA_BLOCK")
@@ -571,11 +570,7 @@ class Run:
     def create_file(self):
         print("creating run xml files")
 
-        root = ET.Element(
-            "RUN_SET",
-            noNamespaceSchemaLocation=NONAMESPACESCHEMALOCATION,
-            xsi=XSI
-        )
+        root = ET.Element()
         run = ET.SubElement(
             root, 
             "RUN",
@@ -583,7 +578,7 @@ class Run:
             run_center=BROAD_ABBREVIATION
         )
 
-        self.create_identifiers(run, self.get_submitter_id(), self.uuid)
+        self.create_identifiers(run, self.get_submitter_id())
         self.create_experiment_ref(run)
         self.create_data_blocks(run)
         self.create_run_attrs(run)
@@ -708,9 +703,6 @@ def get_date():
 
 def get_run_date():
     return datetime.now()
-
-def create_random_uuid():
-    return str(uuid.uuid1())
 
 def call_telemetry_report(phs_id):
     baseUrl = f"https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id={phs_id}"

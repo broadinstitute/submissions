@@ -12,8 +12,11 @@ workflow TransferToDbgap {
         String ascpUser
         File key
         File dataFile
+        File md5_file
         File? monitoring_script
     }
+
+    String md5 = (read_lines(md5_file))[0]
 
     call tasks.CreateDbgapXmlFiles as xml {
         input:
@@ -21,6 +24,7 @@ workflow TransferToDbgap {
             billing_project = workspace_project,
             sample_id = sample_id,
             monitoring_script = monitoring_script
+            md5 = md5
     }
 
     call ascpFile as transferXml {

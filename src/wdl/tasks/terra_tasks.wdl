@@ -5,6 +5,7 @@ task CreateDbgapXmlFiles {
         String sample_id
         String workspace_name
         String billing_project
+        String md5
         File? monitoring_script
     }
     Int disk_size = 32
@@ -22,6 +23,7 @@ task CreateDbgapXmlFiles {
         python3 /src/scripts/create_dbgap_xml_files.py -w ~{workspace_name} \
                                                       -p ~{billing_project} \
                                                       -s ~{sample_id}
+                                                      -m ~{md5}
         cd /cromwell_root/xml
         ls
         tar czf xml_files.tgz *.xml
