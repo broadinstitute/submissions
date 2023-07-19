@@ -23,7 +23,7 @@ workflow TransferToDbgap {
             workspace_name = workspace_name,
             billing_project = workspace_project,
             sample_id = sample_id,
-            monitoring_script = monitoring_script
+            monitoring_script = monitoring_script,
             md5 = md5
     }
 

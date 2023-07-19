@@ -22,7 +22,7 @@ task CreateDbgapXmlFiles {
         mkdir /cromwell_root/xml
         python3 /src/scripts/create_dbgap_xml_files.py -w ~{workspace_name} \
                                                       -p ~{billing_project} \
-                                                      -s ~{sample_id}
+                                                      -s ~{sample_id} \
                                                       -m ~{md5}
         cd /cromwell_root/xml
         ls
