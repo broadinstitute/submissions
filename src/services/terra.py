@@ -41,7 +41,7 @@ def callTerraApi(sample_id, project, workspace_name, table):
         data = json.loads(response.text)
 
         if data and data.results and len(data.results) > 0:
-            results += data.results
+            results.extend(data.results)
             page_number += 1
         else:
             more_results = False

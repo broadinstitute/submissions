@@ -17,7 +17,6 @@ workflow TransferToGdc {
     File md5_file
     File gdc_token
     Boolean dry_run = false
-    Boolean registration_status
     File?   monitoring_script
   }
 
