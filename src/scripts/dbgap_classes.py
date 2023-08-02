@@ -19,15 +19,19 @@ class Sample:
         self.index = sample_json["aggregation_index_path"]
         self.version = sample_json["version"]
         self.md5 = md5
-        self.data_file = sample_json["aggregation_path"]
         self.phs = str(sample_json["phs_id"])
         self.data_type = sample_json["data_type"]
         self.alias = sample_json["alias"]
+        self.file_type = self.get_file_extension(sample_json["aggregation_path"])
+        self.data_file = f"{json_object[0]['name']}.{self.file_type}"
         self.set_telemetry_report_info()
 
     # study_info will be a dict of all the values from the telemetry report
     def set_study_info(self, study_info):
         self.study_info = study_info
+
+    def get_file_extension(self, aggregation_path):
+        return aggregation_path.split(".")[-1]
 
     def get_study_info(self):
         return self.study_info
@@ -52,51 +56,6 @@ class Sample:
             raise Exception('Could not find specific sample in report')
         
         self.dbgap_sample_info = sample[0]
-        self.center_project_name = root[0].attrib['study_name']
-        self.center_name = self.get_center_name()
-
-    def get_center_name(self):
-        file_path = "/cromwell_root/bioproject.xml"
-        is_correct_xml_obj = False
-        print("before downloading bioproject")
-        download_bioproject_xml()
-
-        def is_correct_project(elem):
-            if elem.attrib["accession"] == self.bio_project:
-                return True
-            else:
-                elem.clear()
-                return False
-
-        def format_name(orgs):
-            if "owner" in orgs:
-                return orgs["owner"]
-            elif "participant" in orgs:
-                return orgs["participant"]
-            else:
-                print("Housten we have a problem. We couldnt find an organization for this bioproject")
-
-                return ""
-
-        for event, elem in ET.iterparse(file_path, events=("end",)):
-            if elem.tag == "ArchiveID":
-                is_correct_xml_obj = is_correct_project(elem)
-
-            if is_correct_xml_obj and elem.tag == "Submission":
-                orgs = {}
-                description_elements = elem[0]
-
-                for child in description_elements:
-                    if child.tag == "Organization":
-                        role = child.attrib["role"]
-                        name = child[0]
-
-                        if name.text:
-                            orgs[role] = name.text
-                        else:
-                            orgs[role] = name.attrib["attr"]
-
-                return format_name(orgs)
 
     def formatted_data_type(self):
         DATA_TYPE_MAPPING = {
@@ -240,7 +199,7 @@ class ReadGroup:
                 "ncbi_string": "GENOMIC",
                 "humanized_string": "genomic DNA"
             }
-            library_descriptor["selection"] = "random"
+            library_descriptor["selection"] = "RANDOM"
         elif (self.library_type == "cDNAShotgunReadTwoSense" or self.library_type == "cDNAShotgunStrandAgnostic" or
               self.analysis_type == "cDNA") and self.analysis_type != "AssemblyWithoutReference":
             library_descriptor["strategy"] = {
@@ -251,7 +210,7 @@ class ReadGroup:
                 "ncbi_string": "TRANSCRIPTOMIC",
                 "humanized_string": "transcriptome"
             }
-            library_descriptor["selection"] = "cDNA"
+            library_descriptor["selection"] = "CDNA"
         elif self.library_type == "HybridSelection":
             library_descriptor["strategy"] = {
                 "ncbi_string": "WXS",
@@ -379,27 +338,11 @@ class Experiment:
         ).text = self.get_submitter_id()
 
     def set_study_ref(self, experiment):
-        study_ref = ET.SubElement(experiment, "STUDY_REF")
-        identifiers = ET.SubElement(study_ref, "IDENTIFIERS")
-
-        ET.SubElement(
-            identifiers, 
-            "EXTERNAL_ID",
-            namespace="bioproject"
-        ).text = self.sample.bio_project
-        
-        ET.SubElement(
-            identifiers, 
-            "EXTERNAL_ID",
-            namespace="gap"
-        ).text = self.sample.phs
-
-        ET.SubElement(
-            identifiers, 
-            "EXTERNAL_ID",
-            namespace=self.sample.center_name,
-            label=self.sample.center_project_name
-        ).text = self.sample.phs
+        study_ref = ET.SubElement(
+            experiment,
+            "STUDY_REF",
+            accession=self.sample.phs
+        )
 
     def set_design(self, experiment):
         design = ET.SubElement(
@@ -417,22 +360,12 @@ class Experiment:
             refname=self.sample.alias,
             refcenter=self.sample.phs
         )
-        identifiers = ET.SubElement(sample_descriptor, "IDENTIFIERS")
-        ET.SubElement(
-            identifiers,
-            "EXTERNAL_ID",
-            namespace="biosample"
-        ).text = self.sample.dbgap_sample_info["sra_sample_id"]
 
-        ET.SubElement(
-            identifiers, 
-            "EXTERNAL_ID",
-            namespace=self.sample.phs,
-            label=self.sample.dbgap_sample_info["repository"]
-        ).text = self.sample.dbgap_sample_info["submitted_sample_id"]
+        self.set_library_descriptor(design)
+        self.set_spot_descriptor(design)
 
-    def set_library_descriptor(self, experiment):
-        library_descriptor = ET.SubElement(experiment, "LIBRARY_DESCRIPTOR")
+    def set_library_descriptor(self, design):
+        library_descriptor = ET.SubElement(design, "LIBRARY_DESCRIPTOR")
 
         ET.SubElement(library_descriptor, "LIBRARY_NAME").text = self.read_group.library_name
         ET.SubElement(library_descriptor, "LIBRARY_STRATEGY").text = self.read_group.get_library_descriptor()["strategy"]["ncbi_string"]
@@ -448,20 +381,20 @@ class Experiment:
         ET.SubElement(read_spec, "READ_LABEL").text = dict["read_label"]
         ET.SubElement(read_spec, "READ_CLASS").text = dict["read_class"]
         ET.SubElement(read_spec, "READ_TYPE").text = dict["read_type"]
-        ET.SubElement(read_spec, "READ_COORD").text = dict["base_coord"]
+        ET.SubElement(read_spec, "BASE_COORD").text = dict["base_coord"]
 
-    def set_spot_descriptor(self, experiment):
-         spot_descriptor = ET.SubElement(experiment, "SPOT_DESCRIPTOR")
+    def set_spot_descriptor(self, design):
+         spot_descriptor = ET.SubElement(design, "SPOT_DESCRIPTOR")
          decode_spec = ET.SubElement(spot_descriptor, "SPOT_DECODE_SPEC")
 
          ET.SubElement(decode_spec, "SPOT_LENGTH").text = self.get_spot_length()
-         read_spec = ET.SubElement(decode_spec, "READ_SPEC")
 
-         self.set_spec_values(self.get_read_spec_forward(), read_spec)
-         self.set_spec_values(self.get_read_spec_reverse(), read_spec)
+         self.set_spec_values(self.get_read_spec_forward(), decode_spec)
+         self.set_spec_values(self.get_read_spec_reverse(), decode_spec)
 
     def set_platform(self, experiment):
-        illumina = ET.SubElement(experiment, "ILLUMINA")
+        platform = ET.SubElement(experiment, "PLATFORM")
+        illumina = ET.SubElement(platform, "ILLUMINA")
 
         ET.SubElement(illumina, "INSTRUMENT_MODEL").text = self.read_group.model
 
@@ -477,15 +410,15 @@ class Experiment:
     def create_file(self):
         print("creating experiment xml files")
 
-        root = ET.Element()
+        root = ET.Element("EXPERIMENT_SET")
+        root.set("xsi:noNamespaceSchemaLocation", "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.experiment.xsd?view=co")
+        root.set("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
         experiment = ET.SubElement(root, "EXPERIMENT")
 
         self.set_identifiers(experiment)
         ET.SubElement(experiment, "TITLE").text = self.get_title()
         self.set_study_ref(experiment)
         self.set_design(experiment)
-        self.set_library_descriptor(experiment)
-        self.set_spot_descriptor(experiment)
         self.set_platform(experiment)
         self.set_experiment_attributes(experiment)
 
@@ -497,16 +430,12 @@ class Run:
         self.sample = sample
         self.read_group = read_group
         self.experiment = experiment
-        
-
-    def file_type(self):
-        return self.sample.data_file.split(".")[-1]
 
     def get_submitter_id(self):
         flowcell_barcodes = ".".join(self.read_group.flowcell_barcodes)
         sample_id = self.sample.alias
 
-        return f"{flowcell_barcodes}.{sample_id}.{self.sample.project}.{self.sample.version}.{self.file_type()}"
+        return f"{flowcell_barcodes}.{sample_id}.{self.sample.project}.{self.sample.version}.{self.sample.file_type}"
 
     def get_file_name(self):
         return f"{self.get_submitter_id()}.add.run.xml"
@@ -538,7 +467,10 @@ class Run:
     def create_identifiers(self, parent, submitter_id):
         identifier = ET.SubElement(parent, "IDENTIFIERS")
 
-        ET.SubElement(identifier, "SUBMITTER_ID").text = submitter_id
+        ET.SubElement(
+            identifier, 
+            "SUBMITTER_ID",
+            namespace=BROAD_ABBREVIATION).text = submitter_id
 
     def create_experiment_ref(self, run):
         experiment_ref = ET.SubElement(run, "EXPERIMENT_REF")
@@ -550,10 +482,10 @@ class Run:
         files = ET.SubElement(data_block, "FILES")
 
         ET.SubElement(
-            data_block, 
+            files, 
             "FILE",
-            file_name=self.sample.data_file,
-            file_type=self.file_type(),
+            filename=self.sample.data_file,
+            filetype=self.sample.file_type,
             checksum_method="MD5",
             checksum=self.sample.md5,
         )
@@ -570,12 +502,12 @@ class Run:
     def create_file(self):
         print("creating run xml files")
 
-        root = ET.Element()
+        root = ET.Element("RUN_SET")
+        root.set("xsi:noNamespaceSchemaLocation", "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.run.xsd?view=co")
+        root.set("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
         run = ET.SubElement(
             root, 
-            "RUN",
-            run_date=get_date(),
-            run_center=BROAD_ABBREVIATION
+            "RUN"
         )
 
         self.create_identifiers(run, self.get_submitter_id())
@@ -652,10 +584,10 @@ class Submission:
         print("Creating submission xml file")
 
         root = ET.Element(
-            "SUBMISSION_SET",
-            noNamespaceSchemaLocation=NONAMESPACESCHEMALOCATION,
-            xsi=XSI
+            "SUBMISSION_SET"
         )
+        root.set("xsi:noNamespaceSchemaLocation", "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.submission.xsd?view=co")
+        root.set("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
         submission = ET.SubElement(
             root, 
             "SUBMISSION", 
@@ -682,15 +614,6 @@ class Submission:
 
 ################### Helper Function ####################
 
-def download_bioproject_xml():
-    ftp = FTP('ftp.ncbi.nlm.nih.gov')
-    ftp.login("anonymous", None)
-    ftp.cwd('bioproject')
-
-    with open('/cromwell_root/bioproject.xml', 'wb') as fp:
-        #ftp.retrbinary('RETR bioproject.xml', fp.write, blocksize=262144)
-        ftp.retrbinary('RETR bioproject.xml', fp.write)
-
 def write_xml_file(file_name, root):
     with open(f"/cromwell_root/xml/{file_name}", 'wb') as xfile:
         xfile.write(ET.tostring(root, encoding="ASCII"))
@@ -699,7 +622,7 @@ def get_submission_comment_formatted_date():
     return datetime.strftime(datetime.now(), "%A %B %d %H:%M:%S")
 
 def get_date():
-    return f"{str(datetime.now().date())}T{datetime.strftime(datetime.now(), '%H:%M:%S')}-5:00"
+    return f"{str(datetime.now().date())}T{datetime.strftime(datetime.now(), '%H:%M:%S.%f')}-04:00"
 
 def get_run_date():
     return datetime.now()

@@ -6,10 +6,9 @@ import requests
 from ftplib import FTP
 
 from batch_upsert_entities import get_access_token
-from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission, download_bioproject_xml
+from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission
 
 def run(sample_id, project, workspace_name, md5):
-    download_bioproject_xml()
     sample_json = callTerraApi(sample_id, project, workspace_name, "sample")
     readGroup_json = callTerraApi(sample_id, project, workspace_name, "read-group")
 
@@ -69,5 +68,5 @@ if __name__ == '__main__':
     # parser.add_argument('-rf', '--read_file', required=True, help='.json file that contains all the data for the given sample')
     args = parser.parse_args()
     # not building
-    # run(args.sample_id, args.project, args.workspace_name, args.sample_file, args.read_file)
+    # run(args.sample_id, args.project, args.workspace_name, args.md5, args.sample_file, args.read_file)
     run(args.sample_id, args.project, args.workspace_name, args.md5)
