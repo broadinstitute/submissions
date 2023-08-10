@@ -634,4 +634,3 @@ def call_telemetry_report(phs_id):
     status_code = response.status_code
 
     return response.text
-

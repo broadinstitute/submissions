@@ -6,6 +6,7 @@ workflow TransferToGdc {
   input {
     # Sample input
     String sample_id
+    String alias
     String bam_file
     String agg_project
     String data_type
@@ -28,7 +29,7 @@ workflow TransferToGdc {
       program = program,
       project = project,
       gdc_token = token_value,
-      sample_alias = sample_id
+      sample_alias = alias
   }
 
   if (verified.registration_status) {
@@ -36,7 +37,7 @@ workflow TransferToGdc {
       input:
         workspace_name = workspace_name,
         workspace_project = workspace_project,
-        sample_id = sample_id,
+        sample_id = alias,
         gdc_token = token_value,
         project = project,
         program = program
@@ -44,7 +45,7 @@ workflow TransferToGdc {
 
     call submitMetadataToGDC {
       input:
-        sample_id = sample_id,
+        sample_id = alias,
         bam_file = bam_file,
         agg_project = agg_project,
         data_type = data_type,
@@ -79,7 +80,7 @@ workflow TransferToGdc {
       input:
         program = program,
         project = project,
-        sample_id = sample_id,
+        sample_id = alias,
         agg_project = agg_project,
         data_type = data_type,
         gdc_token = token_value,
