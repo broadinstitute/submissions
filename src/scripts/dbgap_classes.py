@@ -67,6 +67,10 @@ class Sample:
                 "constant": "RNA Seq",
                 "name": "RNA Sequencing",
             },
+            "WXS": {
+                "constant": "Whole Exome",
+                "name": "Whole Exome Sequencing"
+            },
             "Exome": {
                 "constant": "Whole Exome",
                 "name": "Whole Exome Sequencing"
