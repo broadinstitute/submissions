@@ -7,8 +7,8 @@ workflow ValidateGDCFileStatus {
     File gdc_token
     String program
     String project
-    String workspace
-    String billing_project
+    String workspace_name
+    String workspace_project
     String sample_id
     Boolean delete = false
     File aggregation_path
@@ -33,8 +33,8 @@ workflow ValidateGDCFileStatus {
 
   call tasks.UpsertMetadataToDataModel {
       input:
-        workspace_name = workspace,
-        workspace_project = billing_project,
+        workspace_name = workspace_name,
+        workspace_project = workspace_project,
         tsv = tsv.load_tsv
   }
 
