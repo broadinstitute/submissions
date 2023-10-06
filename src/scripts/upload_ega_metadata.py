@@ -8,10 +8,12 @@
         c) Registers the sample Run
 
    Resources:
-    - Schema Map: https://ega-archive.org/submission/metadata/ega-schema/
+    - Schema Map:
+        https://ega-archive.org/submission/metadata/ega-schema/
     - Portal API Submission Overview:
         https://ega-archive.org/submission/metadata/submission/sequencing-phenotype/submitter-portal-api/
-    - Submission API Documentation: https://submission.ega-archive.org/api/spec/#/
+    - Submission API Documentation:
+        https://submission.ega-archive.org/api/spec/#/
 """
 import sys
 import argparse
@@ -24,7 +26,8 @@ from src.scripts.ega_utils import (
     LibraryStrategy,
     LibrarySource,
     LibrarySelection,
-    RunFileType, INSTRUMENT_MODEL_MAPPING,
+    RunFileType,
+    INSTRUMENT_MODEL_MAPPING,
 )
 
 
@@ -57,7 +60,7 @@ class LoginAndGetToken:
         )
 
 
-class CreateExperimentAndRuns:
+class RegisterEgaMetadata:
     # TODO: figure out if the study_provisional_id is required if the study already has an accession id
     # TODO: figure out if the extra_attributes are always required, or if the tag/value only required if passing
     #  extra args
@@ -126,10 +129,22 @@ class CreateExperimentAndRuns:
         Endpoint documentation located here:
         https://submission.ega-archive.org/api/spec/#/paths/files/get
         """
+        # TODO: we need the file format so we know the correct prefix in order to filter on files that correspond to
+        #  the one sample
         response = requests.get(
             url=f"{SUBMISSION_PROTOCOL_API_URL}/files",
             headers=self._headers(),
-
+            params={
+                "status": "inbox",
+                "prefix": "",
+            }
+        )
+        if response.status_code in self.VALID_STATUS_CODES:
+            file_provisional_ids = [a["provisional_id"] for a in response.json()]
+            return file_provisional_ids
+        raise Exception(
+            f"Received status code {response.status_code} with error: {response.json()} while attempting to "
+            f"get sample accession ids"
         )
 
     def _create_run(self, experiment_provisional_id: int, sample_accession_ids: list[int]) -> Optional[list]:
@@ -148,21 +163,78 @@ class CreateExperimentAndRuns:
             }
         )
         if response.status_code in self.VALID_STATUS_CODES:
-            run_accession_ids = [a["provisional_id"] for a in response.json()]
-            return run_accession_ids
+            run_provisional_ids = [a["provisional_id"] for a in response.json()]
+            return run_provisional_ids
         raise Exception(
             f"Received status code {response.status_code} with error: {response.json()} while attempting to "
-            f"register experiment"
+            f"register run"
+        )
+
+    def _get_policy_accession_id(self) -> Optional[str]:
+        """
+        Gets a policy accession ID
+        Endpoint documentation located here:
+        https://submission.ega-archive.org/api/spec/#/paths/policies/get
+        """
+
+        response = requests.get(
+            url=f"{SUBMISSION_PROTOCOL_API_URL}/policies",
+            headers=self._headers(),
+        )
+        if response.status_code in self.VALID_STATUS_CODES:
+            policy_accession_id = [a["accession_id"] for a in response.json()]
+            if len(policy_accession_id) > 1:
+                raise ValueError(
+                    f"Expected to find one policy associated with inbox, but found {len(policy_accession_id)}"
+                )
+            return policy_accession_id[0]
+        raise Exception(
+            f"Received status code {response.status_code} with error: {response.json()} while attempting to "
+            f"get policy accession ID"
+        )
+
+    def _create_dataset(self, policy_accession_id: str, run_provisional_ids: list[int]):
+        """
+        Registers the dataset of runs
+        Endpoint documentation located here:
+        https://submission.ega-archive.org/api/spec/#/paths/submissions-accession_id--datasets/post
+        """
+
+        # TODO: determine what the title should be here
+        # TODO: determine what the description should be here
+        # TODO: determine what the enums are for the dataset_types param
+        # TODO: do we need to get the run accession ids?
+
+        response = requests.post(
+            url=f"{SUBMISSION_PROTOCOL_API_URL}/submissions/{self.submission_accession_id}/datasets",
+            headers=self._headers(),
+            json={
+                "title": "",
+                "description": "",
+                "dataset_types": [""],
+                "policy_accession_id": policy_accession_id,
+                "run_provisional_ids": run_provisional_ids,
+            }
+        )
+        if response.status_code in self.VALID_STATUS_CODES:
+            dataset_provisional_id = response.json()["provisional_id"]
+            return dataset_provisional_id
+        raise Exception(
+            f"Received status code {response.status_code} with error: {response.json()} while attempting to "
+            f"register dataset"
         )
 
     def run(self):
         experiment_provisional_id = self._create_experiment()
         sample_accession_id = self._get_sample_accession_id()
-        run_accesion_ids = self._create_run(
+        run_provisional_ids = self._create_run(
             experiment_provisional_id=experiment_provisional_id,
             sample_accession_ids=sample_accession_id
         )
-        print(run_accesion_ids)
+        policy_accession_id = self._get_policy_accession_id()
+        self._create_dataset(policy_accession_id=policy_accession_id, run_provisional_ids=run_provisional_ids)
+        # TODO: determine if the finalize step is necessary?? Don't see the endpoint but listed as a
+        #  step in the overview
 
 
 if __name__ == "__main__":
@@ -239,7 +311,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     access_token = LoginAndGetToken(username=args.username, password=args.password).login_and_get_token()
-    CreateExperimentAndRuns(
+    RegisterEgaMetadata(
         token=access_token,
         submission_accession_id=args.submission_accession_id,
         study_accession_id=args.study_accession_id,
