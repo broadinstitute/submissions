@@ -42,6 +42,7 @@ def createMetadata(inputData):
     dataTypeToExperimentalStrategy = {
         "WGS": "WGS",
         "Exome": "WXS",
+        "WXS": "WXS",
         "RNA": "RNA-Seq",
         "Custom_Selection": "Targeted Sequencing"
     }

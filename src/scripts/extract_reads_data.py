@@ -83,8 +83,7 @@ def createSubmittableReadGroups(reads):
 
     def formatReadGroup(read):
         submitterIdConstant = f"{read['aggregation_project']}.{read['sample_identifier']}"
-
-        return {
+        formattedRead = {
             "type": "read_group",
             "aliquots": {
                 "submitter_id": read['sample_identifier']
@@ -104,6 +103,14 @@ def createSubmittableReadGroups(reads):
             "to_trim_adapter_sequence": True,
             "platform": "Illumina"
         }
+        library_strand_dict = {
+            key: value
+            for key, value in read.items()
+            if "library_selection" in key and value is not None and value != ""
+        }
+
+
+        return {**formattedRead, **library_strand_dict}
 
     return [formatReadGroup(read) for read in reads]
 

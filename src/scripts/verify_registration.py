@@ -1,6 +1,7 @@
 import argparse
 import requests
 import json
+import os
 
 """
     Overview:   
@@ -67,6 +68,58 @@ def getEntity(program, project, submitterId, token):
         }
     )
 
+def getGraphQlSchema(token):
+    """Constructs graphql query to hit the gdc api"""
+
+    # Define the GraphQL endpoint URL
+    endpoint_url = "https://api.gdc.cancer.gov/v0/submission/graphql"
+
+    # Define the introspection query
+    type_name = "aliquot"
+
+    introspection_query = f"""
+        query IntrospectionQuery {{
+            __type(name: "{type_name}") {{
+            name
+            fields {{
+                name
+                type {{
+                name
+                kind
+                }}
+            }}
+            }}
+        }}
+    """
+    # Create a headers dictionary with the Authorization header
+    print(get_token_from_file(token))
+    headers = {
+        "Content-Type": "application/json",
+        "X-Auth-Token": get_token_from_file(token)
+    }
+
+    # Make a POST request to the GraphQL endpoint with the introspection query and headers
+    response = requests.post(endpoint_url, json={'query': introspection_query}, headers=headers)
+
+    # Check if the request was successful (HTTP status code 200)
+    if response.status_code == 200:
+        # Parse and print the response, which contains the schema information
+        schema_data = response.json()
+        print(schema_data)
+    else:
+        # Handle errors
+        print(f"Error: {response.status_code}, {response.text}")
+
+def getGdcShemas():
+    """Queries gdc to get specific schema. Replace submitted_aligned_reads with any entity with any gdc entity"""
+
+    endpoint = 'https://api.gdc.cancer.gov/v0/submission'
+    response = requests.get(f'{endpoint}/template/aliquot?format=json')
+    print(response)
+    f = open(os.path.join(os.getcwd(), "sample_template.json"), 'w')
+    f.write(response.text)
+    f.close()
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-s', '--aliases', required=True, help='list of aliases to check registration status')
@@ -75,5 +128,6 @@ if __name__ == '__main__':
     parser.add_argument('-pj', '--project', required=True, help='GDC project')
     args = parser.parse_args()
 
+    getGraphQlSchema(args.token)
     check_registration(args.aliases, args.token, args.program, args.project)
     print("Script is finished")

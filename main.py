@@ -50,6 +50,7 @@ def submitMetadata(inputData):
             print("No ids inside of submitted_aligned_reads array")
     else:
         print("Data was not returned from gdc properly")
+        raise RuntimeError("Data was not returned from gdc properly")
 
 def verifySubmitInput(opsMetadata):
     """Validates the input for the opsMetadata file"""
