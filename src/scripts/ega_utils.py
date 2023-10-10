@@ -87,7 +87,7 @@ class LibrarySelection(str, Enum):
     HYBRID_SELECTION = "Hybrid Selection"
     REDUCED_REPRESENTATION = "Reduced Representation"
     RESTRICTION_DIGEST = "Restriction Digest",
-    FIVE_METHYLCYTIDINE_ANTIBODY =  "5-methylcytidine antibody"
+    FIVE_METHYLCYTIDINE_ANTIBODY = "5-methylcytidine antibody"
     MBD2_PROTEIN_METHYL_CPG_BINDING_DOMAIN = "MBD2 protein methyl-CpG binding domain"
     CAGE = "CAGE"
     RACE = "RACE"
@@ -112,27 +112,12 @@ class RunFileType(str, Enum):
 
 
 INSTRUMENT_MODEL_MAPPING = {
-    "HiSeq X Five": 8,
-    "HiSeq X Ten": 9,
-    "Illumina Genome Analyzer": 10,
-    "Illumina Genome Analyzer II": 11,
-    "Illumina Genome Analyzer IIx": 12,
-    "Illumina HiScanSQ": 13,
-    "Illumina HiSeq 1000": 14,
-    "Illumina HiSeq 1500": 15,
-    "Illumina HiSeq 2000": 16,
-    "Illumina HiSeq 2500": 17,
-    "Illumina HiSeq 3000": 18,
-    "Illumina HiSeq 4000": 19,
-    "Illumina HiSeq X": 20,
-    "Illumina iSeq 100": 21,
-    "Illumina MiSeq": 22,
-    "Illumina MiniSeq": 23,
-    "Illumina NovaSeq X": 24,
-    "Illumina NovaSeq 6000": 25,
-    "NextSeq 500": 26,
-    "NextSeq 550": 27,
-    "NextSeq 1000": 28,
-    "NextSeq 2000": 29,
-    "unspecified": 30,
+    "HISEQ_X_10": 9,
+    "HISEQ_2000": 16,
+    "HISEQ_2500": 17,
+    "HISEQ_4000": 19,
+    "MISEQ": 22,
+    "NOVA_SEQ_X": 24,
+    "NOVA_SEQ_6000": 25,
+    "NEXT_SEQ_500": 26,
 }
