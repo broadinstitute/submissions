@@ -6,6 +6,7 @@ workflow TransferToGdc {
   input {
     # Sample input
     String sample_id
+    String sample_alias
     String bam_file
     String agg_project
     String data_type
@@ -17,9 +18,22 @@ workflow TransferToGdc {
     File md5_file
     File gdc_token
     Boolean dry_run = false
-    Boolean registration_status
     File?   monitoring_script
   }
+
+  "entity:sample_id": entity_id,
+            "alias": row['collaborator_sample_id'],
+            "version": row["version"],
+            "aggregation_project": row["project"],
+            "data_type": DATA_TYPE_CONVERSION[row["data_type"]],
+            "location": self.processing_location,
+            "ega_inbox": self.ega_inbox,
+            "password": self.passoword,
+            "ega_study_accession": self.ega_study_accession,
+            "ega_submission_accession": self.ega_submission_accession,
+            "cohort_name": self.cohort_name,
+            "construction_protocol": self.construction_protocol,
+            "ega_site": self.ega_site,
 
   String token_value = (read_lines(gdc_token))[0]
   String md5 = (read_lines(md5_file))[0]
@@ -29,7 +43,7 @@ workflow TransferToGdc {
       program = program,
       project = project,
       gdc_token = token_value,
-      sample_alias = sample_id
+      sample_alias = alias_name
   }
 
   if (verified.registration_status) {
@@ -37,7 +51,7 @@ workflow TransferToGdc {
       input:
         workspace_name = workspace_name,
         workspace_project = workspace_project,
-        sample_id = sample_id,
+        sample_id = alias_name,
         gdc_token = token_value,
         project = project,
         program = program
@@ -45,7 +59,7 @@ workflow TransferToGdc {
 
     call submitMetadataToGDC {
       input:
-        sample_id = sample_id,
+        sample_id = alias_name,
         bam_file = bam_file,
         agg_project = agg_project,
         data_type = data_type,
@@ -80,7 +94,7 @@ workflow TransferToGdc {
       input:
         program = program,
         project = project,
-        sample_id = sample_id,
+        sample_id = alias_name,
         agg_project = agg_project,
         data_type = data_type,
         gdc_token = token_value,

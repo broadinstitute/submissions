@@ -121,7 +121,7 @@ def getEntity(queryType, program, project, submitterId, token):
             "X-Auth-Token": token
         }
     )
- 
+
 def getHeaders(input):
     """Returns general headers for gdc api call"""
 
