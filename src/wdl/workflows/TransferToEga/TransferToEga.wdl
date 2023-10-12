@@ -53,20 +53,6 @@ workflow TransferToEga {
       password = UnecryptPassword.password,
       ega_inbox = UnecryptPassword.ega_inbox
   }
-
-  call tasks.SubmitEGAMetadata {
-    input:
-      sample_id = sample_id,
-      password = password,
-      ega_inbox = ega_inbox,
-      ega_study_accession = ega_study_accession,
-      ega_submission_accession = ega_submission_accession,
-      cohort_name = cohort_name,
-      construction_protocol = construction_protocol,
-      ega_site = ega_site,
-      workspace_name = workspace_name,
-      workspace_project = workspace_project
-  }
 }
 
 task DecryptPassword {
