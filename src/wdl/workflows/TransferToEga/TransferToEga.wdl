@@ -151,7 +151,5 @@ task ascpFileTransfer {
 
     output {
         File transferLog = "upload/aspera-scp-transfer.log"
-        String site = uploadSite
-        String path = uploadPath
     }
 }
