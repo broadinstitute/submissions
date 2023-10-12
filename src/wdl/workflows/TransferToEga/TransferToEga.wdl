@@ -114,7 +114,7 @@ task ascpFileTransfer {
     input {
         String password
         File encryptedDataFile
-        String egaInbox
+        String ega_inbox
     }
 
     command {
