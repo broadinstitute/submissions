@@ -79,6 +79,9 @@ class RegisterEgaMetadata:
             library_selection: LibrarySelection,
             run_file_type: RunFileType,
             technology: str,
+            dataset_title: str,
+            dataset_description: str,
+            policy_name: str,
     ):
         self.token = token
         self.submission_accession_id = submission_accession_id
@@ -90,6 +93,10 @@ class RegisterEgaMetadata:
         self.library_selection = library_selection
         self.run_file_type = run_file_type
         self.technology = technology
+        self.dataset_title = dataset_title
+        self.dataset_description = dataset_description
+        self.policy_name = policy_name
+
 
     def _headers(self) -> dict:
         return {
@@ -191,11 +198,10 @@ class RegisterEgaMetadata:
             headers=self._headers(),
         )
         if response.status_code in self.VALID_STATUS_CODES:
-            policy_accession_id = [a["accession_id"] for a in response.json()]
-            # TODO This logic needs to be updated based on what the PM provides for us
+            policy_accession_id = [a["accession_id"] for a in response.json() if a["title"] == self.policy_name]
             if len(policy_accession_id) > 1:
                 raise ValueError(
-                    f"Expected to find one policy associated with inbox, but found {len(policy_accession_id)}"
+                    f"Expected to find one associated policy, but found {len(policy_accession_id)}"
                 )
             logging.info("Successfully retrieved policy DAC")
             return policy_accession_id[0]
@@ -212,8 +218,6 @@ class RegisterEgaMetadata:
         https://submission.ega-archive.org/api/spec/#/paths/submissions-accession_id--datasets/post
         """
 
-        # TODO: determine what the title should be here
-        # TODO: determine what the description should be here
         wgs = "Whole genome sequencing"
         exome = "Exome sequencing"
         dataset_type = wgs if self.library_strategy == LibraryStrategy.WGS else exome
@@ -222,8 +226,8 @@ class RegisterEgaMetadata:
             url=f"{SUBMISSION_PROTOCOL_API_URL}/submissions/{self.submission_accession_id}/datasets",
             headers=self._headers(),
             data={
-                "title": "",
-                "description": "",
+                "title": self.dataset_title,
+                "description": self.dataset_description,
                 "dataset_types": [dataset_type],
                 "policy_accession_id": policy_accession_id,
                 "run_provisional_ids": run_provisional_ids,
@@ -338,7 +342,7 @@ if __name__ == "__main__":
         help="The experiment library source",
         choices=list(LibrarySource)
     )
-    """ Source: https://submission.ega-archive.org/api/spec/#/paths/enums-library_selections/get"""
+    """Source: https://submission.ega-archive.org/api/spec/#/paths/enums-library_selections/get"""
     parser.add_argument(
         "-library_selection",
         required=True,
@@ -358,6 +362,21 @@ if __name__ == "__main__":
         help="The type of sequencer",
         default="ILLUMINA",
     )
+    parser.add_argument(
+        "-dataset_title",
+        required=True,
+        help="The dataset title",
+    )
+    parser.add_argument(
+        "-dataset_description",
+        required=True,
+        help="The dataset description",
+    )
+    parser.add_argument(
+        "-policy_name",
+        required=True,
+        help="The name of the policy exactly as it was registered for the DAC"
+    )
 
     args = parser.parse_args()
     # TODO: Add DAC info as required param to script input
@@ -374,4 +393,7 @@ if __name__ == "__main__":
             library_selection=args.library_selection,
             run_file_type=args.run_file_type,
             technology=args.technolgy,
+            dataset_title=args.dataset_title,
+            dataset_description=args.dataset_description,
+            policy_name=args.policy_name,
         ).register_metadata()
