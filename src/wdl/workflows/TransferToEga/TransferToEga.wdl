@@ -50,8 +50,8 @@ workflow TransferToEga {
   call ascpFileTransfer {
     input:
       encryptedDataFile = EncryptDataFiles.encryptedDataFile,
-      password = UnecryptPassword.password,
-      ega_inbox = UnecryptPassword.ega_inbox
+      password = DecryptPassword.password,
+      ega_inbox = DecryptPassword.ega_inbox
   }
 }
 
