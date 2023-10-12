@@ -124,7 +124,7 @@ task ascpFileTransfer {
       export ASPERA_SCP_PASS=~{password}
       ascp -T -d -l 600m -m 1m -k 3  -L ./log_files --file-manifest-path=/cromwell_root \
       --file-manifest=text  --src-base=~{encryptedDataFile} ~{encryptedDataFile} \
-      ~{egaInbox}@webin.ebi.ac.uk:.
+      ~{ega_inbox}@webin.ebi.ac.uk:.
       ls
     }
 
