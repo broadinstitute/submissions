@@ -16,7 +16,6 @@ class Sample:
         sample_json = json_object[0]["attributes"]
         self.project = sample_json["aggregation_project"]
         self.location = sample_json["location"]
-        self.index = sample_json["aggregation_index_path"]
         self.version = sample_json["version"]
         self.md5 = md5
         self.phs = str(sample_json["phs_id"])
