@@ -6,7 +6,7 @@ workflow TransferToGdc {
   input {
     # Sample input
     String sample_id
-    String sample_alias
+    String alias_name
     String bam_file
     String agg_project
     String data_type
@@ -20,20 +20,6 @@ workflow TransferToGdc {
     Boolean dry_run = false
     File?   monitoring_script
   }
-
-  "entity:sample_id": entity_id,
-            "alias": row['collaborator_sample_id'],
-            "version": row["version"],
-            "aggregation_project": row["project"],
-            "data_type": DATA_TYPE_CONVERSION[row["data_type"]],
-            "location": self.processing_location,
-            "ega_inbox": self.ega_inbox,
-            "password": self.passoword,
-            "ega_study_accession": self.ega_study_accession,
-            "ega_submission_accession": self.ega_submission_accession,
-            "cohort_name": self.cohort_name,
-            "construction_protocol": self.construction_protocol,
-            "ega_site": self.ega_site,
 
   String token_value = (read_lines(gdc_token))[0]
   String md5 = (read_lines(md5_file))[0]
