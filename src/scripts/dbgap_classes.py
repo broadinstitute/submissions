@@ -101,7 +101,7 @@ class ReadGroup:
     def __init__(self, json_object):
         first_read_group = json_object[0]["attributes"]
         # First we will just use the first json object in the list to set the constant values
-        self.product_order_id = first_read_group["product_order_id"]
+        self.product_order_id = first_read_group.get("product_order_id", "")
         self.sample_type = first_read_group["sample_type"]
         self.sample_material_type = first_read_group["sample_material_type"]
         self.library_name = first_read_group["library_name"]
@@ -109,12 +109,11 @@ class ReadGroup:
         self.version = first_read_group["version"]
         self.work_request_id = first_read_group["work_request_id"]
         self.sample_id = first_read_group["sample_id"]
-        self.research_project_id = first_read_group["research_project_id"]
+        self.research_project_id = first_read_group.get("research_project_id", "")
         self.analysis_type = first_read_group["analysis_type"]
         self.paired_run = first_read_group["paired_run"]
         self.read_structure = first_read_group["read_structure"]
         self.root_sample_id = first_read_group["root_sample_id"]
-        self.product_part_number = first_read_group["product_part_number"]
         self.sample_barcode = first_read_group.get("sample_barcode")
         self.sample_lsid = first_read_group["sample_lsid"]
         self.primary_disease = first_read_group.get("primary_disease")
