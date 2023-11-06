@@ -103,7 +103,7 @@ class ReadGroup:
         # First we will just use the first json object in the list to set the constant values
         self.product_order_id = first_read_group.get("product_order_id", "")
         self.sample_type = first_read_group["sample_type"]
-        self.sample_material_type = first_read_group["sample_material_type"]
+        self.sample_material_type = first_read_group.get("sample_material_type", "")
         self.library_name = first_read_group["library_name"]
         self.library_type = first_read_group["library_type"]
         self.version = first_read_group["version"]
@@ -122,8 +122,12 @@ class ReadGroup:
         self.model = first_read_group["model"]
         self.nominal_length = str(first_read_group["mean_insert_size"])
         self.nominal_sdex = str(first_read_group["standard_deviation"])
-        self.submission_metadata = self.sub_data_to_dict(first_read_group["submission_metadata"]["items"])
         self.set_aggregate_values(json_object)
+
+        if "submission_metadata" in first_read_group:
+            self.submission_metadata = self.sub_data_to_dict(first_read_group["submission_metadata"]["items"])
+        else:
+            self.submission_metadata = []
 
     def sub_data_to_dict(self, submissionMetadata):
         if submissionMetadata and len(submissionMetadata):
