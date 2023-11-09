@@ -19,6 +19,7 @@ import logging
 import sys
 import argparse
 import requests
+from pathlib import Path
 from typing import Optional
 from datetime import datetime
 
@@ -56,7 +57,6 @@ INSTRUMENT_MODEL_MAPPING = {
     "NextSeq 2000": 29,
     "unspecified": 30
 }
-
 
 
 LOGIN_URL = "https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"
@@ -105,6 +105,7 @@ class RegisterEgaMetadata:
             library_selection: str,
             run_file_type: str,
             policy_title: str,
+            sample_aliases: list[str],
             dataset_title: Optional[str],
             dataset_description: Optional[str],
             technology: Optional[str],
@@ -128,6 +129,7 @@ class RegisterEgaMetadata:
             else f"Please fill out a new description here for submission {self.submission_accession_id}"
         )
         self.policy_title = policy_title
+        self.sample_aliases = sample_aliases
 
     def _headers(self) -> dict:
         return {
@@ -135,34 +137,41 @@ class RegisterEgaMetadata:
             "Authorization": f"Bearer {self.token}"
         }
 
-    def _get_study_provisional_id(self) -> Optional[int]:
+    def _experiment_exists(self, design_description: str) -> Optional[str]:
         """
-        Gets the study's provisional ID using the study accession ID
+        Gets existing experiments in the submission
         Endpoint documentation located here:
-        https://submission.ega-archive.org/api/spec/#/paths/studies-accession_id/get
+        https://submission.ega-archive.org/api/spec/#/paths/submissions-accession_id--datasets/get
         """
+
         response = requests.get(
-            url=f"{SUBMISSION_PROTOCOL_API_URL}/studies/{self.study_accession_id}",
+            url=f"{SUBMISSION_PROTOCOL_API_URL}/submissions/{self.submission_accession_id}/experiments",
             headers=self._headers(),
         )
-
         if response.status_code in self.VALID_STATUS_CODES:
-            study_provisional_id = response.json()["provisional_id"]
-            logging.info("Successfully gathered the study provisional ID")
-            return study_provisional_id
+            all_experiments = response.json()
+            for experiment in all_experiments:
+                if (self.study_accession_id == experiment["study_accession_id"]
+                        and design_description == experiment["design_description"]):
+                    return experiment["accession_id"]
+                return None
         else:
             error_message = f"""Received status code {response.status_code} with error: {response.text} while 
-            attempting to get study provisional ID"""
+                        attempting to query existing experiments"""
             logging.error(error_message)
             raise Exception(error_message)
 
-    def _create_experiment(self, study_provisional_id: int) -> Optional[int]:
+    def _conditionally_create_experiment(self) -> Optional[str]:
         """
         Registers the "experiment"
         Endpoint documentation located here:
         https://submission.ega-archive.org/api/spec/#/paths/submissions-accession_id--experiments/post
         """
         design_description = f"{self.technology} sequencing of Homo sapiens via {self.library_selection}"
+
+        # Query for existing experiments. If the one we're trying to register already exists, skip re-creating it
+        if experiment_accession_id := self._experiment_exists(design_description):
+            return experiment_accession_id
 
         response = requests.post(
             url=f"{SUBMISSION_PROTOCOL_API_URL}/submissions/{self.submission_accession_id}/experiments",
@@ -187,56 +196,123 @@ class RegisterEgaMetadata:
             logging.error(error_message)
             raise Exception(error_message)
 
-    def _get_sample_accession_id(self) -> list[int]:
+    def _get_file_metadata_for_files_in_submission(self) -> Optional[list[dict]]:
         """
         Retrieves the sample accession ID(s)
         Endpoint documentation located here:
         https://submission.ega-archive.org/api/spec/#/paths/files/get
         """
-        # TODO: we need the file format so we know the correct prefix in order to filter on files that correspond to
-        #  the one sample (assuming we can filter by the sample_alias here?)
-        # NOTE: This should somehow filter for the files that are part of this "submission" so that this only has to
-        # be run once
         response = requests.get(
             url=f"{SUBMISSION_PROTOCOL_API_URL}/files",
             headers=self._headers(),
-            params={
-                "status": "inbox",
-                "prefix": "",
-            }
         )
         if response.status_code in self.VALID_STATUS_CODES:
-            file_provisional_ids = [a["provisional_id"] for a in response.json()]
-            logging.info("Successfully retrieved files")
-            return file_provisional_ids
+            file_metadata = response.json()
+            files_of_interest = [
+                f for f in file_metadata if f["submission_accession_id"] == self.submission_accession_id
+            ]
+            return files_of_interest
         else:
             error_message = f"""Received status code {response.status_code} with error: {response.text} while
-             attempting to get sample accession ids"""
+             attempting to query for file metadata"""
             raise Exception(error_message)
 
-    def _create_run(self, experiment_provisional_id: int, sample_accession_ids: list[int]) -> Optional[list]:
+    def _get_sample_metadata_corresponding_to_samples(self) -> Optional[list[dict]]:
+        """
+        Gets all samples associated with the submission
+        Endpoint documentation located here:
+        https://submission.ega-archive.org/api/spec/#/paths/submissions-accession_id--samples/get
+        """
+
+        response = requests.get(
+            url=f"{SUBMISSION_PROTOCOL_API_URL}/submissions/{self.submission_accession_id}/samples",
+            headers=self._headers(),
+        )
+        if response.status_code in self.VALID_STATUS_CODES:
+            registered_samples = []
+
+            sample_metadata = response.json()
+
+            for sample_alias in self.sample_aliases:
+                for a in sample_metadata:
+                    if a["alias"] == sample_alias:
+                        registered_samples.append(
+                            {
+                                "sample_alias": a["alias"],
+                                "sample_accession_id": a["accession_id"]
+                            }
+                        )
+
+            return registered_samples
+        else:
+            error_message = f"""Received status code {response.status_code} with error: {response.text} while
+                         attempting to query sample accession IDs"""
+            raise Exception(error_message)
+
+    def _get_sample_metadata_without_registered_runs(
+            self, sample_metadata: list[dict], experiment_accession_id: str
+    ) -> Optional[list[dict]]:
+        """
+        Collects information on all runs in submission
+        Endpoint documentation located here:
+        https://submission.ega-archive.org/api/spec/#/paths/submissions-accession_id--runs/get
+        """
+        response = requests.get(
+            url=f"{SUBMISSION_PROTOCOL_API_URL}/{self.submission_accession_id}/runs",
+            headers=self._headers(),
+        )
+        if response.status_code in self.VALID_STATUS_CODES:
+            registered_runs = response.json()
+            # we only want to look at runs linked to the experiment we're currently working with
+            runs_in_experiment = [
+                run for run in registered_runs if run["experiment"]["accession_id"] == experiment_accession_id
+            ]
+
+            samples_without_runs = []
+            for registered_sample in sample_metadata:
+                registered_accession_id = registered_sample["sample_accession_id"]
+
+                already_registered_run = [
+                    a for a in runs_in_experiment if a["sample"]["accession_id"] == registered_accession_id
+                ]
+                if not already_registered_run:
+                    samples_without_runs.append(registered_sample)
+            return samples_without_runs
+
+        else:
+            error_message = f"""Received status code {response.status_code} with error: {response.text} while
+                         attempting to query runs"""
+            raise Exception(error_message)
+
+    def _create_runs(self, experiment_accession_id: str, sample_and_file_metadata: list[dict]) -> Optional[list[str]]:
         """
         Registers the run for the sample
         Endpoint documentation located here:
         https://submission.ega-archive.org/api/spec/#/paths/submissions-accession_id--runs/post
         """
-        response = requests.post(
-            url=f"{SUBMISSION_PROTOCOL_API_URL}/submissions/{self.submission_accession_id}/runs",
-            headers=self._headers(),
-            json={
-                "run_file_type": self.run_file_type,
-                "files": sample_accession_ids,
-                "experiment_provisional_id": experiment_provisional_id,
-            }
-        )
-        if response.status_code in self.VALID_STATUS_CODES:
-            run_provisional_ids = [a["provisional_id"] for a in response.json()]
-            logging.info("Successfully registered runs")
-            return run_provisional_ids
-        else:
-            error_message = f"""Received status code {response.status_code} with error: {response.text} while 
-            attempting to register run"""
-            raise Exception(error_message)
+        run_accession_ids = []
+        for sample_and_file in sample_and_file_metadata:
+            response = requests.post(
+                url=f"{SUBMISSION_PROTOCOL_API_URL}/submissions/{self.submission_accession_id}/runs",
+                headers=self._headers(),
+                json={
+                    "run_file_type": self.run_file_type,
+                    "files": [sample_and_file["file_provisional_id"]],
+                    "experiment_accession_id": experiment_accession_id,
+                    "sample_accession_id": sample_and_file["sample_accession_id"],
+                }
+            )
+            if response.status_code in self.VALID_STATUS_CODES:
+                run_accession_id = [a["accession_id"] for a in response.json()]
+                if run_accession_id:
+                    run_accession_ids.append(run_accession_id[0])
+                logging.info(f"Successfully registered run for sample {sample_and_file['sample_alias']}")
+            else:
+                error_message = f"""Received status code {response.status_code} with error: {response.text} while 
+                attempting to register run"""
+                raise Exception(error_message)
+
+        return run_accession_ids
 
     def _get_policy_accession_id(self) -> Optional[str]:
         """
@@ -267,7 +343,7 @@ class RegisterEgaMetadata:
             logging.error(error_message)
             raise Exception(error_message)
 
-    def _create_dataset(self, policy_accession_id: str, run_provisional_ids: list[int]) -> Optional[int]:
+    def _create_dataset(self, policy_accession_id: str, run_accession_ids: list[str]) -> Optional[str]:
         """
         Registers the dataset of runs
         Endpoint documentation located here:
@@ -284,13 +360,13 @@ class RegisterEgaMetadata:
                 "description": self.dataset_description,
                 "dataset_types": [dataset_type],
                 "policy_accession_id": policy_accession_id,
-                "run_provisional_ids": run_provisional_ids,
+                "run_provisional_ids": run_accession_ids,
             }
         )
         if response.status_code in self.VALID_STATUS_CODES:
-            dataset_provisional_id = [r["provisional_id"] for r in response.json()][0]
+            dataset_accession_id = [r["accession_id"] for r in response.json()][0]
             logging.info("Successfully registered dataset!")
-            return dataset_provisional_id
+            return dataset_accession_id
         else:
             error_message = f"""Received status code {response.status_code} with error: {response.text} while 
             attempting to register dataset"""
@@ -321,32 +397,77 @@ class RegisterEgaMetadata:
             logging.error(error_message)
             raise Exception(error_message)
 
-    def register_metadata(self):
-        # Get the study provisional ID
-        study_provisional_id = self._get_study_provisional_id()
+    @staticmethod
+    def _link_files_to_samples(file_metadata: list[dict], sample_metadata: list[dict]) -> list[dict]:
+        sample_and_file_metadata = []
 
-        if study_provisional_id:
-            # Register the experiment
-            experiment_provisional_id = self._create_experiment(study_provisional_id)
-            # Gather sample accession IDs
-            sample_accession_id = self._get_sample_accession_id()
-            # If both successful, create the runs
-            if experiment_provisional_id and sample_accession_id:
-                run_provisional_ids = self._create_run(
-                    experiment_provisional_id=experiment_provisional_id,
-                    sample_accession_ids=sample_accession_id
-                )
-                # If creating the runs is successful, gather thea appropriate DAC policy info
-                policy_accession_id = self._get_policy_accession_id()
-                # If the DAC policy is found, create the dataset
-                if policy_accession_id and run_provisional_ids:
-                    dataset_provisional_id = self._create_dataset(
-                        policy_accession_id=policy_accession_id,
-                        run_provisional_ids=run_provisional_ids
+        for file in file_metadata:
+            relative_file_path = file["relative_path"]
+            file_name = Path(relative_file_path).name
+            sample_alias_from_path = Path(file_name).stem
+            for sample in sample_metadata:
+                if sample_alias_from_path == sample["sample_alias"]:
+                    sample_and_file_metadata.append(
+                        {
+                            "sample_alias": sample["alias"],
+                            "sample_accession_id": sample["sample_accession_id"],
+                            "file_provisional_id": file["provisional_id"],
+                        }
                     )
-                    # If the dataset is created, finalize the submission
-                    if dataset_provisional_id:
-                        self._finalize_submission()
+
+        return sample_and_file_metadata
+
+    def register_metadata(self):
+        """
+        Registers all required metadata. Logic is built into the following methods so that any metadata that already
+        exists is not attempted to be re-registered, and this script can be run multiple times without having to
+        filter on the samples that are passed in
+        """
+
+        # Register the experiment if it doesn't already exist
+        experiment_accession_id = self._conditionally_create_experiment()
+
+        # Gather the sample accession IDs that correspond to the sample aliases that we're trying to submit
+        registered_sample_metadata = self._get_sample_metadata_corresponding_to_samples()
+
+        if experiment_accession_id and registered_sample_metadata:
+            # Query all registered runs, and narrow down the list of sample accession IDs that do not already have
+            # a run registered for the current experiment
+            samples_without_runs = self._get_sample_metadata_without_registered_runs(
+                registered_sample_metadata, experiment_accession_id
+            )
+
+            # Gather file IDs
+            metadata_for_files_in_submission = self._get_file_metadata_for_files_in_submission()
+
+            if samples_without_runs and metadata_for_files_in_submission:
+                # Link the samples to be registered with the files that are available by matching the sample aliases to
+                # the sample aliases in the file name
+                sample_file_metadata = self._link_files_to_samples(
+                    file_metadata=metadata_for_files_in_submission,
+                    sample_metadata=samples_without_runs
+                )
+
+                # Now that we have sample and file metadata for samples that do not already have runs registered,
+                # attempt to register a run for EACH sample
+                if sample_file_metadata:
+                    run_accession_ids = self._create_runs(
+                        experiment_accession_id=experiment_accession_id,
+                        sample_and_file_metadata=sample_file_metadata,
+                    )
+
+                    # Gather the appropriate DAC policy info
+                    policy_accession_id = self._get_policy_accession_id()
+                    # If the DAC policy is found, create the dataset
+                    if policy_accession_id and run_accession_ids:
+                        dataset_accession_id = self._create_dataset(
+                            policy_accession_id=policy_accession_id,
+                            run_accession_ids=run_accession_ids
+                        )
+
+                        # If the dataset is created, finalize the submission
+                        if dataset_accession_id:
+                            self._finalize_submission()
 
 
 if __name__ == "__main__":
@@ -435,6 +556,13 @@ if __name__ == "__main__":
         required=True,
         help="The title of the policy exactly as it was registered for the DAC"
     )
+    # TODO add optional library information to store when creating the EXPERIMENT (the stdev needs to be stored as an integer?)
+
+    parser.add_argument(
+        "-sample_aliases",
+        required=True,
+        help="A list of all sample aliases"
+    )
 
     args = parser.parse_args()
     access_token = LoginAndGetToken(username=args.user_name, password=args.password).login_and_get_token()
@@ -453,5 +581,5 @@ if __name__ == "__main__":
             dataset_title=args.dataset_title,
             dataset_description=args.dataset_description,
             policy_title=args.policy_title,
+            sample_aliases=args.sample_aliases,
         ).register_metadata()
-
