@@ -144,4 +144,3 @@ INSTRUMENT_MODEL = [
     "NextSeq 2000",
     "unspecified"
 ]
-    

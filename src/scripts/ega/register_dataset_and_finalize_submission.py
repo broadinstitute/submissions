@@ -235,5 +235,4 @@ if __name__ == '__main__':
             run_accession_ids=args.run_accession_ids,
             dataset_title=args.dataset_title if args.dataset_title else None,
             dataset_description=args.dataset_description if args.dataset_description else None,
-
         ).register_metadata()
