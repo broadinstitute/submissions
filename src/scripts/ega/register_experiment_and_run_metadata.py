@@ -5,7 +5,7 @@
     1) Log in and retrieve access token for the EGA
     2) Use the EGA APIs to:
         a) Register the sample's EXPERIMENT
-        c) Register the sample's RUN
+        b) Register the sample's RUN
 
    Resources:
     - Schema Map:
@@ -15,81 +15,32 @@
     - Submission API Documentation:
         https://submission.ega-archive.org/api/spec/#/
 """
-import logging
 import sys
 import argparse
 import requests
+import logging
 from pathlib import Path
 from typing import Optional
 
+
 sys.path.append("../")
-from src.scripts.ega_utils import (
+from src.scripts.ega import LoginAndGetToken, SUBMISSION_PROTOCOL_API_URL, format_request_header
+from src.scripts.ega.ega_utils import (
     LIBRARY_LAYOUT,
     LIBRARY_STRATEGY,
     LIBRARY_SOURCE,
     LIBRARY_SELECTION,
     RUN_FILE_TYPE,
     INSTRUMENT_MODEL,
+    INSTRUMENT_MODEL_MAPPING,
 )
-INSTRUMENT_MODEL_MAPPING = {
-    "HiSeq X Five": 8,
-    "HiSeq X Ten": 9,
-    "Illumina Genome Analyzer": 10,
-    "Illumina Genome Analyzer II": 11,
-    "Illumina Genome Analyzer IIx": 12,
-    "Illumina HiScanSQ": 13,
-    "Illumina HiSeq 1000": 14,
-    "Illumina HiSeq 1500": 15,
-    "Illumina HiSeq 2000": 16,
-    "Illumina HiSeq 2500": 17,
-    "Illumina HiSeq 3000": 18,
-    "Illumina HiSeq 4000": 19,
-    "Illumina HiSeq X": 20,
-    "Illumina iSeq 100": 21,
-    "Illumina MiSeq": 22,
-    "Illumina MiniSeq": 23,
-    "Illumina NovaSeq X": 24,
-    "Illumina NovaSeq 6000": 25,
-    "NextSeq 500": 26,
-    "NextSeq 550": 27,
-    "NextSeq 1000": 28,
-    "NextSeq 2000": 29,
-    "unspecified": 30
-}
+
+logging.basicConfig(
+    format="%(levelname)s: %(asctime)s : %(message)s", level=logging.INFO
+)
 
 
-LOGIN_URL = "https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"
-SUBMISSION_PROTOCOL_API_URL = "https://submission.ega-archive.org/api"
-
-
-class LoginAndGetToken:
-    def __init__(self, username: str, password: str) -> None:
-        self.username = username
-        self.password = password
-
-    def login_and_get_token(self) -> Optional[str]:
-        """Logs in and retrieves access token"""
-        response = requests.post(
-            url=LOGIN_URL,
-            data={
-                "grant_type": "password",
-                "client_id": "sp-api",
-                "username": self.username,
-                "password": self.password,
-            }
-        )
-        if response.status_code == 200:
-            token = response.json()["access_token"]
-            logging.info("Successfully created access token!")
-            return token
-        else:
-            error_message = f"""Received status code {response.status_code} with error {response.json()} while 
-            attempting to get access token"""
-            logging.error(error_message)
-            raise Exception(error_message)
-
-
-class RegisterEgaMetadata:
+class RegisterEgaExperimentsAndRuns:
     VALID_STATUS_CODES = [200, 201]
 
     def __init__(
@@ -123,16 +74,13 @@ class RegisterEgaMetadata:
         self.technology = technology if technology else "ILLUMINA"
         self.sample_alias = sample_alias
         self.library_name = library_name
-        self.insert_size = insert_size
+        self.insert_size = float(insert_size)
         self.standard_deviation = standard_deviation
         self.sample_material_type = sample_material_type
         self.library_construction_protocol = library_construction_protocol
 
     def _headers(self) -> dict:
-        return {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.token}"
-        }
+        return format_request_header(self.token)
 
     def _experiment_exists(self, design_description: str) -> Optional[str]:
         """
@@ -169,6 +117,7 @@ class RegisterEgaMetadata:
         design_description = (f"{self.technology} {self.library_strategy} sequencing of {self.sample_material_type} "
                               f"{paired_end_string} library via {self.library_selection} containing sample "
                               f"{self.sample_alias}")
+
         nominal_length = int(self.insert_size) if 0 < self.insert_size < 1000 else 0
 
         # Query for existing experiments. If the one we're trying to register already exists, skip re-creating it
@@ -193,9 +142,9 @@ class RegisterEgaMetadata:
             }
         )
         if response.status_code in self.VALID_STATUS_CODES:
-            experiment_provisional_id = response.json()["provisional_id"]
-            logging.info(f"Successfully created experiment with id: {experiment_provisional_id}")
-            return experiment_provisional_id
+            experiment_accession_id = response.json()["accession_id"]
+            logging.info(f"Successfully created experiment with id: {experiment_accession_id}")
+            return experiment_accession_id
         else:
             error_message = f"""Received status code {response.status_code} with error: {response.text} while 
             attempting to register experiment"""
@@ -221,6 +170,7 @@ class RegisterEgaMetadata:
         else:
             error_message = f"""Received status code {response.status_code} with error: {response.text} while
              attempting to query for file metadata"""
+            logging.error(error_message)
             raise Exception(error_message)
 
     def _get_metadata_for_registered_sample(self) -> Optional[dict]:
@@ -259,7 +209,7 @@ class RegisterEgaMetadata:
         https://submission.ega-archive.org/api/spec/#/paths/submissions-accession_id--runs/get
         """
         response = requests.get(
-            url=f"{SUBMISSION_PROTOCOL_API_URL}/{self.submission_accession_id}/runs",
+            url=f"{SUBMISSION_PROTOCOL_API_URL}/submissions/{self.submission_accession_id}/runs",
             headers=self._headers(),
         )
         if response.status_code in self.VALID_STATUS_CODES:
@@ -279,7 +229,7 @@ class RegisterEgaMetadata:
                         and run_sample_alias == sample_alias):
                     logging.info(f"Found a registered run with accession ID {run_accession_id} for {self.sample_alias}")
                     return run_accession_id
-            logging.info(f"Did not find a registered run for sample {self.sample_alias}. Will register one now!")
+            logging.error(f"Did not find a registered run for sample {self.sample_alias}. Will register one now!")
             return None
 
         else:
@@ -336,6 +286,7 @@ class RegisterEgaMetadata:
             else:
                 error_message = f"""Received status code {response.status_code} with error: {response.text} while 
                 attempting to register run"""
+                logging.error(error_message)
                 raise Exception(error_message)
 
     def register_metadata(self):
@@ -353,12 +304,14 @@ class RegisterEgaMetadata:
 
         if experiment_accession_id and sample_metadata:
             # Register the run if it doesn't already exist
+            # TODO: figure out how to save this run_accession_id to the Terra tables
             run_accession_id = self._conditionally_register_run(experiment_accession_id, sample_metadata)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="This script will upload metadata to the EGA after crams have been uploaded and validated."
+        description="This script will upload experiment and run metadata to the EGA after crams have been uploaded "
+                    "and validated."
     )
     parser.add_argument(
         "-submission_accession_id",
@@ -460,7 +413,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     access_token = LoginAndGetToken(username=args.user_name, password=args.password).login_and_get_token()
     if access_token:
-        RegisterEgaMetadata(
+        RegisterEgaExperimentsAndRuns(
             token=access_token,
             submission_accession_id=args.submission_accession_id,
             study_accession_id=args.study_accession_id,
@@ -476,5 +429,5 @@ if __name__ == "__main__":
             insert_size=args.mean_insert_size,
             standard_deviation=args.standard_deviation,
             sample_material_type=args.sample_material_type,
-            library_construction_protocol=args.library_construction_protocol,
+            library_construction_protocol=args.construction_protocol,
         ).register_metadata()

@@ -1,5 +1,17 @@
-from enum import Enum
-
+INSTRUMENT_MODEL_MAPPING = {
+    "HISEQ_X_10": 9,
+    "Illumina Genome Analyzer II": 11,
+    "HISEQ_2000": 16,
+    "HISEQ_2500": 17,
+    "HISEQ_4000": 19,
+    "ISEQ_100": 21,
+    "MISEQ": 22,
+    "NOVA_SEQ_X": 24,
+    "NOVA_SEQ_6000": 25,
+    "NEXT_SEQ_500": 26,
+    "NEXT_SEQ_2000": 29,
+    "unspecified": 30
+}
 
 LIBRARY_LAYOUT = ["SINGLE", "PAIRED"]
 
