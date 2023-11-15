@@ -21,6 +21,7 @@ import requests
 import logging
 from pathlib import Path
 from typing import Optional
+from csv import DictWriter
 
 
 sys.path.append("../")
@@ -60,6 +61,7 @@ class RegisterEgaExperimentsAndRuns:
             standard_deviation: float,
             sample_material_type: str,
             library_construction_protocol: str,
+            sample_id: str,
             technology: Optional[str],
     ):
         self.token = token
@@ -77,6 +79,7 @@ class RegisterEgaExperimentsAndRuns:
         self.insert_size = float(insert_size)
         self.standard_deviation = standard_deviation
         self.sample_material_type = sample_material_type
+        self.sample_id = sample_id
         self.library_construction_protocol = library_construction_protocol
 
     def _headers(self) -> dict:
@@ -289,6 +292,12 @@ class RegisterEgaExperimentsAndRuns:
                 logging.error(error_message)
                 raise Exception(error_message)
 
+    def _write_tsv(self, run_accession_id: str) -> None:
+        with open("sample_id_and_run_accession_id.tsv", "w") as tsv_file:
+            writer = DictWriter(tsv_file, fieldnames=["sample_id", "ega_run_accession_id"])
+            writer.writeheader()
+            writer.writerow({"sample_id": self.sample_id, "ega_run_accession_id": run_accession_id})
+
     def register_metadata(self):
         """
         Registers experiment and run metadata. Logic is built into the following methods so that any metadata that
@@ -304,8 +313,11 @@ class RegisterEgaExperimentsAndRuns:
 
         if experiment_accession_id and sample_metadata:
             # Register the run if it doesn't already exist
-            # TODO: figure out how to save this run_accession_id to the Terra tables
             run_accession_id = self._conditionally_register_run(experiment_accession_id, sample_metadata)
+
+            # Write info to a tsv so that it can be written to the Terra data tables
+            if run_accession_id:
+                self._write_tsv(run_accession_id)
 
 
 if __name__ == "__main__":
@@ -385,6 +397,11 @@ if __name__ == "__main__":
         help="The sample alias to register metadata for"
     )
     parser.add_argument(
+        "-sample_id",
+        required=True,
+        help="The sample_id identifier from the terra data table"
+    )
+    parser.add_argument(
         "-library_name",
         required=True,
         help="The library name for the sample of interest",
@@ -430,4 +447,5 @@ if __name__ == "__main__":
             standard_deviation=args.standard_deviation,
             sample_material_type=args.sample_material_type,
             library_construction_protocol=args.construction_protocol,
+            sample_id=args.sample_id,
         ).register_metadata()
