@@ -23,10 +23,13 @@ workflow RegisterEGAExperimentAndRun {
         Float standard_deviation
         String sample_material_type
         String construction_protocol
+        String aggregation_path
+        String aggregation_index_path
+        Boolean delete_files = false
     }
 
     # Check the file status
-    call CheckEGAFileValidationStatus as file_validation {
+    call CheckEGAFileValidationStatus {
         input:
             submission_accession_id = submission_accession_id,
             user_name = user_name,
@@ -40,13 +43,13 @@ workflow RegisterEGAExperimentAndRun {
         input:
             workspace_name = workspace_name,
             worksapce_project = workspace_project,
-            tsv = file_validation.sample_id_validation_status_tsv
+            tsv = CheckEGAFileValidationStatus.sample_id_validation_status_tsv
     }
 
     # Check the validation status and only continue to registering the metadata if the file is valid
-    if (file_validation.validation_status == "validated") {
+    if (CheckEGAFileValidationStatus.validation_status == "validated") {
 
-        call RegisterExperimentAndRun as register_experiment_and_run {
+        call RegisterExperimentAndRun {
             input:
                 submission_accession_id = submission_accession_id,
                 study_accession_id = study_accession_id,
@@ -67,11 +70,22 @@ workflow RegisterEGAExperimentAndRun {
                 construction_protocol = construction_protocol
         }
 
-        call terra_tasks.UpsertMetadataToDataModel as upsert_metadata {
+        call terra_tasks.UpsertMetadataToDataModel {
             input:
                 workspace_name = workspace_name,
                 worksapce_project = workspace_project,
-                tsv = register_experiment_and_run.run_accession_tsv
+                tsv = RegisterExperimentAndRun.run_accession_tsv
+        }
+
+        # If delete_files is set to true, proceed with deleting the cram/crai/md5 from the Terra bucket
+        if (delete_files) {
+
+            call DeleteFileFromBucket {
+                input:
+                aggregation_path = aggregation_path,
+                aggregation_index_path = aggregation_index_path
+            }
+
         }
 
     }
@@ -161,6 +175,32 @@ task CheckEGAFileValidationStatus {
     output {
         String validation_status = read_string("file_validation_status.tsv")
         File sample_id_validation_status_tsv = "sample_id_validation_status.tsv"
+    }
+
+}
+
+task DeleteFileFromBucket {
+    input {
+        String aggregation_path
+        String aggregation_index_path
+    }
+
+    String aggregation_md5_path  = aggregation_path + ".md5"
+
+    command <<<
+        set -eo pipefail
+        gsutil rm -a ~{aggregation_path}
+        gsutil rm -a ~{aggregation_index_path}
+        gsutil rm -a ~{aggregation_md5_path}
+    >>>
+
+    runtime {
+        preemptible: 3
+        docker: "schaluvadi/horsefish:submissionV1"
+    }
+
+    output {
+        # TODO what goes here?
     }
 
 }
