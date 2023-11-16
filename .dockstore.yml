@@ -9,3 +9,9 @@ workflows:
   - name: verify
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/VerifyRegistration/VerifyRegistration.wdl
+  - name: register_experiment_and_runs
+    subclass: WDL
+    primaryDescriptorPath: /src/wdl/workflows/RegisterEGAExperimentAndRun/RegisterEGAExperimentAndRun.wdl
+  - name: register_dataset
+    subclass: WDL
+    primaryDescriptorPath: src/wdl/workflows/RegisterEGADatasetFinalizeSubmission/RegisterEGADatasetFinalizeSubmission.wdl
