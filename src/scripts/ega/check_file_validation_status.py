@@ -86,7 +86,7 @@ class WriteOutputTsvFiles:
             validation_file.write(self.file_content)
 
     def _write_validation_status_for_terra_data_tables(self) -> None:
-        with open("/cromwell_root/sample_id_validation_status.ts") as validation_file:
+        with open("/cromwell_root/sample_id_validation_status.tsv") as validation_file:
             writer = DictWriter(validation_file, fieldnames=["sample_id", "file_validation_status"])
             writer.writeheader()
             writer.writerow({"sample_id": self.sample_id, "file_validation_status": self.file_content})
