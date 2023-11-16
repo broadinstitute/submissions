@@ -23,8 +23,13 @@ from datetime import datetime
 from typing import Optional
 
 sys.path.append("../")
-from src.scripts.ega.ega_utils import LIBRARY_STRATEGY
-from src.scripts.ega import LoginAndGetToken, SUBMISSION_PROTOCOL_API_URL, format_request_header
+from src.scripts.ega import LIBRARY_STRATEGY
+from src.scripts.ega.utils import (
+    LoginAndGetToken,
+    SUBMISSION_PROTOCOL_API_URL,
+    format_request_header,
+    VALID_STATUS_CODES,
+)
 
 logging.basicConfig(
     format="%(levelname)s: %(asctime)s : %(message)s", level=logging.INFO
@@ -32,7 +37,6 @@ logging.basicConfig(
 
 
 class RegisterEgaDatasetAndFinalizeSubmission:
-    VALID_STATUS_CODES = [200, 201]
 
     def __init__(
             self,
@@ -66,7 +70,7 @@ class RegisterEgaDatasetAndFinalizeSubmission:
             url=f"{SUBMISSION_PROTOCOL_API_URL}/policies",
             headers=self._headers(),
         )
-        if response.status_code in self.VALID_STATUS_CODES:
+        if response.status_code in VALID_STATUS_CODES:
             policy_accession_id = [a["accession_id"] for a in response.json() if a["title"] == self.policy_title]
             if not policy_accession_id:
                 raise ValueError(
@@ -94,7 +98,7 @@ class RegisterEgaDatasetAndFinalizeSubmission:
             url=f"{SUBMISSION_PROTOCOL_API_URL}/submissions/{self.submission_accession_id}/datasets",
             headers=self._headers(),
         )
-        if response.status_code in self.VALID_STATUS_CODES:
+        if response.status_code in VALID_STATUS_CODES:
             all_datasets = response.json()
             for dataset in all_datasets:
                 if dataset["policy_accession_id"] == policy_accession_id and dataset["title"] == dataset_title:
@@ -130,7 +134,7 @@ class RegisterEgaDatasetAndFinalizeSubmission:
                 "run_provisional_ids": self.run_accession_ids,
             }
         )
-        if response.status_code in self.VALID_STATUS_CODES:
+        if response.status_code in VALID_STATUS_CODES:
             dataset_accession_id = [r["accession_id"] for r in response.json()][0]
             logging.info("Successfully registered dataset!")
             return dataset_accession_id
@@ -154,7 +158,7 @@ class RegisterEgaDatasetAndFinalizeSubmission:
                 "expected_release_date": timestamp,
             }
         )
-        if response.status_code in self.VALID_STATUS_CODES:
+        if response.status_code in VALID_STATUS_CODES:
             logging.info(
                 f"Successfully finalized submission for submission accession id: {self.submission_accession_id}"
             )

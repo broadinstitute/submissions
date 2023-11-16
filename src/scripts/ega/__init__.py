@@ -1,39 +1,146 @@
-import requests
-from typing import Optional
+INSTRUMENT_MODEL_MAPPING = {
+    "HISEQ_X_10": 9,
+    "Illumina Genome Analyzer II": 11,
+    "HISEQ_2000": 16,
+    "HISEQ_2500": 17,
+    "HISEQ_4000": 19,
+    "ISEQ_100": 21,
+    "MISEQ": 22,
+    "NOVA_SEQ_X": 24,
+    "NOVA_SEQ_6000": 25,
+    "NEXT_SEQ_500": 26,
+    "NEXT_SEQ_2000": 29,
+    "unspecified": 30
+}
 
-LOGIN_URL = "https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"
-SUBMISSION_PROTOCOL_API_URL = "https://submission.ega-archive.org/api"
+LIBRARY_LAYOUT = ["SINGLE", "PAIRED"]
 
+LIBRARY_STRATEGY = [
+    "WGS",
+    "WGA",
+    "WXS",
+    "RNA-Seq",
+    "ssRNA-seq",
+    "miRNA-Seq",
+    "ncRNA-Seq",
+    "FL-cDNA",
+    "EST",
+    "Hi-C",
+    "ATAC-seq",
+    "WCS",
+    "RAD-Seq",
+    "CLONE",
+    "POOLCLONE",
+    "AMPLICON",
+    "CLONEEND",
+    "FINISHING",
+    "ChIP-Seq",
+    "MNase-Seq",
+    "DNase-Hypersensitivity",
+    "Bisulfite-Seq",
+    "CTS",
+    "MRE-Seq",
+    "MeDIP-Seq",
+    "MBD-Seq",
+    "Tn-Seq",
+    "VALIDATION",
+    "FAIRE-seq",
+    "SELEX",
+    "RIP-Seq",
+    "ChIA-PET",
+    "Synthetic-Long-Read",
+    "Targeted-Capture",
+    "Tethered Chromatin Conformation Capture",
+    "NOMe-Seq",
+    "ChM-Seq",
+    "GBS",
+    "OTHER",
+    "snRNA-seq",
+    "Ribo-Seq"
+]
 
-class LoginAndGetToken:
-    def __init__(self, username: str, password: str) -> None:
-        self.username = username
-        self.password = password
+LIBRARY_SOURCE = [
+    "GENOMIC",
+    "GENOMIC SINGLE CELL",
+    "TRANSCRIPTOMIC",
+    "TRANSCRIPTOMIC SINGLE CELL",
+    "METAGENOMIC",
+    "METATRANSCRIPTOMIC",
+    "SYNTHETIC",
+    "VIRAL RNA",
+    "OTHER"
+]
 
-    def login_and_get_token(self) -> Optional[str]:
-        """Logs in and retrieves access token"""
-        response = requests.post(
-            url=LOGIN_URL,
-            data={
-                "grant_type": "password",
-                "client_id": "sp-api",
-                "username": self.username,
-                "password": self.password,
-            }
-        )
-        if response.status_code == 200:
-            token = response.json()["access_token"]
-            print("Successfully created access token!")
-            return token
-        else:
-            error_message = f"""Received status code {response.status_code} with error {response.json()} while 
-            attempting to get access token"""
-            print(error_message)
-            raise Exception(error_message)
+LIBRARY_SELECTION = [
+    "RANDOM",
+    "PCR",
+    "RANDOM PCR",
+    "RT-PCR",
+    "HMPR",
+    "MF",
+    "repeat fractionation",
+    "size fractionation",
+    "MSLL",
+    "cDNA",
+    "cDNA_randomPriming",
+    "cDNA_oligo_dT",
+    "PolyA",
+    "Oligo-dT",
+    "Inverse rRNA",
+    "Inverse rRNA selection",
+    "ChIP",
+    "ChIP-Seq",
+    "MNase",
+    "DNase",
+    "Hybrid Selection",
+    "Reduced Representation",
+    "Restriction Digest",
+    "5-methylcytidine antibody",
+    "MBD2 protein methyl-CpG binding domain",
+    "CAGE",
+    "RACE",
+    "MDA",
+    "padlock probes capture method",
+    "other",
+    "unspecified",
+]
 
+RUN_FILE_TYPE = [
+    "srf",
+    "sff"
+    "fastq",
+    "Illumina_native",
+    "Illumina_native_qseq",
+    "SOLiD_native_csfasta",
+    "PacBio_HDF5",
+    "bam",
+    "cram",
+    "CompleteGenomics_native",
+    "OxfordNanopore_native",
+]
 
-def format_request_header(token: str) -> dict:
-    return {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {token}"
-    }
+INSTRUMENT_MODEL = [
+    "HiSeq X Five", 
+    "HiSeq X Ten", 
+    "Illumina Genome Analyzer",
+    "Illumina Genome Analyzer II",
+    "Illumina Genome Analyzer IIx",
+    "Illumina HiScanSQ", 
+    "Illumina HiSeq 1000",
+    "Illumina HiSeq 1500",
+    "Illumina HiSeq 2000",
+    "Illumina HiSeq 2500",
+    "Illumina HiSeq 3000",
+    "Illumina HiSeq 4000",
+    "Illumina HiSeq X",
+    "Illumina iSeq 100",
+    "Illumina MiSeq",
+    "Illumina MiniSeq",
+    "Illumina NovaSeq X",
+    "Illumina NovaSeq 6000",
+    "NextSeq 500",
+    "NextSeq 550",
+    "NextSeq 1000",
+    "NextSeq 2000",
+    "unspecified"
+]
