@@ -8,9 +8,9 @@ workflow RegisterEGAExperimentAndRun {
         String workspace_project
         String submission_accession_id
         String study_accession_id
-        String user_name
+        String ega_inbox
         String password
-        String instrument_model
+        String illumina_instrument
         String library_layout
         String library_strategy
         String library_source
@@ -18,9 +18,9 @@ workflow RegisterEGAExperimentAndRun {
         String run_file_type
         String sample_alias
         String sample_id
-        String library_name
-        Float mean_insert_size
-        Float standard_deviation
+        String group_library_name
+        Float avg_mean_insert_size
+        Float avg_standard_deviation
         String sample_material_type
         String construction_protocol
         String aggregation_path
@@ -32,7 +32,7 @@ workflow RegisterEGAExperimentAndRun {
     call CheckEGAFileValidationStatus {
         input:
             submission_accession_id = submission_accession_id,
-            user_name = user_name,
+            ega_inbox = ega_inbox,
             password = password,
             sample_alias = sample_alias,
             sample_id = sample_id
@@ -53,9 +53,9 @@ workflow RegisterEGAExperimentAndRun {
             input:
                 submission_accession_id = submission_accession_id,
                 study_accession_id = study_accession_id,
-                user_name = user_name,
+                ega_inbox = ega_inbox,
                 password = password,
-                instrument_model = instrument_model,
+                illumina_instrument = illumina_instrument,
                 library_layout = library_layout,
                 library_strategy = library_strategy,
                 library_source = library_source,
@@ -63,9 +63,9 @@ workflow RegisterEGAExperimentAndRun {
                 run_file_type = run_file_type,
                 sample_alias = sample_alias,
                 sample_id = sample_id,
-                library_name = library_name,
-                mean_insert_size = mean_insert_size,
-                standard_deviation = standard_deviation,
+                group_library_name = group_library_name,
+                avg_mean_insert_size = avg_mean_insert_size,
+                avg_standard_deviation = avg_standard_deviation,
                 sample_material_type = sample_material_type,
                 construction_protocol = construction_protocol
         }
@@ -97,9 +97,9 @@ task RegisterExperimentAndRun{
     input {
         String submission_accession_id
         String study_accession_id
-        String user_name
+        String ega_inbox
         String password
-        String instrument_model
+        String illumina_instrument
         String library_layout
         String library_strategy
         String library_source
@@ -107,9 +107,9 @@ task RegisterExperimentAndRun{
         String run_file_type
         String sample_alias
         String sample_id
-        String library_name
-        Float mean_insert_size
-        Float standard_deviation
+        String group_library_name
+        Float avg_mean_insert_size
+        Float avg_standard_deviation
         String sample_material_type
         String construction_protocol
     }
@@ -118,9 +118,9 @@ task RegisterExperimentAndRun{
         python3 /src/scripts/ega/register_experiment_and_run_metadata.py \
             -submission_accession_id ~{submission_accession_id} \
             -study_accession_id ~{study_accession_id} \
-            -user_name ~{user_name} \
+            -user_name ~{ega_inbox} \
             -password ~{password} \
-            -instrument_model ~{instrument_model} \
+            -instrument_model ~{illumina_instrument} \
             -library_layout ~{library_layout} \
             -library_strategy ~{library_strategy} \
             -library_source ~{library_source} \
@@ -131,9 +131,9 @@ task RegisterExperimentAndRun{
             -run_file_type ~{run_file_type} \
             -sample_alias ~{sample_alias} \
             -sample_id ~{sample_id} \
-            -library_name ~{library_name} \
-            -mean_insert_size ~{mean_insert_size} \
-            -standard_deviation ~{standard_deviation} \
+            -library_name ~{group_library_name} \
+            -mean_insert_size ~{avg_mean_insert_size} \
+            -standard_deviation ~{avg_standard_deviation} \
             -sample_material_type ~{sample_material_type} \
             -construction_protocol ~{construction_protocol} \
     }
@@ -152,7 +152,7 @@ task RegisterExperimentAndRun{
 task CheckEGAFileValidationStatus {
     input {
         String submission_accession_id
-        String user_name
+        String ega_inbox
         String password
         String sample_alias
         String sample_id
@@ -161,7 +161,7 @@ task CheckEGAFileValidationStatus {
     command {
         python3 /src/scripts/ega/check_file_validation_status.py \
             -submission_accession_id ~{submission_accession_id} \
-            -user_name ~{user_name} \
+            -user_name ~{ega_inbox} \
             -password ~{password} \
             -sample_alias ~{sample_alias} \
             -sample_id ~{sample_id} \
