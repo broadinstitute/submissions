@@ -15,7 +15,6 @@
     - Submission API Documentation:
         https://submission.ega-archive.org/api/spec/#/
 """
-import os
 import sys
 import argparse
 import requests

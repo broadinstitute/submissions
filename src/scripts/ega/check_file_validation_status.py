@@ -5,7 +5,7 @@ from typing import Optional
 from pathlib import Path
 from csv import DictWriter
 
-sys.path.append("../")
+sys.path.append("./")
 from src.scripts.ega.utils import (
     LoginAndGetToken,
     format_request_header,
@@ -28,10 +28,8 @@ class GetValidationStatus:
     def _headers(self):
         return format_request_header(self.token)
 
-    def _get_file_metadata_for_files_in_submission(self) -> Optional[list[dict]]:
-        return get_file_metadata_for_all_files_in_submission(self._headers(), self.submission_accession_id)
-
     def _get_file_info_for_sample(self, file_metadata) -> list[dict]:
+        logging.info(f"Attempting to find all files associated with sample alias {self.sample_alias}")
         files_for_sample = []
 
         for file in file_metadata:
@@ -47,8 +45,8 @@ class GetValidationStatus:
             )
         return files_for_sample
 
-    @staticmethod
-    def _determine_validation_status_for_files(files_metadata_for_sample: list[dict]) -> bool:
+    def _determine_validation_status_for_files(self, files_metadata_for_sample: list[dict]) -> bool:
+        logging.info("Attempting to determine file validation status now.")
         validation_statuses = []
         for file in files_metadata_for_sample:
             # if the file has an encrypted checksum, and un-encrypted checksum, and the file size is larger than 0,
@@ -58,12 +56,15 @@ class GetValidationStatus:
                 validation_statuses.append(True)
 
         if all(validation_statuses):
+            logging.info(f"File(s) associated with {self.sample_alias} are valid!")
             return True
+        logging.info(f"File(s) associated wtih {self.sample_alias} have not yet been validated.")
         return False
 
     def get_file_validation_status(self) -> bool:
         # Get the metadata for ALL files in the submission
-        file_metadata = self._get_file_metadata_for_files_in_submission()
+        logging.info("Attempting to collect metadata for all files in submission")
+        file_metadata = get_file_metadata_for_all_files_in_submission(self._headers(), self.submission_accession_id)
         # Filter down to only the file metadata for the sample of interest
         if file_metadata:
             files_metadata_for_sample = self._get_file_info_for_sample(file_metadata=file_metadata)
@@ -82,10 +83,12 @@ class WriteOutputTsvFiles:
         self.file_content = "validated" if self.validation_status else "incomplete"
 
     def _write_file_validation_status_file(self) -> None:
+        logging.info("Writing final validation status out to file")
         with open("/cromwell_root/file_validation_status.tsv") as validation_file:
             validation_file.write(self.file_content)
 
     def _write_validation_status_for_terra_data_tables(self) -> None:
+        logging.info("Writing validation status and sample id tsv to file")
         with open("/cromwell_root/sample_id_validation_status.tsv") as validation_file:
             writer = DictWriter(validation_file, fieldnames=["sample_id", "file_validation_status"])
             writer.writeheader()
@@ -132,6 +135,7 @@ if __name__ == '__main__':
     access_token = LoginAndGetToken(username=args.user_name, password=args.password).login_and_get_token()
 
     if access_token:
+        logging.info("Successfully generated access token")
         validation_status = GetValidationStatus(
             token=access_token,
             sample_alias=args.sample_alias,
