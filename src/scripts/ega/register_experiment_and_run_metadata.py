@@ -24,7 +24,7 @@ from typing import Optional
 from csv import DictWriter
 
 
-sys.path.append("../")
+sys.path.append("./")
 from src.scripts.ega.utils import (
     LoginAndGetToken,
     SUBMISSION_PROTOCOL_API_URL,

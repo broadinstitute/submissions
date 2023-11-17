@@ -15,6 +15,7 @@
     - Submission API Documentation:
         https://submission.ega-archive.org/api/spec/#/
 """
+import os
 import sys
 import argparse
 import requests
@@ -22,7 +23,8 @@ import logging
 from datetime import datetime
 from typing import Optional
 
-sys.path.append("../")
+
+sys.path.append("./")
 from src.scripts.ega import LIBRARY_STRATEGY
 from src.scripts.ega.utils import (
     LoginAndGetToken,
