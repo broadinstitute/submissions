@@ -61,7 +61,15 @@ def get_file_metadata_for_all_files_in_submission(headers: dict, submission_acce
         files_of_interest = [
             f for f in file_metadata if f["submission_accession_id"] == submission_accession_id
         ]
-        return files_of_interest
+        if files_of_interest:
+            logging.info(f"Found {len(files_of_interest)} files associated with submission {submission_accession_id}!")
+            return files_of_interest
+        else:
+            raise Exception(
+                f"Expected to find at least 1 file associated with submission {submission_accession_id}. Instead "
+                f"found none."
+            )
+
     else:
         error_message = f"""Received status code {response.status_code} with error: {response.text} while
                  attempting to query for file metadata"""

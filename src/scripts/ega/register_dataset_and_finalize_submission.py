@@ -61,7 +61,7 @@ class RegisterEgaDatasetAndFinalizeSubmission:
 
     def _get_policy_accession_id(self) -> Optional[str]:
         """
-        Gets a policy accession ID
+        Collects all policy metadata
         Endpoint documentation located here:
         https://submission.ega-archive.org/api/spec/#/paths/policies/get
         """
@@ -102,7 +102,15 @@ class RegisterEgaDatasetAndFinalizeSubmission:
             all_datasets = response.json()
             for dataset in all_datasets:
                 if dataset["policy_accession_id"] == policy_accession_id and dataset["title"] == dataset_title:
+                    logging.info(
+                        f"Dataset with title {dataset_title} associated with policy {policy_accession_id} already "
+                        f"exists. Will not attempt to re-create it."
+                    )
                     return dataset["accession_id"]
+            logging.info(
+                f"Dataset with title {dataset_title} associated with policy {policy_accession_id} does not exist. "
+                f"Will attempt to create it now."
+            )
             return None
         else:
             error_message = f"""Received status code {response.status_code} with error: {response.text} while 
@@ -117,12 +125,14 @@ class RegisterEgaDatasetAndFinalizeSubmission:
         https://submission.ega-archive.org/api/spec/#/paths/submissions-accession_id--datasets/post
         """
         dataset_type = "Whole genome sequencing" if self.library_strategy == "WGS" else "Exome sequencing"
-        dataset_title = self.dataset_title if self.dataset_title else f"{dataset_type} of samples"
+        dataset_title = (self.dataset_title if self.dataset_title else
+                         f"{dataset_type} of samples for {self.submission_accession_id}")
         dataset_description = self.dataset_description if self.dataset_description else dataset_title
 
         if dataset_accession_id := self._dataset_exists(policy_accession_id, dataset_title):
             return dataset_accession_id
 
+        logging.info("Attempting to create dataset.")
         response = requests.post(
             url=f"{SUBMISSION_PROTOCOL_API_URL}/submissions/{self.submission_accession_id}/datasets",
             headers=self._headers(),
@@ -151,6 +161,7 @@ class RegisterEgaDatasetAndFinalizeSubmission:
         https://submission.ega-archive.org/api/spec/#/paths/submissions-accession_id--finalise/post
         """
         timestamp = datetime.now().strftime("%Y-%m-%d")
+        logging.info("Attempting to finalize submission")
         response = requests.post(
             url=f"{SUBMISSION_PROTOCOL_API_URL}/submissions/{self.submission_accession_id}/finalise",
             headers=self._headers(),
@@ -231,6 +242,7 @@ if __name__ == '__main__':
 
     access_token = LoginAndGetToken(username=args.user_name, password=args.password).login_and_get_token()
     if access_token:
+        logging.info("Successfully generated access token. Will continue with dataset registration now.")
         RegisterEgaDatasetAndFinalizeSubmission(
             token=access_token,
             submission_accession_id=args.submission_accession_id,
