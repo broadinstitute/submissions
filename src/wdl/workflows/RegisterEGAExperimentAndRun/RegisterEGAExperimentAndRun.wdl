@@ -42,7 +42,7 @@ workflow RegisterEGAExperimentAndRun {
     call terra_tasks.UpsertMetadataToDataModel as upsert_metadata {
         input:
             workspace_name = workspace_name,
-            worksapce_project = workspace_project,
+            workspace_project = workspace_project,
             tsv = CheckEGAFileValidationStatus.sample_id_validation_status_tsv
     }
 
@@ -73,7 +73,7 @@ workflow RegisterEGAExperimentAndRun {
         call terra_tasks.UpsertMetadataToDataModel {
             input:
                 workspace_name = workspace_name,
-                worksapce_project = workspace_project,
+                workspace_project = workspace_project,
                 tsv = RegisterExperimentAndRun.run_accession_tsv
         }
 
