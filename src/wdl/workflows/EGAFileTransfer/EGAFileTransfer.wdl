@@ -9,9 +9,9 @@ workflow EGAFileTransfer {
       String ega_inbox
   }
 
-  call EncryptDataFiles {
+  call InboxFileTransfer {
       input:
-        aggregation_path = aggregation_path
+        aggregation_path = aggregation_path,
         crypt4gh_encryption_key = crypt4gh_encryption_key
   }
 
@@ -24,7 +24,7 @@ workflow EGAFileTransfer {
 
 task EncryptDataFiles {
     input {
-        File aggregation_path
+        File aggregation_path,
         File crypt4gh_encryption_key
     }
 
@@ -52,23 +52,7 @@ task EncryptDataFiles {
     }
 }
 
-task RetrieveSecret {
-    input {
-        String secretName
-    }
-
-    command <<<
-        # Retrieve the secret from Google Secret Manager
-        secretValue=$(gcloud secrets versions access latest --secret=${secretName} --format="get(payload.data)" --project=gdc-submissions)
-        
-        # Set the secret value as an environment variable
-        export MY_SECRET=${secretValue}
-        
-        # Your command here using the MY_SECRET environment variable
-    >>>
-}
-
-task inboxFileTransfer {
+task InboxFileTransfer {
     input {
         File encryptedDataFile
         String ega_inbox
@@ -107,6 +91,6 @@ task inboxFileTransfer {
     }
 
     output {
-        File transferLog = "upload/aspera-scp-transfer.log"
+        File transferLog = "upload/inbox-transfer.log"
     }
 }
