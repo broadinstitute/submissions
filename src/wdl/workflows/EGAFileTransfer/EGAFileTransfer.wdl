@@ -9,13 +9,13 @@ workflow EGAFileTransfer {
       String ega_inbox
   }
 
-  call InboxFileTransfer {
+  call EncryptDataFiles {
       input:
         aggregation_path = aggregation_path,
         crypt4gh_encryption_key = crypt4gh_encryption_key
   }
 
-  call ascpFileTransfer {
+  call InboxFileTransfer {
     input:
       encryptedDataFile = EncryptDataFiles.encryptedDataFile,
       ega_inbox = ega_inbox
