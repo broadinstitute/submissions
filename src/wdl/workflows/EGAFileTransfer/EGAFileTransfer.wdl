@@ -24,7 +24,7 @@ workflow EGAFileTransfer {
 
 task EncryptDataFiles {
     input {
-        File aggregation_path,
+        File aggregation_path
         File crypt4gh_encryption_key
     }
 
