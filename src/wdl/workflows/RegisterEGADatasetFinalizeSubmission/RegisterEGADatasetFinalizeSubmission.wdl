@@ -13,6 +13,18 @@ workflow RegisterEGADatasetFinalizeSubmission {
         String? dataset_description
     }
 
+    call RegisterDatasetFinalizeSubmission {
+        input:
+            submission_accession_id = submission_accession_id,
+            ega_inbox = ega_inbox,
+            password = password,
+            policy_title = policy_title,
+            library_strategy = library_strategy,
+            run_accession_ids = run_accession_ids,
+            dataset_title = dataset_title,
+            dataset_description = dataset_description
+    }
+
 }
 
 task RegisterDatasetFinalizeSubmission {
@@ -41,11 +53,7 @@ task RegisterDatasetFinalizeSubmission {
 
     runtime {
         preemptible: 3
-        docker: "schaluvadi/horsefish:submissionV1"
-    }
-
-    output {
-        # TODO what goes here?
+        docker: "schaluvadi/horsefish:submissionV2GDC"
     }
 
 }

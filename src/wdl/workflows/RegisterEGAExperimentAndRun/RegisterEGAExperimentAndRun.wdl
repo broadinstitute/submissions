@@ -82,8 +82,8 @@ workflow RegisterEGAExperimentAndRun {
 
             call DeleteFileFromBucket {
                 input:
-                aggregation_path = aggregation_path,
-                aggregation_index_path = aggregation_index_path
+                    aggregation_path = aggregation_path,
+                    aggregation_index_path = aggregation_index_path
             }
 
         }
@@ -140,7 +140,7 @@ task RegisterExperimentAndRun{
 
     runtime {
         preemptible: 3
-        docker: "schaluvadi/horsefish:submissionV1"
+        docker: "schaluvadi/horsefish:submissionV2GDC"
     }
 
     output {
@@ -169,7 +169,7 @@ task CheckEGAFileValidationStatus {
 
     runtime {
         preemptible: 3
-        docker: "schaluvadi/horsefish:submissionV1"
+        docker: "schaluvadi/horsefish:submissionV2GDC"
     }
 
     output {
@@ -197,10 +197,6 @@ task DeleteFileFromBucket {
     runtime {
         preemptible: 3
         docker: "schaluvadi/horsefish:submissionV1"
-    }
-
-    output {
-        # TODO what goes here?
     }
 
 }
