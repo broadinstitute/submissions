@@ -24,7 +24,6 @@ workflow RegisterEGAExperimentAndRun {
         String sample_material_type
         String construction_protocol
         String aggregation_path
-        String aggregation_index_path
         Boolean delete_files = false
     }
 
@@ -82,8 +81,7 @@ workflow RegisterEGAExperimentAndRun {
 
             call DeleteFileFromBucket {
                 input:
-                    aggregation_path = aggregation_path,
-                    aggregation_index_path = aggregation_index_path
+                    aggregation_path = aggregation_path
             }
 
         }
@@ -182,7 +180,6 @@ task CheckEGAFileValidationStatus {
 task DeleteFileFromBucket {
     input {
         String aggregation_path
-        String aggregation_index_path
     }
 
     String aggregation_md5_path  = aggregation_path + ".md5"
@@ -190,7 +187,6 @@ task DeleteFileFromBucket {
     command <<<
         set -eo pipefail
         gsutil rm -a ~{aggregation_path}
-        gsutil rm -a ~{aggregation_index_path}
         gsutil rm -a ~{aggregation_md5_path}
     >>>
 
