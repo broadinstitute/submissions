@@ -7,7 +7,7 @@ workflow RegisterEGADatasetFinalizeSubmission {
         String ega_inbox
         String password
         String policy_title
-        String library_strategy
+        Array [String] library_strategy
         Array [String] run_accession_ids
         String? dataset_title
         String? dataset_description
@@ -33,7 +33,7 @@ task RegisterDatasetFinalizeSubmission {
         String ega_inbox
         String password
         String policy_title
-        String library_strategy
+        Array [String] library_strategy
         Array [String] run_accession_ids
         String? dataset_title
         String? dataset_description
