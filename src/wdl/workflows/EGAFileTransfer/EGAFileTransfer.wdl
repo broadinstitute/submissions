@@ -28,19 +28,22 @@ task EncryptDataFiles {
         File crypt4gh_encryption_key
     }
 
-    command {
+    command <<<
         python <<CODE
             import subprocess
 
-            output_file = f'encrypted_{aggregation_path}.c4gh'
-            command = f'crypt4gh encrypt --recipient_pk {crypt4gh_encryption_key} < {aggregation_path} > {output_file}'
+            key = ~{crypt4gh_encryption_key}
+            file_path = ~{aggregation_path}
+
+            output_file = f'encrypted_{file_path}.c4gh'
+            command = f'crypt4gh encrypt --recipient_pk {key} < {file_path} > {output_file}'
             print(f"command {command}")
             res = subprocess.run(command, capture_output=True, shell=True)
 
             if res.stderr:
                 raise RuntimeError(res.stderr.decode())
         CODE
-    }
+    <<<
 
     runtime {
       preemptible: 3
@@ -48,7 +51,7 @@ task EncryptDataFiles {
     }
 
     output {
-        File encrypted_data_file = "encrypted_{aggregation_path}.c4gh"
+        File encrypted_data_file = "encrypted_~{aggregation_path}.c4gh"
     }
 }
 
@@ -72,7 +75,7 @@ task InboxFileTransfer {
 
             # Check for errors
             if secret_res.returncode != 0:
-            raise RuntimeError(secret_res.stderr)
+                raise RuntimeError(secret_res.stderr)
 
             # Extract the secret value
             password = res.stdout.strip()
