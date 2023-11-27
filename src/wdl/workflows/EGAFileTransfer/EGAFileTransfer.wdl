@@ -32,8 +32,8 @@ task EncryptDataFiles {
         python <<CODE
             import subprocess
 
-            key = ~{crypt4gh_encryption_key}
-            file_path = ~{aggregation_path}
+            key = '${crypt4gh_encryption_key}'
+            file_path = '${aggregation_path}'
 
             output_file = f'encrypted_{file_path}.c4gh'
             command = f'crypt4gh encrypt --recipient_pk {key} < {file_path} > {output_file}'
@@ -51,7 +51,7 @@ task EncryptDataFiles {
     }
 
     output {
-        File encrypted_data_file = "encrypted_{aggregation_path}.c4gh"
+        File encrypted_data_file = "encrypted_${aggregation_path}.c4gh"
     }
 }
 
