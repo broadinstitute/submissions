@@ -18,8 +18,7 @@ workflow EGAFileTransfer {
   call InboxFileTransfer {
     input:
       encrypted_data_file = EncryptDataFiles.encrypted_data_file,
-      ega_inbox = ega_inbox,
-      sample_alias = sample_alias
+      ega_inbox = ega_inbox
   }
 }
 
@@ -29,19 +28,19 @@ task EncryptDataFiles {
         File crypt4gh_encryption_key
     }
 
-    command <<<
-        python3 <<EOF
-        import subprocess
+    command {
+        python <<CODE
+            import subprocess
 
-        output_file = f'encrypted_{aggregation_path}.c4gh'
-        command = f'crypt4gh encrypt --recipient_pk {crypt4gh_encryption_key} < {aggregation_path} > {output_file}'
-        print(f"command {command}")
-        res = subprocess.run(command, capture_output=True, shell=True)
+            output_file = f'encrypted_{aggregation_path}.c4gh'
+            command = f'crypt4gh encrypt --recipient_pk {crypt4gh_encryption_key} < {aggregation_path} > {output_file}'
+            print(f"command {command}")
+            res = subprocess.run(command, capture_output=True, shell=True)
 
-        if res.stderr:
-            raise RuntimeError(res.stderr.decode())
-        EOF
-    >>>
+            if res.stderr:
+                raise RuntimeError(res.stderr.decode())
+        CODE
+    }
 
     runtime {
       preemptible: 3
@@ -59,34 +58,34 @@ task InboxFileTransfer {
         String ega_inbox
     }
 
-    command <<<
-        python3 <<EOF
-        import subprocess
-        import os
+    command {
+        python <<CODE
+            import subprocess
+            import os
 
-        REMOTE_PATH = "/encrypted"
-        SFTP_HOSTNAME = "inbox.ega-archive.org"
-        SFTP_PORT = 22
+            REMOTE_PATH = "/encrypted"
+            SFTP_HOSTNAME = "inbox.ega-archive.org"
+            SFTP_PORT = 22
 
-        # Retrieve the secret value from Google Secret Manager
-        secret_res = subprocess.run(['gcloud', 'secrets', 'versions', 'access', 'latest', f'--secret={secret_name}', '--format=get(payload.data)'], capture_output=True, text=True)
+            # Retrieve the secret value from Google Secret Manager
+            secret_res = subprocess.run(['gcloud', 'secrets', 'versions', 'access', 'latest', f'--secret={secret_name}', '--format=get(payload.data)'], capture_output=True, text=True)
 
-        # Check for errors
-        if secret_res.returncode != 0:
-          raise RuntimeError(secret_res.stderr)
+            # Check for errors
+            if secret_res.returncode != 0:
+            raise RuntimeError(secret_res.stderr)
 
-        # Extract the secret value
-        password = res.stdout.strip()
+            # Extract the secret value
+            password = res.stdout.strip()
 
-        transport = paramiko.Transport((SFTP_HOSTNAME, SFTP_PORT))
-        transport.connect(username=ega_inbox, password=password)
+            transport = paramiko.Transport((SFTP_HOSTNAME, SFTP_PORT))
+            transport.connect(username=ega_inbox, password=password)
 
-        # Create an SFTP client from the transport
-        sftp = paramiko.SFTPClient.from_transport(transport)
-        remote_file = os.path.join(self.REMOTE_PATH, os.path.basename(encrypted_data_file))
-        sftp.put(encrypted_data_file, remote_file)
-        EOF
-    >>>
+            # Create an SFTP client from the transport
+            sftp = paramiko.SFTPClient.from_transport(transport)
+            remote_file = os.path.join(self.REMOTE_PATH, os.path.basename(encrypted_data_file))
+            sftp.put(encrypted_data_file, remote_file)
+        CODE
+    }
 
     runtime {
       preemptible: 3
