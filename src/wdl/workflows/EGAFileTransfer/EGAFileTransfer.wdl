@@ -52,8 +52,8 @@ task InboxFileTransfer {
 
     command {
         python3 /src/scripts/ega/transfer_ega_file.py \
-            -aggregation_path ~{aggregation_path} \
-            -crypt4gh_encryption_key ~{crypt4gh_encryption_key} \
+            -encrypted_data_file ~{encrypted_data_file} \
+            -ega_inbox ~{ega_inbox} \
     }
 
     runtime {
