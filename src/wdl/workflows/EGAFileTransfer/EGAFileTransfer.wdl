@@ -51,7 +51,7 @@ task EncryptDataFiles {
     }
 
     output {
-        File encrypted_data_file = "encrypted_~{aggregation_path}.c4gh"
+        File encrypted_data_file = "encrypted_{aggregation_path}.c4gh"
     }
 }
 
