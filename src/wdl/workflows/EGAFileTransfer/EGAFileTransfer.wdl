@@ -28,7 +28,7 @@ task EncryptDataFiles {
         File crypt4gh_encryption_key
     }
 
-    command <<<
+    command {
         python <<CODE
         import subprocess
 
@@ -43,7 +43,7 @@ task EncryptDataFiles {
         if res.stderr:
             raise RuntimeError(res.stderr.decode())
         CODE
-    <<<
+    }
 
     runtime {
       preemptible: 3
