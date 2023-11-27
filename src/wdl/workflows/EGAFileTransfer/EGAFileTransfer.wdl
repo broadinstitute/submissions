@@ -17,8 +17,9 @@ workflow EGAFileTransfer {
 
   call InboxFileTransfer {
     input:
-      encryptedDataFile = EncryptDataFiles.encryptedDataFile,
-      ega_inbox = ega_inbox
+      encrypted_data_file = EncryptDataFiles.encrypted_data_file,
+      ega_inbox = ega_inbox,
+      sample_alias = sample_alias
   }
 }
 
@@ -48,13 +49,13 @@ task EncryptDataFiles {
     }
 
     output {
-        File encryptedDataFile = "encrypted_{aggregation_path}.c4gh"
+        File encrypted_data_file = "encrypted_{aggregation_path}.c4gh"
     }
 }
 
 task InboxFileTransfer {
     input {
-        File encryptedDataFile
+        File encrypted_data_file
         String ega_inbox
     }
 
@@ -64,6 +65,8 @@ task InboxFileTransfer {
         import os
 
         REMOTE_PATH = "/encrypted"
+        SFTP_HOSTNAME = "inbox.ega-archive.org"
+        SFTP_PORT = 22
 
         # Retrieve the secret value from Google Secret Manager
         secret_res = subprocess.run(['gcloud', 'secrets', 'versions', 'access', 'latest', f'--secret={secret_name}', '--format=get(payload.data)'], capture_output=True, text=True)
@@ -73,15 +76,15 @@ task InboxFileTransfer {
           raise RuntimeError(secret_res.stderr)
 
         # Extract the secret value
-        file_encryption_key = res.stdout.strip()
+        password = res.stdout.strip()
 
-        output_file = f'encrypted_{aggregation_path}.c4gh'
-        command = f'crypt4gh encrypt --recipient_pk {file_encryption_key} < {aggregation_path} > {output_file}'
-        print(f"command {command}")
-        res = subprocess.run(command, capture_output=True, shell=True)
+        transport = paramiko.Transport((SFTP_HOSTNAME, SFTP_PORT))
+        transport.connect(username=ega_inbox, password=password)
 
-        if res.stderr:
-            raise RuntimeError(res.stderr.decode())
+        # Create an SFTP client from the transport
+        sftp = paramiko.SFTPClient.from_transport(transport)
+        remote_file = os.path.join(self.REMOTE_PATH, os.path.basename(encrypted_data_file))
+        sftp.put(encrypted_data_file, remote_file)
         EOF
     >>>
 
