@@ -54,7 +54,7 @@ task InboxFileTransfer {
         String ega_inbox
     }
 
-    Int disk_size = ceil(size(encrypted_data_file, "GiB") * 1.5)
+    Int disk_size = ceil(size(encrypted_data_file, "GiB") * 2.5)
 
     command {
         python3 /src/scripts/ega/transfer_ega_file.py \
