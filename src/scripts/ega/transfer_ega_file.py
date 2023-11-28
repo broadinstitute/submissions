@@ -1,5 +1,6 @@
 import os
 import subprocess
+import argparse
 
 def transfer_file(encrypted_data_file, ega_inbox):
     REMOTE_PATH = "/encrypted"

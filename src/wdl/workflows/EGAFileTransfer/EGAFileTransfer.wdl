@@ -28,6 +28,8 @@ task EncryptDataFiles {
         File crypt4gh_encryption_key
     }
 
+    Int disk_size = ceil(size(aggregation_path, "GiB") * 1.5)
+
     command {
         python3 /src/scripts/ega/encrypt_data_file.py \
             -aggregation_path ~{aggregation_path} \
@@ -35,8 +37,10 @@ task EncryptDataFiles {
     }
 
     runtime {
-      preemptible: 3
-      docker: "schaluvadi/horsefish:submissionV2GDC"
+        memory: "7.5 GB"
+        docker: "schaluvadi/horsefish:submissionV2GDC"
+        cpu: 2
+        disks: "local-disk " + disk_size + " HDD"
     }
 
     output {
@@ -50,6 +54,8 @@ task InboxFileTransfer {
         String ega_inbox
     }
 
+    Int disk_size = ceil(size(encrypted_data_file, "GiB") * 1.5)
+
     command {
         python3 /src/scripts/ega/transfer_ega_file.py \
             -encrypted_data_file ~{encrypted_data_file} \
@@ -57,8 +63,10 @@ task InboxFileTransfer {
     }
 
     runtime {
-      preemptible: 3
-      docker: "schaluvadi/horsefish:submissionV2GDC"
+        memory: "7.5 GB"
+        docker: "schaluvadi/horsefish:submissionV2GDC"
+        cpu: 2
+        disks: "local-disk " + disk_size + " HDD"
     }
 
     output {
