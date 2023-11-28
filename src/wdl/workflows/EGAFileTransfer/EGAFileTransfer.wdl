@@ -28,7 +28,7 @@ task EncryptDataFiles {
         File crypt4gh_encryption_key
     }
 
-    Int disk_size = ceil(size(aggregation_path, "GiB") * 1.5)
+    Int disk_size = ceil(size(aggregation_path, "GiB") * 2.5)
 
     command {
         python3 /src/scripts/ega/encrypt_data_file.py \
@@ -37,7 +37,7 @@ task EncryptDataFiles {
     }
 
     runtime {
-        memory: "7.5 GB"
+        memory: "30 GB"
         docker: "schaluvadi/horsefish:submissionV2GDC"
         cpu: 2
         disks: "local-disk " + disk_size + " HDD"
