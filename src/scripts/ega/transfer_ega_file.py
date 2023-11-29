@@ -1,8 +1,9 @@
 import os
-import subprocess
 import argparse
-from google.cloud import secretmanager
+import paramiko
+import subprocess
 import google_crc32c
+from google.cloud import secretmanager
 
 def get_active_account():
     try:
