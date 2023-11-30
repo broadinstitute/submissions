@@ -21,7 +21,6 @@ import requests
 import logging
 from datetime import datetime
 from typing import Optional
-password = SecretManager(project_id="gdc-submissions", secret_id="ega_password", version_id=1).get_ega_password_secret()
 
 sys.path.append("./")
 from src.scripts.ega import LIBRARY_STRATEGY
