@@ -4,7 +4,7 @@ workflow RegisterEGADatasetFinalizeSubmission {
     input {
         String submission_accession_id
         String ega_inbox
-        String passwords
+        String password
         String policy_title
         Array[String] library_strategy
         Array[String] run_accession_ids
