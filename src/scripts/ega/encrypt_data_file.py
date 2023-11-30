@@ -1,15 +1,19 @@
 import os
+import logging
 import subprocess
 import argparse
+
+logging.basicConfig(
+    format="%(levelname)s: %(asctime)s : %(message)s", level=logging.INFO
+)
 
 def encrypt_file(aggregation_path, crypt4gh_encryption_key):
     # Get the filename from the path
     filename = os.path.basename(aggregation_path)
     output_file = f'encrypted_{filename}.c4gh'
     command = f'crypt4gh encrypt --recipient_pk {crypt4gh_encryption_key} < {aggregation_path} > {output_file}'
-    print(f"command {command}")
     res = subprocess.run(command, capture_output=True, shell=True)
-    print(f"res {res}")
+
     if res.stderr:
         raise RuntimeError(res.stderr.decode())
 

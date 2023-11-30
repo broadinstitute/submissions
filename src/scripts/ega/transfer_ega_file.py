@@ -1,11 +1,17 @@
 import os
+import logging
 import argparse
 import paramiko
 import subprocess
 import google_crc32c
 from google.cloud import secretmanager
 
+logging.basicConfig(
+    format="%(levelname)s: %(asctime)s : %(message)s", level=logging.INFO
+)
+
 def get_active_account():
+    """Helper function to determine which gcloud account is running the workflow"""
     try:
         result = subprocess.run(['gcloud', 'auth', 'list', '--filter=status:ACTIVE', '--format=value(account)'], capture_output=True, text=True)
         if result.returncode == 0:
@@ -20,31 +26,31 @@ def get_ega_password_secret():
     secret_id = "ega_password"
     version_id = 1
 
+    # Connect to the client to allow secret access
     client = secretmanager.SecretManagerServiceClient()
     name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
     response = client.access_secret_version(request={"name": name})
-
+    
     # Verify payload checksum.
     crc32c = google_crc32c.Checksum()
     crc32c.update(response.payload.data)
     if response.payload.data_crc32c != int(crc32c.hexdigest(), 16):
-        print("Data corruption detected.")
+        logging.error("Data corruption detected.")
+    else:
+        logging.info("Successfully accessed secret")
 
-    # Print the secret payload.
-    payload = response.payload.data.decode("UTF-8")
-    print(f"Plaintext: {payload}")
+    # Decode payload using UTF-8
+    secret_payload = response.payload.data.decode("UTF-8")
 
-    return payload
+    return secret_payload
 
 def transfer_file(encrypted_data_file, ega_inbox):
     REMOTE_PATH = "/encrypted"
     SFTP_HOSTNAME = "inbox.ega-archive.org"
     SFTP_PORT = 22
 
-    print("before - current running account", get_active_account())
     # Retrieve the secret value from Google Secret Manager
-    ega_password = get_ega_password_secret()
-    print("got password")
+    ega_password = get_ega_password_secret()\
     transport = paramiko.Transport((SFTP_HOSTNAME, SFTP_PORT))
     transport.connect(username=ega_inbox, password=ega_password)
 
@@ -68,5 +74,7 @@ if __name__ == '__main__':
         help="Inbox assigned to the current PM"
     )
     args = parser.parse_args()
-    print("starting script")
+    logging.info("Starting script to transfer file to ega")
+
     transfer_file(args.encrypted_data_file, args.ega_inbox)
+    logging.info("Successfully finished script")
