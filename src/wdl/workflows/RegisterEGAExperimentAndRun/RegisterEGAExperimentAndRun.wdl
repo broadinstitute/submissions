@@ -9,7 +9,6 @@ workflow RegisterEGAExperimentAndRun {
         String submission_accession_id
         String study_accession_id
         String ega_inbox
-        String password
         String illumina_instrument
         String library_layout
         String library_strategy
@@ -32,7 +31,6 @@ workflow RegisterEGAExperimentAndRun {
         input:
             submission_accession_id = submission_accession_id,
             ega_inbox = ega_inbox,
-            password = password,
             sample_alias = sample_alias,
             sample_id = sample_id
     }
@@ -53,7 +51,6 @@ workflow RegisterEGAExperimentAndRun {
                 submission_accession_id = submission_accession_id,
                 study_accession_id = study_accession_id,
                 ega_inbox = ega_inbox,
-                password = password,
                 illumina_instrument = illumina_instrument,
                 library_layout = library_layout,
                 library_strategy = library_strategy,
@@ -96,7 +93,6 @@ task RegisterExperimentAndRun{
         String submission_accession_id
         String study_accession_id
         String ega_inbox
-        String password
         String illumina_instrument
         String library_layout
         String library_strategy
@@ -117,7 +113,6 @@ task RegisterExperimentAndRun{
             -submission_accession_id ~{submission_accession_id} \
             -study_accession_id ~{study_accession_id} \
             -user_name ~{ega_inbox} \
-            -password ~{password} \
             -instrument_model ~{illumina_instrument} \
             -library_layout ~{library_layout} \
             -library_strategy ~{library_strategy} \
@@ -151,7 +146,6 @@ task CheckEGAFileValidationStatus {
     input {
         String submission_accession_id
         String ega_inbox
-        String password
         String sample_alias
         String sample_id
     }
@@ -160,7 +154,6 @@ task CheckEGAFileValidationStatus {
         python3 /src/scripts/ega/check_file_validation_status.py \
             -submission_accession_id ~{submission_accession_id} \
             -user_name ~{ega_inbox} \
-            -password ~{password} \
             -sample_alias ~{sample_alias} \
             -sample_id ~{sample_id} \
     }

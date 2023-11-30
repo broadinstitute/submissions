@@ -4,7 +4,6 @@ workflow RegisterEGADatasetFinalizeSubmission {
     input {
         String submission_accession_id
         String ega_inbox
-        String password
         String policy_title
         Array[String] library_strategy
         Array[String] run_accession_ids
@@ -16,7 +15,6 @@ workflow RegisterEGADatasetFinalizeSubmission {
         input:
             submission_accession_id = submission_accession_id,
             ega_inbox = ega_inbox,
-            password = password,
             policy_title = policy_title,
             library_strategy = library_strategy,
             run_accession_ids = run_accession_ids,
@@ -30,7 +28,6 @@ task RegisterDatasetFinalizeSubmission {
     input {
         String submission_accession_id
         String ega_inbox
-        String password
         String policy_title
         Array[String]? library_strategy
         Array[String]? run_accession_ids
@@ -42,7 +39,6 @@ task RegisterDatasetFinalizeSubmission {
         python3 /src/scripts/ega/register_dataset_and_finalize_submission.py \
             -submission_accession_id ~{submission_accession_id} \
             -user_name ~{ega_inbox} \
-            -password ~{password} \
             -policy_title ~{policy_title} \
             -library_strategy ~{library_strategy} \
             -run_accession_ids ~{run_accession_ids} \
