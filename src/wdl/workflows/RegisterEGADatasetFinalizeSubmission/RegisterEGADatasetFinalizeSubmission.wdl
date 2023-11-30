@@ -1,11 +1,10 @@
 version 1.0
 
 workflow RegisterEGADatasetFinalizeSubmission {
-
     input {
         String submission_accession_id
         String ega_inbox
-        String password
+        String passwords
         String policy_title
         Array[String] library_strategy
         Array[String] run_accession_ids
@@ -55,5 +54,4 @@ task RegisterDatasetFinalizeSubmission {
         preemptible: 3
         docker: "schaluvadi/horsefish:submissionV2GDC"
     }
-
 }
