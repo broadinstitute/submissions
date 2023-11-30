@@ -3,8 +3,7 @@ import logging
 import argparse
 import paramiko
 import subprocess
-import google_crc32c
-from google.cloud import secretmanager
+from src.scripts.ega.utils import SecretManager
 
 logging.basicConfig(
     format="%(levelname)s: %(asctime)s : %(message)s", level=logging.INFO
@@ -21,36 +20,13 @@ def get_active_account():
     except Exception as e:
         return f"Exception: {str(e)}"
 
-def get_ega_password_secret():
-    project_id = "gdc-submissions"
-    secret_id = "ega_password"
-    version_id = 1
-
-    # Connect to the client to allow secret access
-    client = secretmanager.SecretManagerServiceClient()
-    name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
-    response = client.access_secret_version(request={"name": name})
-    
-    # Verify payload checksum.
-    crc32c = google_crc32c.Checksum()
-    crc32c.update(response.payload.data)
-    if response.payload.data_crc32c != int(crc32c.hexdigest(), 16):
-        logging.error("Data corruption detected.")
-    else:
-        logging.info("Successfully accessed secret")
-
-    # Decode payload using UTF-8
-    secret_payload = response.payload.data.decode("UTF-8")
-
-    return secret_payload
-
 def transfer_file(encrypted_data_file, ega_inbox):
     REMOTE_PATH = "/encrypted"
     SFTP_HOSTNAME = "inbox.ega-archive.org"
     SFTP_PORT = 22
 
     # Retrieve the secret value from Google Secret Manager
-    ega_password = get_ega_password_secret()\
+    password = SecretManager(project_id="gdc-submissions", secret_id="ega_password", version_id=1).get_ega_password_secret()
     transport = paramiko.Transport((SFTP_HOSTNAME, SFTP_PORT))
     transport.connect(username=ega_inbox, password=ega_password)
 
