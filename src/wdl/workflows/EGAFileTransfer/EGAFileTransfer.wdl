@@ -69,7 +69,5 @@ task InboxFileTransfer {
         disks: "local-disk " + disk_size + " HDD"
     }
 
-    output {
-        File transferLog = "upload/inbox-transfer.log"
-    }
+    output {}
 }
