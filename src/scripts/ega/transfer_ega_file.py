@@ -13,7 +13,7 @@ REMOTE_PATH = "/encrypted"
 SFTP_HOSTNAME = "inbox.ega-archive.org"
 SFTP_PORT = 22
 
-def get_active_account():
+def get_active_account() -> str:
     """Helper function to determine which gcloud account is running the workflow"""
     try:
         result = subprocess.run(
@@ -25,7 +25,7 @@ def get_active_account():
     except Exception as e:
         return f"Exception: {str(e)}"
 
-def transfer_file(encrypted_data_file, ega_inbox):
+def transfer_file(encrypted_data_file: str, ega_inbox: str) -> None:
     """Transfer encrypted data file to EGA inbox via SFTP."""
     try:
         # Retrieve the secret value from Google Secret Manager
