@@ -82,11 +82,10 @@ task verifyGDCRegistration {
     }
 
     command {
-        python3 /main.py --program ~{program} \
-                        --project ~{project} \
-                        --alias_value ~{sample_alias} \
-                        --step "verify_registration" \
-                        --token ~{gdc_token}
+        python3 /src/scripts/gdc/verify_registration.py --program ~{program} \
+                                                        --project ~{project} \
+                                                        --sample_alias ~{sample_alias} \
+                                                        --token ~{gdc_token}
     }
 
     runtime {
@@ -95,7 +94,7 @@ task verifyGDCRegistration {
     }
 
     output {
-        Boolean registration_status = read_boolean("isValid.txt")
+        Boolean registration_status = read_string(stdout())
     }
 }
 

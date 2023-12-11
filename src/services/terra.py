@@ -1,49 +1,63 @@
 from oauth2client.client import GoogleCredentials
+import requests
+import json
 
-base_url = "https://rawls.dsde-prod.broadinstitute.org/api/workspaces"
+class TerraAPIWrapper:
+    def __init__(self, base_url="https://rawls.dsde-prod.broadinstitute.org/api/workspaces"):
+        self.base_url = base_url
 
-# function to get authorization bearer token for requests
-def get_access_token():
-    """Get access token."""
+    def get_access_token(self):
+        """Get access token."""
+        scopes = ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"]
+        credentials = GoogleCredentials.get_application_default()
+        credentials = credentials.create_scoped(scopes)
 
-    scopes = ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"]
-    credentials = GoogleCredentials.get_application_default()
-    credentials = credentials.create_scoped(scopes)
+        return credentials.get_access_token().access_token
 
-    return credentials.get_access_token().access_token
-
-def get_headers():
-    return {
-        "Authorization": "Bearer " + get_access_token(),
-        "accept": "*/*", 
-        "Content-Type": "application/json"
-    }
-
-def callTerraApi(sample_id, project, workspace_name, table):
-    """Call the Terra api to retrieve reads data"""
-    results = []
-    page_number = 1
-    more_results = True
-    headers = get_headers()
-    baseUrl = f"{base_url}/{project}/{workspace_name}/entityQuery/{table}"
-
-    while more_results:
-        parameters = {
-            'page': page_number,
-            'pageSize': 100,
-            'filterTerms': sample_id
+    def get_headers(self):
+        return {
+            "Authorization": "Bearer " + self.get_access_token(),
+            "accept": "*/*", 
+            "Content-Type": "application/json"
         }
 
-        print(f"Calling terra api on page {page_number}")
+    def call_terra_api(self, sample_id, project, workspace_name, table):
+        """
+        Call the Terra API to retrieve reads data.
 
-        response = requests.get(baseUrl, headers=headers, params=parameters)
-        status_code = response.status_code
-        data = json.loads(response.text)
+        Args:
+            sample_id (str): The sample ID to filter by.
+            project (str): The project name.
+            workspace_name (str): The workspace name.
+            table (str): The table name.
 
-        if data and data.results and len(data.results) > 0:
-            results.extend(data.results)
-            page_number += 1
-        else:
-            more_results = False
+        Returns:
+            list: A list of results from the API.
+        """
+        results = []
+        page_number = 1
+        headers = self.get_headers()
+        workspace_url = f"{self.base_url}/{project}/{workspace_name}/entityQuery/{table}"
 
-    return results
+        while True:
+            parameters = {
+                'page': page_number,
+                'pageSize': 100,
+                'filterTerms': sample_id
+            }
+
+            try:
+                response = requests.get(workspace_url, headers=headers, params=parameters)
+                response.raise_for_status()
+                data = response.json()
+
+                if data.get('results'):
+                    results.extend(data['results'])
+                    page_number += 1
+                else:
+                    break
+            except requests.exceptions.RequestException as e:
+                print(f"Error calling Terra API: {e}")
+                break
+
+        return results
