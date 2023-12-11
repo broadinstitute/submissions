@@ -39,12 +39,12 @@ workflow ValidateGDCFileStatus {
   }
 
   if (delete) {
-      if (file_status.file_state == "validated") {
-        call tasks.DeleteFileFromWorkspace {
-            input:
-              aggregation_path = aggregation_path
-        }
+    if (file_status.file_state == "validated") {
+      call tasks.DeleteFileFromWorkspace {
+        input:
+          aggregation_path = aggregation_path
       }
+    }
   }
 
   output {
@@ -62,10 +62,9 @@ task validateFileStatus {
     }
 
     command {
-        python3 /src/scripts/validate_gdc_file_status.py -pg ~{program} \
+        python3 /src/scripts/gdc/validate_gdc_file_status.py -pg ~{program} \
                                                 -pj ~{project} \
                                                 -s ~{sample_id} \
-                                                -d ~{delete} \
                                                 -t ~{gdc_token}
     }
 

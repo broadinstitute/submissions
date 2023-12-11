@@ -143,15 +143,11 @@ task DeleteFileFromWorkspace {
     }
 
     command {
-        gsutil rm aggregation_path
+        gsutil rm -a ~{aggregation_path}
     }
 
     runtime {
         docker: "schaluvadi/horsefish:submissionV1"
-    }
-
-    output {
-        Boolean deleted = true
     }
 }
 
