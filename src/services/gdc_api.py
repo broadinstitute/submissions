@@ -66,7 +66,7 @@ class GdcApiWrapper:
     def construct_query(self, query_type, submitter_id):
         base_query = """
         {{
-            {entity} (project_id: "{self.program}-{self.project}", submitter_id: "{submitter_id}") {{
+            {entity} (project_id: "{program}-{project}", submitter_id: "{submitter_id}") {{
                 id
                 {additional_fields}
             }}
@@ -92,7 +92,7 @@ class GdcApiWrapper:
             "query": base_query.format(entity=entity, program=self.program, project=self.project, submitter_id=submitter_id, additional_fields=additional_fields)
         }
 
-        def get_headers(self):
+    def get_headers(self):
             return {
                 "Content-Type": "application/json",
                 "X-Auth-Token": self.token

@@ -2,8 +2,7 @@ import argparse
 import requests
 import json
 import os
-
-from src.services import GdcApiWrapper
+from src.services.gdc_api import GdcApiWrapper
 
 def check_registration(alias, program, project, token):
     response = GdcApiWrapper(program, project, token).get_entity("verify", alias)

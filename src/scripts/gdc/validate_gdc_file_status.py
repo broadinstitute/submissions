@@ -1,7 +1,7 @@
 import argparse
 import json
 import logging
-from src.services import GdcApiWrapper
+from src.services.gdc_api import GdcApiWrapper
 
 logging.basicConfig(
     format="%(levelname)s: %(asctime)s : %(message)s", level=logging.INFO
@@ -18,10 +18,10 @@ def check_file_status(sample_id, token, program, project):
         response_json = response.json()
 
         if response_json.get('data') and response_json['data'].get('submitted_aligned_reads') and len(response_json['data']['submitted_aligned_reads']) > 0:
-            file_state = response_json['data']['submitted_aligned_reads'][0].get('file_state')
+            submitted_aligned_reads = response_json['data']['submitted_aligned_reads'][0]
             
             with open('/cromwell_root/file_state.txt', 'w') as file_state_file:
-                file_state_file.write(file_state)
+                file_state_file.write(f"{submitted_aligned_reads['state']}\n{submitted_aligned_reads['file_state']}")
         else:
             logging.error(f"We ran into an issue trying to query GDC - {response_json}")
     except Exception as e:

@@ -1,6 +1,7 @@
 import json
 import argparse
-from src.services import TerraAPIWrapper, GdcApiWrapper
+from src.services.gdc_api import GdcApiWrapper
+from src.services.terra import TerraAPIWrapper
 
 # Constants
 READS_JSON_PATH = "/cromwell_root/reads.json"

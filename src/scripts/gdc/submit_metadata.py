@@ -1,6 +1,6 @@
 import argparse
 import json
-from src.services import GdcApiWrapper
+from src.services.gdc_api import GdcApiWrapper
 
 DATA_TYPE_TO_EXPERIMENT_STRATEGY = {
     "WGS": "WGS",
