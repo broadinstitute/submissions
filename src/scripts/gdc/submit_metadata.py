@@ -11,7 +11,7 @@ DATA_TYPE_TO_EXPERIMENT_STRATEGY = {
 }
 
 class MetadataSubmission:
-    def __init__(self, program=None, project=None, token=None, sample_alias=None, aggregation_path=None, agg_project=None, data_type=None, file_size=None, md5=None, read_group_file=None):
+    def __init__(self, program=None, project=None, token=None, sample_alias=None, aggregation_path=None, agg_project=None, data_type=None, file_size=None, md5=None, read_groups=None):
         self.program = program
         self.project = project
         self.token = token
@@ -21,7 +21,7 @@ class MetadataSubmission:
         self.data_type = data_type
         self.file_size = file_size
         self.md5 = md5
-        self.read_group_file = read_group_file
+        self.read_groups = read_groups
         self.submitter_id = f"{sample_alias}.{data_type}.{agg_project}"
 
     def submit(self):
@@ -46,7 +46,7 @@ class MetadataSubmission:
 
     def load_read_groups_from_file(self):
         """Opens reads file and loads JSON data"""
-        with open(self.read_group_file, 'r') as my_file:
+        with open(self.read_groups, 'r') as my_file:
             return json.load(my_file)
 
     def get_read_groups(self):
@@ -80,6 +80,6 @@ if __name__ == '__main__':
     parser.add_argument('-md', '--md5', required=True, help='md5 for the file')
     parser.add_argument('-rg', '--read_groups', required=True, help='JSON file with all linked read groups for the sample')
     args = parser.parse_args()
+
     # Pass command line arguments to the MetadataSubmission class
-    metadata_submission = MetadataSubmission(**vars(args))
-    metadata_submission.submit()
+    MetadataSubmission(**vars(args)).submit()
