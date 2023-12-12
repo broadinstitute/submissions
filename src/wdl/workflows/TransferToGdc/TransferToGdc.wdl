@@ -215,7 +215,7 @@ task submitMetadataToGDC {
     File json_file = write_json(read_groups)
 
     command {
-        python3 /main.py --sample_alias ~{sample_alias} \
+        python3 /src/scripts/gdc/submit_metadata.py --sample_alias ~{sample_alias} \
                         --program ~{program} \
                         --project ~{project} \
                         --aggregation_path ~{bam_file} \
@@ -251,12 +251,9 @@ task validateFileStatus {
     }
 
     command {
-        python3 /main.py --alias_value ~{sample_id} \
-                        --agg_project ~{agg_project} \
-                        --data_type ~{data_type} \
+        python3 /src/scripts/gdc/validate_gdc_file_status.py --sample_id ~{sample_id} \
                         --program ~{program} \
                         --project ~{project} \
-                        --step "validate_status" \
                         --token ~{gdc_token}
     }
 
