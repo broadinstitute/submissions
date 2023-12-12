@@ -3,8 +3,10 @@ import requests
 import json
 
 class TerraAPIWrapper:
-    def __init__(self, base_url="https://rawls.dsde-prod.broadinstitute.org/api/workspaces"):
+    def __init__(self, base_url="https://rawls.dsde-prod.broadinstitute.org/api/workspaces", billing_project=None, workspace_name=None):
         self.base_url = base_url
+        self.billing_project = billing_project
+        self.workspace_name = workspace_name,
 
     def get_access_token(self):
         """Get access token."""
@@ -21,14 +23,12 @@ class TerraAPIWrapper:
             "Content-Type": "application/json"
         }
 
-    def call_terra_api(self, sample_id, project, workspace_name, table):
+    def call_terra_api(self, sample_id, table):
         """
         Call the Terra API to retrieve reads data.
 
         Args:
             sample_id (str): The sample ID to filter by.
-            project (str): The project name.
-            workspace_name (str): The workspace name.
             table (str): The table name.
 
         Returns:
@@ -37,7 +37,7 @@ class TerraAPIWrapper:
         results = []
         page_number = 1
         headers = self.get_headers()
-        workspace_url = f"{self.base_url}/{project}/{workspace_name}/entityQuery/{table}"
+        workspace_url = f"{self.base_url}/{self.billing_project}/{self.workspace_name}/entityQuery/{table}"
 
         while True:
             parameters = {

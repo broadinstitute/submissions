@@ -3,6 +3,10 @@ import json
 import logging
 from src.services import GdcApiWrapper
 
+logging.basicConfig(
+    format="%(levelname)s: %(asctime)s : %(message)s", level=logging.INFO
+)
+
 def check_file_status(sample_id, token, program, project):
     """Calls the GDC API to check the current status of the file transfer."""
 

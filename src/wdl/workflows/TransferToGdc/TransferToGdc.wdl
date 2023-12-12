@@ -45,7 +45,7 @@ workflow TransferToGdc {
 
     call submitMetadataToGDC {
       input:
-        sample_id = alias_name,
+        sample_alias = alias_name,
         bam_file = bam_file,
         agg_project = agg_project,
         data_type = data_type,
@@ -200,7 +200,7 @@ task TransferBamToGdc {
 
 task submitMetadataToGDC {
     input {
-      String sample_id
+      String sample_alias
       String bam_file
       String agg_project
       String data_type
@@ -215,11 +215,10 @@ task submitMetadataToGDC {
     File json_file = write_json(read_groups)
 
     command {
-        python3 /main.py --step "submit_metadata" \
-                        --alias_value ~{sample_id} \
+        python3 /main.py --sample_alias ~{sample_alias} \
                         --program ~{program} \
                         --project ~{project} \
-                        --agg_path ~{bam_file} \
+                        --aggregation_path ~{bam_file} \
                         --agg_project ~{agg_project} \
                         --data_type ~{data_type} \
                         --file_size ~{file_size} \
