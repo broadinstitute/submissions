@@ -45,7 +45,7 @@ def format_read_group(read):
 def submit_reads(reads, token, project, program):
     formatted_reads = [format_read_group(read) for read in reads]
     print(formatted_reads)
-    GdcApiWrapper(program, project, token).submit_metadata(formatted_reads)
+    GdcApiWrapper(program=program, project=project, token=token).submit_metadata(formatted_reads)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Extract and submit reads data.')

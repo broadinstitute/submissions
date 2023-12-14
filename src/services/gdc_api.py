@@ -7,8 +7,8 @@ logging.basicConfig(
 )
 
 class GdcApiWrapper:
-    def __init__(self, endpoint='https://api.gdc.cancer.gov/v0/submission', program=None, project=None, token=None):
-        self.endpoint = endpoint
+    def __init__(self, program=None, project=None, token=None):
+        self.endpoint = 'https://api.gdc.cancer.gov/v0/submission'
         self.program = program
         self.project = project
         self.token = token
@@ -17,7 +17,6 @@ class GdcApiWrapper:
         """Constructs GraphQL query to hit the GDC API"""
 
         query = self.construct_query(query_type, submitter_id)
-        logging.info(f"Query to GDC: {query}")
 
         return requests.post(
             f"{self.endpoint}/graphql",

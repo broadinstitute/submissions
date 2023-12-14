@@ -4,16 +4,51 @@ import os
 import re
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from ftplib import FTP
 
 BROAD_ABBREVIATION = "BI"
 NONAMESPACESCHEMALOCATION = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.submission.xsd?view=co"
 XSI = "http://www.w3.org/2001/XMLSchema-instance"
 
+class StudyNotRegisteredException(Exception):
+    pass
+
+class SampleNotRegisteredException(Exception):
+    pass
+
 class Sample:
+    DATA_TYPE_MAPPING = {
+        "WGS": {
+            "constant": "Whole Genome",
+            "name": "Whole Genome Sequencing"
+        },
+        "RNA": {
+            "constant": "RNA Seq",
+            "name": "RNA Sequencing",
+        },
+        "WXS": {
+            "constant": "Whole Exome",
+            "name": "Whole Exome Sequencing"
+        },
+        "Exome": {
+            "constant": "Whole Exome",
+            "name": "Whole Exome Sequencing"
+        },
+        "Custom_Selection": {
+            "constant": "Custom_Selection",
+            "name": "Genomic Sequencing for Select Targets of Interest"
+        },
+        "N/A": {
+            "constant": "Unknown",
+            "name": "Unknown"
+        }
+    }
+
     def __init__(self, json_object, md5):
-        # Here we are making the assumption that we are only running once per sample. If we need t
         sample_json = json_object[0]["attributes"]
+        self._set_sample_attributes(sample_json, md5)
+        self.set_telemetry_report_info()
+
+    def _set_sample_attributes(self, sample_json, md5):
         self.project = sample_json["aggregation_project"]
         self.location = sample_json["location"]
         self.version = sample_json["version"]
@@ -21,19 +56,12 @@ class Sample:
         self.phs = str(sample_json["phs_id"])
         self.data_type = sample_json["data_type"]
         self.alias = sample_json["alias"]
-        self.file_type = self.get_file_extension(sample_json["aggregation_path"])
+        self.file_type = self._get_file_extension(sample_json["aggregation_path"])
         self.data_file = f"{json_object[0]['name']}.{self.file_type}"
         self.set_telemetry_report_info()
 
-    # study_info will be a dict of all the values from the telemetry report
-    def set_study_info(self, study_info):
-        self.study_info = study_info
-
-    def get_file_extension(self, aggregation_path):
+    def _get_file_extension(self, aggregation_path):
         return aggregation_path.split(".")[-1]
-
-    def get_study_info(self):
-        return self.study_info
 
     def set_telemetry_report_info(self):
         def is_bioproject_admin(xml_object):
@@ -43,64 +71,42 @@ class Sample:
             return xml_object.attrib['submitted_sample_id'] == self.alias
 
         root = ET.fromstring(call_telemetry_report(self.phs))
-        sample = [x.attrib for x in root.iter('Sample') if is_sample(x)]
-        self.study = root[0].attrib
-        self.bio_project = [x.attrib['bp_id'] for x in root.iter('BioProject') if is_bioproject_admin(x)][0]
+        samples = [x.attrib for x in root.iter('Sample') if is_sample(x)]
+        bio_projects = [x.attrib['bp_id'] for x in root.iter('BioProject') if is_bioproject_admin(x)]
 
-        if not self.study:
-            raise Exception('Study not registered with Dbgap')
-        if len(sample) == 0:
-            raise Exception('Sample not registered with Dbgap')
-        if len(sample) > 1:
+        if not samples:
+            raise SampleNotRegisteredException('Sample not registered with Dbgap')
+        if not bio_projects:
+            raise StudyNotRegisteredException('Study not registered with Dbgap')
+        if len(samples) > 1:
             raise Exception('Could not find specific sample in report')
         
-        self.dbgap_sample_info = sample[0]
+        self.study = root[0].attrib
+        self.bio_project = bio_projects[0]
+        self.dbgap_sample_info = samples[0]
 
     def formatted_data_type(self):
-        DATA_TYPE_MAPPING = {
-            "WGS": {
-                "constant": "Whole Genome",
-                "name": "Whole Genome Sequencing"
-            },
-            "RNA": {
-                "constant": "RNA Seq",
-                "name": "RNA Sequencing",
-            },
-            "WXS": {
-                "constant": "Whole Exome",
-                "name": "Whole Exome Sequencing"
-            },
-            "Exome": {
-                "constant": "Whole Exome",
-                "name": "Whole Exome Sequencing"
-            },
-            "Custom_Selection": {
-                "constant": "Custom_Selection",
-                "name": "Genomic Sequencing for Select Targets of Interest"
-            },
-            "N/A": {
-                "constant": "Unknown",
-                "name": "Unknown"
-            }
-        }
-
-        return DATA_TYPE_MAPPING[self.data_type]
+        return self.DATA_TYPE_MAPPING.get(self.data_type, {"constant": "Unknown", "name": "Unknown"})
 
     def subject_string(self):
-        subject_id = self.dbgap_sample_info["submitted_subject_id"]
-
-        if subject_id:
-            return f"from subject '{subject_id}'"
-        else:
-            return ""
+        subject_id = self.dbgap_sample_info.get("submitted_subject_id", "")
+        return f"from subject '{subject_id}'" if subject_id else ""
 
     def get_biospecimen_repo(self):
-        return self.dbgap_sample_info["repository"]
+        return self.dbgap_sample_info.get("repository", "")
 
 class ReadGroup:
-    def __init__(self, json_object):
-        first_read_group = json_object[0]["attributes"]
-        # First we will just use the first json object in the list to set the constant values
+    def __init__(self, json_objects):
+        first_read_group = json_objects[0]["attributes"]
+        self._set_constant_values(first_read_group)
+        self.set_aggregate_values(json_objects)
+
+        if "submission_metadata" in first_read_group:
+            self.submission_metadata = self.sub_data_to_dict(first_read_group["submission_metadata"]["items"])
+        else:
+            self.submission_metadata = []
+
+    def _set_constant_values(self, first_read_group):
         self.product_order_id = first_read_group.get("product_order_id", "")
         self.sample_type = first_read_group["sample_type"]
         self.sample_material_type = first_read_group.get("sample_material_type", "")
@@ -118,19 +124,13 @@ class ReadGroup:
         self.sample_lsid = first_read_group["sample_lsid"]
         self.primary_disease = first_read_group.get("primary_disease")
         self.reference_sequence = first_read_group["reference_sequence"]
-        self.bait_set = first_read_group["bait_set"] if "bait_set" in first_read_group else ""
+        self.bait_set = first_read_group.get("bait_set", "")
         self.model = first_read_group["model"]
         self.nominal_length = str(first_read_group["mean_insert_size"])
         self.nominal_sdex = str(first_read_group["standard_deviation"])
-        self.set_aggregate_values(json_object)
 
-        if "submission_metadata" in first_read_group:
-            self.submission_metadata = self.sub_data_to_dict(first_read_group["submission_metadata"]["items"])
-        else:
-            self.submission_metadata = []
-
-    def sub_data_to_dict(self, submissionMetadata):
-        if submissionMetadata and len(submissionMetadata):
+    def sub_data_to_dict(self, submission_metadata):
+        if submission_metadata and len(submission_metadata):
             library_construction = {}
             target_capture = {}
             for read in submission_metadata:
@@ -146,8 +146,7 @@ class ReadGroup:
         else:
             return None
 
-
-    def set_aggregate_values(self, json_object):
+    def set_aggregate_values(self, json_objects):
         def construct_read_group_id(row):
             return f"{row['run_barcode'][:5]}.{row['lane']}"
 
@@ -160,72 +159,44 @@ class ReadGroup:
         def construct_rg_platform_lib(row):
             return f"{construct_rg_platform(row)}.{row['library_name']}"
 
-        self.read_group_ids = {construct_read_group_id(x["attributes"]) for x in json_object}
-        self.molecular_idx_schemes = {construct_molecular_idx(x["attributes"]) for x in json_object}
-        self.rg_platform_unit = {construct_rg_platform(x["attributes"]) for x in json_object}
-        self.rg_platform_unit_lib = {construct_rg_platform_lib(x["attributes"]) for x in json_object}
+        self.read_group_ids = {construct_read_group_id(x["attributes"]) for x in json_objects}
+        self.molecular_idx_schemes = {construct_molecular_idx(x["attributes"]) for x in json_objects}
+        self.rg_platform_unit = {construct_rg_platform(x["attributes"]) for x in json_objects}
+        self.rg_platform_unit_lib = {construct_rg_platform_lib(x["attributes"]) for x in json_objects}
 
-        self.run_barcode = {x["attributes"]["run_barcode"] for x in json_object}
-        self.run_name = {x["attributes"]["run_name"] for x in json_object}
-        self.instrument_names = {x["attributes"]["machine_name"] for x in json_object}
-        self.flowcell_barcodes = {x["attributes"]["flowcell_barcode"] for x in json_object}
+        self.run_barcode = {x["attributes"]["run_barcode"] for x in json_objects}
+        self.run_name = {x["attributes"]["run_name"] for x in json_objects}
+        self.instrument_names = {x["attributes"]["machine_name"] for x in json_objects}
+        self.flowcell_barcodes = {x["attributes"]["flowcell_barcode"] for x in json_objects}
 
     def pairing_code(self):
-        if self.paired_run:
-            return "P"
-        else:
-            return "S"
+        return "P" if self.paired_run else "S"
 
     def is_paired_end(self):
-        if self.paired_run:
-            return "paired-end"
-        else:
-            return "single-end"
+        return "paired-end" if self.paired_run else "single-end"
 
     def get_pdo_or_wr(self):
-        if self.product_order_id:
-            return self.product_order_id
-        elif work_request_id:
-            return self.work_request_id
-        else:
-            return ""
+        return self.product_order_id if self.product_order_id else self.work_request_id if self.work_request_id else ""
 
     def get_library_descriptor(self):
         library_descriptor = {
             "strategy": {},
-            "source": {}
+            "source": {},
+            "selection": ""
         }
 
         if self.library_type == "WholeGenomeShotgun":
-            library_descriptor["strategy"] = {
-                "ncbi_string": "WGS",
-                "humanized_string": "whole genome shotgun"
-            }
-            library_descriptor["source"] = {
-                "ncbi_string": "GENOMIC",
-                "humanized_string": "genomic DNA"
-            }
+            library_descriptor["strategy"] = {"ncbi_string": "WGS", "humanized_string": "whole genome shotgun"}
+            library_descriptor["source"] = {"ncbi_string": "GENOMIC", "humanized_string": "genomic DNA"}
             library_descriptor["selection"] = "RANDOM"
         elif (self.library_type == "cDNAShotgunReadTwoSense" or self.library_type == "cDNAShotgunStrandAgnostic" or
               self.analysis_type == "cDNA") and self.analysis_type != "AssemblyWithoutReference":
-            library_descriptor["strategy"] = {
-                "ncbi_string": "RNA_SEQ",
-                "humanized_string": "RNA"
-            }
-            library_descriptor["source"] = {
-                "ncbi_string": "TRANSCRIPTOMIC",
-                "humanized_string": "transcriptome"
-            }
+            library_descriptor["strategy"] = {"ncbi_string": "RNA_SEQ", "humanized_string": "RNA"}
+            library_descriptor["source"] = {"ncbi_string": "TRANSCRIPTOMIC", "humanized_string": "transcriptome"}
             library_descriptor["selection"] = "CDNA"
         elif self.library_type == "HybridSelection":
-            library_descriptor["strategy"] = {
-                "ncbi_string": "WXS",
-                "humanized_string": "random exon"
-            }
-            library_descriptor["source"] = {
-                "ncbi_string": "GENOMIC",
-                "humanized_string": "genomic DNA"
-            }
+            library_descriptor["strategy"] = {"ncbi_string": "WXS", "humanized_string": "random exon"}
+            library_descriptor["source"] = {"ncbi_string": "GENOMIC", "humanized_string": "genomic DNA"}
             library_descriptor["selection"] = "Hybrid Selection"
 
         return library_descriptor
@@ -237,12 +208,11 @@ class ReadGroup:
             if reg_expr:
                 return int(reg_expr.group(1))
             else:
-                # Right now it looks like Dbgap just calculates their own read lenght
+                # Right now it looks like Dbgap just calculates their own read length
                 # but keeping this here to be consistent with epsilon9. but will probably remove this dtl
                 return 0
         else:
-            raise Exception(f'read structure not populated for read {self.root_sample_id}')
-
+            raise Exception(f"Read structure not populated for read {self.root_sample_id}")
 
 class Experiment:
     def __init__(self, sample, read_group):
@@ -267,31 +237,18 @@ class Experiment:
 
         return f"{repo} Illumina {library_strategy_string} sequencing of '{library_source_string}' {paired_end} library '{self.read_group.library_name}' containing sample '{self.sample.alias}' {self.sample.subject_string()}"
 
-    def get_read_spec_forward(self):
+    def get_read_spec(self, label, index, base_coord):
         return {
-            "read_label": "forward",
-            "read_type": "Forward",
-            "read_index": "0",
-            "base_coord": "1",
-            "read_class": "Application Read"
-        }
-
-    def get_read_spec_reverse(self):
-        return {
-            "read_label": "reverse",
-            "read_type": "Reverse",
-            "read_index": "1",
-            "base_coord": str(self.read_group.get_read_length() + 1),
+            "read_label": label,
+            "read_type": "Forward" if label == "forward" else "Reverse",
+            "read_index": index,
+            "base_coord": base_coord,
             "read_class": "Application Read"
         }
 
     def get_spot_length(self):
-        if self.read_group.paired_run:
-            return str(self.read_group.get_read_length() * 2)
-        else:
-            return str(self.read_group.get_read_length())
+        return str(self.read_group.get_read_length() * 2) if self.read_group.paired_run else str(self.read_group.get_read_length())
 
-    # could consolidate some of the next two functions
     def generate_experiment_attributes(self):
         attributes_dict = {
             "aggregation_project": self.sample.project,
@@ -305,6 +262,7 @@ class Experiment:
             "target_set": self.read_group.bait_set,
             "work_request_or_pdo": self.read_group.get_pdo_or_wr()
         }
+
         if self.read_group.sample_barcode and str(self.read_group.sample_barcode) != "":
             attributes_dict["gssr_id"] = str(self.read_group.sample_barcode)
 
@@ -315,14 +273,8 @@ class Experiment:
         sub_metadata = self.read_group.submission_metadata
 
         if sub_metadata:
-            if dict_value == "library_construction":
-                kit_str += " Library Preparation Kit: "
-            else:
-                kit_str += " Target Capture Kit: "
-
-            for key, value in sub_metadata[dict_value].items():
-                kit_str += f"{key}={value}"
-
+            kit_str += f" {dict_value.capitalize()} Kit: "
+            kit_str += " ".join(f"{key}={value}" for key, value in sub_metadata[dict_value].items())
             kit_str += "."
 
         return kit_str
@@ -338,7 +290,7 @@ class Experiment:
     def set_identifiers(self, experiment):
         identifier = ET.SubElement(experiment, "IDENTIFIERS")
         ET.SubElement(
-            identifier, 
+            identifier,
             "SUBMITTER_ID",
             namespace=BROAD_ABBREVIATION
         ).text = self.get_submitter_id()
@@ -352,12 +304,12 @@ class Experiment:
 
     def set_design(self, experiment):
         design = ET.SubElement(
-            experiment, 
-            "DESIGN" 
+            experiment,
+            "DESIGN"
         )
         ET.SubElement(
-            design, 
-            "DESIGN_DESCRIPTION" 
+            design,
+            "DESIGN_DESCRIPTION"
         ).text = self.get_design_description()
 
         sample_descriptor = ET.SubElement(
@@ -390,13 +342,13 @@ class Experiment:
         ET.SubElement(read_spec, "BASE_COORD").text = dict["base_coord"]
 
     def set_spot_descriptor(self, design):
-         spot_descriptor = ET.SubElement(design, "SPOT_DESCRIPTOR")
-         decode_spec = ET.SubElement(spot_descriptor, "SPOT_DECODE_SPEC")
+        spot_descriptor = ET.SubElement(design, "SPOT_DESCRIPTOR")
+        decode_spec = ET.SubElement(spot_descriptor, "SPOT_DECODE_SPEC")
 
-         ET.SubElement(decode_spec, "SPOT_LENGTH").text = self.get_spot_length()
+        ET.SubElement(decode_spec, "SPOT_LENGTH").text = self.get_spot_length()
 
-         self.set_spec_values(self.get_read_spec_forward(), decode_spec)
-         self.set_spec_values(self.get_read_spec_reverse(), decode_spec)
+        self.set_spec_values(self.get_read_spec("forward", "0", "1"), decode_spec)
+        self.set_spec_values(self.get_read_spec("reverse", "1", str(self.read_group.get_read_length() + 1)), decode_spec)
 
     def set_platform(self, experiment):
         platform = ET.SubElement(experiment, "PLATFORM")
@@ -430,7 +382,6 @@ class Experiment:
 
         write_xml_file(self.get_file_name(), root)
 
-
 class Run:
     def __init__(self, sample, read_group, experiment):
         self.sample = sample
@@ -440,11 +391,7 @@ class Run:
     def get_submitter_id(self):
         flowcell_barcodes = ".".join(self.read_group.flowcell_barcodes)
         sample_id = self.sample.alias
-
         return f"{flowcell_barcodes}.{sample_id}.{self.sample.project}.{self.sample.version}.{self.sample.file_type}"
-
-    def get_file_name(self):
-        return f"{self.get_submitter_id()}.add.run.xml"
 
     def generate_run_attributes(self):
         attributes_dict = {
@@ -472,36 +419,24 @@ class Run:
 
     def create_identifiers(self, parent, submitter_id):
         identifier = ET.SubElement(parent, "IDENTIFIERS")
-
-        ET.SubElement(
-            identifier, 
-            "SUBMITTER_ID",
-            namespace=BROAD_ABBREVIATION).text = submitter_id
+        ET.SubElement(identifier, "SUBMITTER_ID", namespace=BROAD_ABBREVIATION).text = submitter_id
 
     def create_experiment_ref(self, run):
         experiment_ref = ET.SubElement(run, "EXPERIMENT_REF")
-
         self.create_identifiers(experiment_ref, self.experiment.get_submitter_id())
 
     def create_data_blocks(self, run):
         data_block = ET.SubElement(run, "DATA_BLOCK")
         files = ET.SubElement(data_block, "FILES")
 
-        ET.SubElement(
-            files, 
-            "FILE",
-            filename=self.sample.data_file,
-            filetype=self.sample.file_type,
-            checksum_method="MD5",
-            checksum=self.sample.md5,
-        )
+        ET.SubElement(files, "FILE", filename=self.sample.data_file, filetype=self.sample.file_type,
+                      checksum_method="MD5", checksum=self.sample.md5)
 
     def create_run_attrs(self, run):
         run_attrs = ET.SubElement(run, "RUN_ATTRIBUTES")
 
         for key, value in self.generate_run_attributes().items():
             run_attr = ET.SubElement(run_attrs, "RUN_ATTRIBUTE")
-
             ET.SubElement(run_attr, "TAG").text = key
             ET.SubElement(run_attr, "VALUE").text = value
 
@@ -511,10 +446,7 @@ class Run:
         root = ET.Element("RUN_SET")
         root.set("xsi:noNamespaceSchemaLocation", "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.run.xsd?view=co")
         root.set("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-        run = ET.SubElement(
-            root, 
-            "RUN"
-        )
+        run = ET.SubElement(root, "RUN")
 
         self.create_identifiers(run, self.get_submitter_id())
         self.create_experiment_ref(run)
@@ -541,43 +473,15 @@ class Submission:
 
     def create_actions(self, submission):
         actions = ET.SubElement(submission, "ACTIONS")
-        action_protect = ET.SubElement(
-            actions,
-            "ACTION"
-        )
-        ET.SubElement(
-            action_protect,
-            "PROTECT"
-        )
-        action_release = ET.SubElement(
-            actions,
-            "ACTION"
-        )
-        ET.SubElement(
-            action_release,
-            "RELEASE"
-        )
-        action_experiment = ET.SubElement(
-            actions,
-            "ACTION"
-        )
-        ET.SubElement(
-            action_experiment,
-            "ADD",
-            source=self.experiment.get_file_name(),
-            schema="experiment"
-        )
+        action_protect = ET.SubElement(actions, "ACTION")
+        ET.SubElement(action_protect, "PROTECT")
+        action_release = ET.SubElement(actions, "ACTION")
+        ET.SubElement(action_release, "RELEASE")
+        action_experiment = ET.SubElement(actions, "ACTION")
+        ET.SubElement(action_experiment, "ADD", source=self.experiment.get_file_name(), schema="experiment")
         print("this is the experiment file name ", self.experiment.get_file_name())
-        action_run = ET.SubElement(
-            actions,
-            "ACTION"
-        )
-        ET.SubElement(
-            action_run,
-            "ADD",
-            source=self.run.get_file_name(),
-            schema="run"
-        )
+        action_run = ET.SubElement(actions, "ACTION")
+        ET.SubElement(action_run, "ADD", source=self.run.get_file_name(), schema="run")
         print("this is the run file name ", self.run.get_file_name())
 
     def create_submission_attributes(self, submission):
@@ -589,29 +493,13 @@ class Submission:
     def create_file(self):
         print("Creating submission xml file")
 
-        root = ET.Element(
-            "SUBMISSION_SET"
-        )
+        root = ET.Element("SUBMISSION_SET")
         root.set("xsi:noNamespaceSchemaLocation", "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.submission.xsd?view=co")
         root.set("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-        submission = ET.SubElement(
-            root, 
-            "SUBMISSION", 
-            submission_date=get_date(),
-            submission_comment=self.get_submission_comment(),
-            lab_name="Genome Sequencing",
-            alias=self.get_alias(),
-            center_name=BROAD_ABBREVIATION
-        )
+        submission = ET.SubElement(root, "SUBMISSION", submission_date=get_date(), submission_comment=self.get_submission_comment(), lab_name="Genome Sequencing", alias=self.get_alias(), center_name=BROAD_ABBREVIATION)
 
         contacts = ET.SubElement(submission, "CONTACTS")
-        contact = ET.SubElement(
-            contacts,
-            "CONTACT",
-            name="sra_sumissions",
-            inform_on_status="mailto:dsde-ops@broadinstitute.org",
-            inform_on_error="mailto:dsde-ops@broadinstitute.org"
-        )
+        contact = ET.SubElement(contacts, "CONTACT", name="sra_sumissions", inform_on_status="mailto:dsde-ops@broadinstitute.org", inform_on_error="mailto:dsde-ops@broadinstitute.org")
 
         self.create_actions(submission)
         self.create_submission_attributes(submission)
@@ -619,24 +507,26 @@ class Submission:
         write_xml_file("submission.xml", root)
 
 ################### Helper Function ####################
-
 def write_xml_file(file_name, root):
-    with open(f"/cromwell_root/xml/{file_name}", 'wb') as xfile:
+    file_path = f"/cromwell_root/xml/{file_name}"
+    with open(file_path, 'wb') as xfile:
         xfile.write(ET.tostring(root, encoding="ASCII"))
 
 def get_submission_comment_formatted_date():
-    return datetime.strftime(datetime.now(), "%A %B %d %H:%M:%S")
+    return datetime.now().strftime("%A %B %d %H:%M:%S")
 
 def get_date():
-    return f"{str(datetime.now().date())}T{datetime.strftime(datetime.now(), '%H:%M:%S.%f')}-04:00"
+    current_datetime = datetime.now()
+    date_str = current_datetime.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
+    return f"{date_str}-04:00"
 
 def get_run_date():
     return datetime.now()
 
 def call_telemetry_report(phs_id):
-    baseUrl = f"https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id={phs_id}"
+    base_url = f"https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id={phs_id}"
     headers = {"Content-Type": "application/json"}
-    response = requests.get(baseUrl, headers=headers)
+    response = requests.get(base_url, headers=headers)
     status_code = response.status_code
 
     return response.text

@@ -20,7 +20,7 @@ task CreateDbgapXmlFiles {
         fi
 
         mkdir /cromwell_root/xml
-        python3 /src/scripts/create_dbgap_xml_files.py -w ~{workspace_name} \
+        python3 /src/scripts/dbgap/create_dbgap_xml_files.py -w ~{workspace_name} \
                                                       -p ~{billing_project} \
                                                       -s ~{sample_id} \
                                                       -m ~{md5}
@@ -94,7 +94,7 @@ task verifyGDCRegistration {
     }
 
     output {
-        Boolean registration_status = read_string(stdout())
+        Boolean registration_status = read_string(stdout()) == "true"
     }
 }
 

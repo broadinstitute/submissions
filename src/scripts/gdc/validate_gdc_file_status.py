@@ -13,8 +13,7 @@ def check_file_status(sample_id, token, program, project):
     try:
         [agg_project, alias, _, data_type, _] = sample_id.split("_")
         submitter_id = f"{alias}.{data_type}.{agg_project}"
-        
-        response = GdcApiWrapper(program, project, token).get_entity("submitted_aligned_reads", alias)
+        response = GdcApiWrapper(program=program, project=project, token=token).get_entity("submitted_aligned_reads", submitter_id)
         response_json = response.json()
 
         if response_json.get('data') and response_json['data'].get('submitted_aligned_reads') and len(response_json['data']['submitted_aligned_reads']) > 0:
@@ -22,6 +21,7 @@ def check_file_status(sample_id, token, program, project):
             
             with open('/cromwell_root/file_state.txt', 'w') as file_state_file:
                 file_state_file.write(f"{submitted_aligned_reads['state']}\n{submitted_aligned_reads['file_state']}")
+            logging.info("Successfully recieved file status from gdc")
         else:
             logging.error(f"We ran into an issue trying to query GDC - {response_json}")
     except Exception as e:

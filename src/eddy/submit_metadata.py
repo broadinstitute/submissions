@@ -137,4 +137,3 @@ def getGdcShemas():
     response = requests.get(f'{endpoint}/template/submitted_aligned_reads?format=json')
     f = open('src/resources/sample_template.json', 'w')
     f.write(response.text)
-    f.close()
