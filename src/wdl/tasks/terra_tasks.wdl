@@ -231,7 +231,7 @@ task addReadsField {
     }
 
     command {
-        python3 /src/scripts/extract_reads_data.py -w ~{workspace_name} \
+        python3 /src/scripts/gdc/extract_reads_data.py -w ~{workspace_name} \
                                                       -p ~{workspace_project} \
                                                       -s ~{sample_id} \
                                                       -t ~{gdc_token} \
