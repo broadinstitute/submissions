@@ -1,7 +1,6 @@
 import sys
 import argparse
 import logging
-from typing import Optional
 from pathlib import Path
 from csv import DictWriter
 
@@ -9,7 +8,7 @@ sys.path.append("./")
 from src.scripts.ega.utils import (
     LoginAndGetToken,
     format_request_header,
-    get_file_metadata_for_all_files_in_submission,
+    get_file_metadata_for_all_files_in_inbox,
 )
 
 logging.basicConfig(
@@ -64,7 +63,7 @@ class GetValidationStatus:
     def get_file_validation_status(self) -> bool:
         # Get the metadata for ALL files in the submission
         logging.info("Attempting to collect metadata for all files in submission")
-        file_metadata = get_file_metadata_for_all_files_in_submission(self._headers(), self.submission_accession_id)
+        file_metadata = get_file_metadata_for_all_files_in_inbox(self._headers())
         # Filter down to only the file metadata for the sample of interest
         if file_metadata:
             files_metadata_for_sample = self._get_file_info_for_sample(file_metadata=file_metadata)
