@@ -38,7 +38,6 @@ from src.scripts.ega import (
     LIBRARY_SOURCE,
     LIBRARY_SELECTION,
     RUN_FILE_TYPE,
-    INSTRUMENT_MODEL,
     INSTRUMENT_MODEL_MAPPING,
 )
 
@@ -361,7 +360,7 @@ if __name__ == "__main__":
         "-instrument_model",
         required=True,
         help="The experiment instrument model",
-        choices=INSTRUMENT_MODEL
+        choices=[a for a in INSTRUMENT_MODEL_MAPPING.keys()]
     )
     """Source: https://submission.ega-archive.org/api/spec/#/paths/enums-library_layouts/get"""
     parser.add_argument(
@@ -442,7 +441,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     password = SecretManager(project_id="gdc-submissions", secret_id="ega_password", version_id=1).get_ega_password_secret()
-    access_token = LoginAndGetToken(username=args.user_name, password=args.password).login_and_get_token()
+    access_token = LoginAndGetToken(username=args.user_name, password=password).login_and_get_token()
 
     if access_token:
         logging.info("Successfully generated access token. Will continue with metadata registration now.")

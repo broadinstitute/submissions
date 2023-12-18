@@ -84,12 +84,12 @@ class WriteOutputTsvFiles:
 
     def _write_file_validation_status_file(self) -> None:
         logging.info("Writing final validation status out to file")
-        with open("/cromwell_root/file_validation_status.tsv") as validation_file:
+        with open("/cromwell_root/file_validation_status.tsv", "w") as validation_file:
             validation_file.write(self.file_content)
 
     def _write_validation_status_for_terra_data_tables(self) -> None:
         logging.info("Writing validation status and sample id tsv to file")
-        with open("/cromwell_root/sample_id_validation_status.tsv") as validation_file:
+        with open("/cromwell_root/sample_id_validation_status.tsv", "w") as validation_file:
             writer = DictWriter(validation_file, fieldnames=["sample_id", "file_validation_status"])
             writer.writeheader()
             writer.writerow({"sample_id": self.sample_id, "file_validation_status": self.file_content})
@@ -131,7 +131,7 @@ if __name__ == '__main__':
         project_id="gdc-submissions",
         secret_id="ega_password", version_id=1
     ).get_ega_password_secret()
-    access_token = LoginAndGetToken(username=args.user_name, password=args.password).login_and_get_token()
+    access_token = LoginAndGetToken(username=args.user_name, password=password).login_and_get_token()
 
     if access_token:
         logging.info("Successfully generated access token")

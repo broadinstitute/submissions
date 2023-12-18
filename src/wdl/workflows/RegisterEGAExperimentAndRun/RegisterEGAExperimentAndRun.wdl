@@ -117,7 +117,7 @@ task RegisterExperimentAndRun{
             -library_layout ~{library_layout} \
             -library_strategy ~{library_strategy} \
             -library_source ~{library_source} \
-            -library_selection ~{library_selection} \
+            -library_selection "~{library_selection}" \
             -run_file_type ~{run_file_type} \
             -run_file_type ~{run_file_type} \
             -technology ILLUMINA \
