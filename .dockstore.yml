@@ -14,4 +14,7 @@ workflows:
     primaryDescriptorPath: /src/wdl/workflows/RegisterEGAExperimentAndRun/RegisterEGAExperimentAndRun.wdl
   - name: registerEGADataset
     subclass: WDL
-    primaryDescriptorPath: src/wdl/workflows/RegisterEGADatasetFinalizeSubmission/RegisterEGADatasetFinalizeSubmission.wdl
+    primaryDescriptorPath: /src/wdl/workflows/RegisterEGADatasetFinalizeSubmission/RegisterEGADatasetFinalizeSubmission.wdl
+  - name: egaFileTransfer
+    subclass: WDL
+    primaryDescriptorPath: /src/wdl/workflows/EGAFileTransfer/EGAFileTransfer.wdl

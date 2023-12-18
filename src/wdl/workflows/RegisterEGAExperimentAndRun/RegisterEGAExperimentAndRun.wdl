@@ -9,7 +9,6 @@ workflow RegisterEGAExperimentAndRun {
         String submission_accession_id
         String study_accession_id
         String ega_inbox
-        String password
         String illumina_instrument
         String library_layout
         String library_strategy
@@ -24,7 +23,6 @@ workflow RegisterEGAExperimentAndRun {
         String sample_material_type
         String construction_protocol
         String aggregation_path
-        String aggregation_index_path
         Boolean delete_files = false
     }
 
@@ -33,7 +31,6 @@ workflow RegisterEGAExperimentAndRun {
         input:
             submission_accession_id = submission_accession_id,
             ega_inbox = ega_inbox,
-            password = password,
             sample_alias = sample_alias,
             sample_id = sample_id
     }
@@ -42,7 +39,7 @@ workflow RegisterEGAExperimentAndRun {
     call terra_tasks.UpsertMetadataToDataModel as upsert_metadata {
         input:
             workspace_name = workspace_name,
-            worksapce_project = workspace_project,
+            workspace_project = workspace_project,
             tsv = CheckEGAFileValidationStatus.sample_id_validation_status_tsv
     }
 
@@ -54,7 +51,6 @@ workflow RegisterEGAExperimentAndRun {
                 submission_accession_id = submission_accession_id,
                 study_accession_id = study_accession_id,
                 ega_inbox = ega_inbox,
-                password = password,
                 illumina_instrument = illumina_instrument,
                 library_layout = library_layout,
                 library_strategy = library_strategy,
@@ -73,7 +69,7 @@ workflow RegisterEGAExperimentAndRun {
         call terra_tasks.UpsertMetadataToDataModel {
             input:
                 workspace_name = workspace_name,
-                worksapce_project = workspace_project,
+                workspace_project = workspace_project,
                 tsv = RegisterExperimentAndRun.run_accession_tsv
         }
 
@@ -82,8 +78,7 @@ workflow RegisterEGAExperimentAndRun {
 
             call DeleteFileFromBucket {
                 input:
-                    aggregation_path = aggregation_path,
-                    aggregation_index_path = aggregation_index_path
+                    aggregation_path = aggregation_path
             }
 
         }
@@ -98,7 +93,6 @@ task RegisterExperimentAndRun{
         String submission_accession_id
         String study_accession_id
         String ega_inbox
-        String password
         String illumina_instrument
         String library_layout
         String library_strategy
@@ -119,7 +113,6 @@ task RegisterExperimentAndRun{
             -submission_accession_id ~{submission_accession_id} \
             -study_accession_id ~{study_accession_id} \
             -user_name ~{ega_inbox} \
-            -password ~{password} \
             -instrument_model ~{illumina_instrument} \
             -library_layout ~{library_layout} \
             -library_strategy ~{library_strategy} \
@@ -153,7 +146,6 @@ task CheckEGAFileValidationStatus {
     input {
         String submission_accession_id
         String ega_inbox
-        String password
         String sample_alias
         String sample_id
     }
@@ -162,7 +154,6 @@ task CheckEGAFileValidationStatus {
         python3 /src/scripts/ega/check_file_validation_status.py \
             -submission_accession_id ~{submission_accession_id} \
             -user_name ~{ega_inbox} \
-            -password ~{password} \
             -sample_alias ~{sample_alias} \
             -sample_id ~{sample_id} \
     }
@@ -182,7 +173,6 @@ task CheckEGAFileValidationStatus {
 task DeleteFileFromBucket {
     input {
         String aggregation_path
-        String aggregation_index_path
     }
 
     String aggregation_md5_path  = aggregation_path + ".md5"
@@ -190,7 +180,6 @@ task DeleteFileFromBucket {
     command <<<
         set -eo pipefail
         gsutil rm -a ~{aggregation_path}
-        gsutil rm -a ~{aggregation_index_path}
         gsutil rm -a ~{aggregation_md5_path}
     >>>
 
