@@ -29,7 +29,8 @@ from src.scripts.ega.utils import (
     SecretManager,
     SUBMISSION_PROTOCOL_API_URL,
     format_request_header,
-    VALID_STATUS_CODES, get_file_metadata_for_all_files_in_submission,
+    VALID_STATUS_CODES,
+    get_file_metadata_for_all_files_in_inbox,
 )
 from src.scripts.ega import (
     LIBRARY_LAYOUT,
@@ -160,13 +161,11 @@ class RegisterEgaExperimentsAndRuns:
             logging.error(error_message)
             raise Exception(error_message)
 
-    def _get_file_metadata_for_files_in_submission(self) -> Optional[list[dict]]:
+    def _get_file_metadata_for_files_in_inbox(self) -> Optional[list[dict]]:
         logging.info(
             f"Attempting to collect metadata for all files registered under submissions {self.submission_accession_id}"
         )
-        return get_file_metadata_for_all_files_in_submission(
-            headers=self._headers(), submission_accession_id=self.submission_accession_id
-        )
+        return get_file_metadata_for_all_files_in_inbox(headers=self._headers())
 
     def _get_metadata_for_registered_sample(self) -> Optional[dict]:
         """
@@ -282,7 +281,7 @@ class RegisterEgaExperimentsAndRuns:
 
         # If the run for the sample doesn't already exist, gather the metadat for all files in the submission and
         # link the files to the sample of interest in order to register the run
-        file_metadata = self._get_file_metadata_for_files_in_submission()
+        file_metadata = self._get_file_metadata_for_files_in_inbox()
         if file_metadata:
             sample_and_file_metadata = self._link_files_to_samples(file_metadata, sample_metadata)
 
