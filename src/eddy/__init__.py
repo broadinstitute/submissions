@@ -1,1 +1,0 @@
-from .submit_metadata import submit, getEntity
