@@ -1,12 +1,12 @@
-from oauth2client.client import GoogleCredentials
 import requests
 import json
+from oauth2client.client import GoogleCredentials
 
 class TerraAPIWrapper:
-    def __init__(self, base_url="https://rawls.dsde-prod.broadinstitute.org/api/workspaces", billing_project=None, workspace_name=None):
-        self.base_url = base_url
+    def __init__(self, billing_project=None, workspace_name=None):
+        self.base_url = "https://rawls.dsde-prod.broadinstitute.org/api/workspaces"
         self.billing_project = billing_project
-        self.workspace_name = workspace_name,
+        self.workspace_name = workspace_name
 
     def get_access_token(self):
         """Get access token."""

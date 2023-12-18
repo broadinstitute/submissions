@@ -36,7 +36,7 @@ class GdcApiWrapper:
 
         url = f"{self.endpoint}/{self.program}/{self.project}"
 
-        logging.info("Submit METADATA to GDC dry_run endpoint for PROGRAM PROJECT.")
+        print("Submit METADATA to GDC dry_run endpoint for PROGRAM PROJECT.")
         try:
             dry_run_response = requests.put(
                 f'{url}/_dry_run',
@@ -44,14 +44,14 @@ class GdcApiWrapper:
                 headers=self.get_headers()
             ).json()
 
-            logging.info("Response for the dry commit: %s", dry_run_response)
+            print(f"Response for the dry commit: {dry_run_response}")
             transaction_id = dry_run_response.get('transaction_id')
 
             if dry_run_response.get('success'):
-                logging.info("Successfully submitted metadata for transaction %s", transaction_id)
+                print(f"Successfully submitted metadata for transaction {transaction_id}")
                 operation = "commit"
             else:
-                logging.warning("Could not submit metadata for transaction %s", transaction_id)
+                print(f"Could not submit metadata for transaction {transaction_id}")
                 operation = "close"
 
             commit_response = requests.put(
@@ -60,7 +60,7 @@ class GdcApiWrapper:
             )
 
         except Exception as e:
-            logging.error("Error: %s", e)
+            print("Error: {e}")
 
     def construct_query(self, query_type, submitter_id):
         base_query = """

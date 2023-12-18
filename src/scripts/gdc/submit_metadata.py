@@ -1,5 +1,6 @@
 import argparse
 import json
+import time
 from src.services.gdc_api import GdcApiWrapper
 
 DATA_TYPE_TO_EXPERIMENT_STRATEGY = {
@@ -26,7 +27,30 @@ class MetadataSubmission:
 
     def submit(self):
         metadata = self.create_metadata()
-        GdcApiWrapper(self.program, self.project, self.token).submit_metadata(metadata)
+        gdc_wrapper = GdcApiWrapper(program=self.program, project=self.project, token=self.token)
+        gdc_wrapper.submit_metadata(metadata)
+        time.sleep(100) # Wait a second since gdc can lag a little
+        self.write_bam_data_to_file()
+        self.write_uuid_to_file(gdc_wrapper)
+
+    def write_uuid_to_file(self, gdc_wrapper):
+        gdc_response = gdc_wrapper.get_entity("sar", self.submitter_id).json()
+
+        if 'data' in gdc_response and gdc_response['data'].get('submitted_aligned_reads'):
+            aligned_reads = gdc_response['data']['submitted_aligned_reads']
+            
+            if aligned_reads:
+                uuid = aligned_reads[0]['id']
+                file_path = "/cromwell_root/UUID.txt"
+                
+                with open(file_path, 'w') as file:
+                    file.write(uuid)
+                
+                print("Done writing UUID to file")
+            else:
+                print("No ids inside the submitted_aligned_reads array")
+        else:
+            raise RuntimeError("Data was not returned from GDC properly")
 
     def create_metadata(self):
         return {
@@ -47,25 +71,32 @@ class MetadataSubmission:
     def load_read_groups_from_file(self):
         """Opens reads file and loads JSON data"""
         with open(self.read_groups, 'r') as my_file:
-            return json.load(my_file)
+            return json.loads(json.load(my_file))
 
     def get_read_groups(self):
+        """Generate submitter IDs for read groups."""
         submitter_ids = []
         submitter_id_constant = f"{self.agg_project}.{self.sample_alias}"
         read_groups = self.load_read_groups_from_file()
 
         for read_group in read_groups:
-            submitter_ids.append({
-                "submitter_id": f"{read_group['flow_cell_barcode']}.{read_group['lane_number']}.{submitter_id_constant}"
-            })
+            flow_cell_barcode = read_group.get('flow_cell_barcode', '')
+            lane_number = read_group.get('lane_number', '')
+            submitter_id = f"{flow_cell_barcode}.{lane_number}.{submitter_id_constant}"
+
+            submitter_ids.append({"submitter_id": submitter_id})
 
         return submitter_ids
 
     def write_bam_data_to_file(self):
-        """Extracts bam path and bam name and writes to a file named bam.txt"""
-        f = open("/cromwell_root/bam.txt", 'w')
-        f.write(f"{self.submitter_id}.bam")
-        f.close()
+        """Writes BAM data to a file named bam.txt in /cromwell_root/"""
+        file_path = "/cromwell_root/bam.txt"
+        bam_data = f"{self.submitter_id}.bam"
+
+        with open(file_path, 'w') as file:
+            file.write(bam_data)
+
+        print("Done writing BAM data to file")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')
