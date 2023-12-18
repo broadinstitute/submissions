@@ -23,10 +23,10 @@ from pathlib import Path
 from typing import Optional
 from csv import DictWriter
 
-
 sys.path.append("./")
 from src.scripts.ega.utils import (
     LoginAndGetToken,
+    SecretManager,
     SUBMISSION_PROTOCOL_API_URL,
     format_request_header,
     VALID_STATUS_CODES, get_file_metadata_for_all_files_in_submission,
@@ -359,11 +359,6 @@ if __name__ == "__main__":
         help="The EGA username"
     )
     parser.add_argument(
-        "-password",
-        required=True,
-        help="The EGA password"
-    )
-    parser.add_argument(
         "-instrument_model",
         required=True,
         help="The experiment instrument model",
@@ -446,6 +441,8 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    password = SecretManager(project_id="gdc-submissions", secret_id="ega_password", version_id=1).get_ega_password_secret()
     access_token = LoginAndGetToken(username=args.user_name, password=args.password).login_and_get_token()
 
     if access_token:

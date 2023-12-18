@@ -8,6 +8,7 @@ from csv import DictWriter
 sys.path.append("./")
 from src.scripts.ega.utils import (
     LoginAndGetToken,
+    SecretManager,
     format_request_header,
     get_file_metadata_for_all_files_in_submission,
 )
@@ -116,11 +117,6 @@ if __name__ == '__main__':
         help="The EGA username"
     )
     parser.add_argument(
-        "-password",
-        required=True,
-        help="The EGA password"
-    )
-    parser.add_argument(
         "-sample_alias",
         required=True,
         help="The sample alias to register metadata for"
@@ -132,6 +128,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
+    password = SecretManager(project_id="gdc-submissions", secret_id="ega_password", version_id=1).get_ega_password_secret()
     access_token = LoginAndGetToken(username=args.user_name, password=args.password).login_and_get_token()
 
     if access_token:
