@@ -72,6 +72,7 @@ def get_file_metadata_for_all_files_in_inbox(headers: dict) -> Optional[list[dic
         logging.error(error_message)
         raise Exception(error_message)
 
+
 class SecretManager:
     def __init__(self, project_id, secret_id, version_id):
         self.project_id = project_id
@@ -81,7 +82,8 @@ class SecretManager:
     def _get_secret_version_name(self):
         return f"projects/{self.project_id}/secrets/{self.secret_id}/versions/{self.version_id}"
 
-    def _validate_payload_checksum(self, response):
+    @staticmethod
+    def _validate_payload_checksum(response):
         crc32c = google_crc32c.Checksum()
         crc32c.update(response.payload.data)
         return response.payload.data_crc32c == int(crc32c.hexdigest(), 16)
