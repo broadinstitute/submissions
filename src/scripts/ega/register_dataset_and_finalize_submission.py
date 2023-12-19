@@ -23,7 +23,6 @@ from datetime import datetime
 from typing import Optional
 
 sys.path.append("./")
-from src.scripts.ega import LIBRARY_STRATEGY
 from src.scripts.ega.utils import (
     LoginAndGetToken,
     SecretManager,
@@ -44,7 +43,7 @@ class RegisterEgaDatasetAndFinalizeSubmission:
             token: str,
             submission_accession_id: str,
             policy_title: str,
-            library_strategy: str,
+            library_strategy: list[str],
             run_accession_ids: list[str],
             dataset_title: Optional[str],
             dataset_description: Optional[str]
@@ -125,9 +124,21 @@ class RegisterEgaDatasetAndFinalizeSubmission:
         Endpoint documentation located here:
         https://submission.ega-archive.org/api/spec/#/paths/submissions-accession_id--datasets/post
         """
-        dataset_type = "Whole genome sequencing" if self.library_strategy == "WGS" else "Exome sequencing"
+        library_strategies = list(set(self.library_strategy))
+        if len(library_strategies) > 1:
+            raise ValueError(
+                f"Expected to find one unique library strategy. Instead found {len(self.library_strategy)}"
+            )
+        strategy = library_strategies[0]
+        if strategy == "WGS":
+            dataset_type = "Whole genome sequencing"
+        elif strategy == "WXS":
+            dataset_type = "Exome sequencing"
+        else:
+            raise Exception(f"Expected library strategy to be one of 'WGS' or 'WXS', instead received {strategy}")
+
         dataset_title = (self.dataset_title if self.dataset_title else
-                         f"{dataset_type} of samples for {self.submission_accession_id}")
+                         f"{dataset_type} sequencing of samples for {self.submission_accession_id}")
         dataset_description = self.dataset_description if self.dataset_description else dataset_title
 
         if dataset_accession_id := self._dataset_exists(policy_accession_id, dataset_title):
@@ -215,8 +226,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "-library_strategy",
         required=True,
-        help="The experiment library strategy.",
-        choices=LIBRARY_STRATEGY
+        help="A list of the experiment library strategies for each sample",
     )
     parser.add_argument(
         "-run_accession_ids",
