@@ -118,29 +118,3 @@ RUN_FILE_TYPE = [
     "CompleteGenomics_native",
     "OxfordNanopore_native",
 ]
-
-INSTRUMENT_MODEL = [
-    "HiSeq X Five", 
-    "HiSeq X Ten", 
-    "Illumina Genome Analyzer",
-    "Illumina Genome Analyzer II",
-    "Illumina Genome Analyzer IIx",
-    "Illumina HiScanSQ", 
-    "Illumina HiSeq 1000",
-    "Illumina HiSeq 1500",
-    "Illumina HiSeq 2000",
-    "Illumina HiSeq 2500",
-    "Illumina HiSeq 3000",
-    "Illumina HiSeq 4000",
-    "Illumina HiSeq X",
-    "Illumina iSeq 100",
-    "Illumina MiSeq",
-    "Illumina MiniSeq",
-    "Illumina NovaSeq X",
-    "Illumina NovaSeq 6000",
-    "NextSeq 500",
-    "NextSeq 550",
-    "NextSeq 1000",
-    "NextSeq 2000",
-    "unspecified"
-]

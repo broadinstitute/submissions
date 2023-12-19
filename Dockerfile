@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.9
 
 # Install the Google Cloud SDK
 RUN apt-get update && \

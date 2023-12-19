@@ -101,7 +101,7 @@ class SecretManager:
                 logging.error("Data corruption detected.")
         except Exception as e:
             logging.error(f"Failed to access secret: {str(e)}")
-        
+
         return None
 
     def get_ega_password_secret(self):

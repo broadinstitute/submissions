@@ -117,7 +117,7 @@ task RegisterExperimentAndRun{
             -library_layout ~{library_layout} \
             -library_strategy ~{library_strategy} \
             -library_source ~{library_source} \
-            -library_selection ~{library_selection} \
+            -library_selection "~{library_selection}" \
             -run_file_type ~{run_file_type} \
             -run_file_type ~{run_file_type} \
             -technology ILLUMINA \
@@ -127,12 +127,11 @@ task RegisterExperimentAndRun{
             -library_name ~{group_library_name} \
             -mean_insert_size ~{avg_mean_insert_size} \
             -standard_deviation ~{avg_standard_deviation} \
-            -sample_material_type ~{sample_material_type} \
+            -sample_material_type "~{sample_material_type}" \
             -construction_protocol ~{construction_protocol} \
     }
 
     runtime {
-        preemptible: 3
         docker: "schaluvadi/horsefish:submissionV2GDC"
     }
 
