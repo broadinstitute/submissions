@@ -23,13 +23,14 @@ from pathlib import Path
 from typing import Optional
 from csv import DictWriter
 
-
 sys.path.append("./")
 from src.scripts.ega.utils import (
     LoginAndGetToken,
+    SecretManager,
     SUBMISSION_PROTOCOL_API_URL,
     format_request_header,
-    VALID_STATUS_CODES, get_file_metadata_for_all_files_in_submission,
+    VALID_STATUS_CODES,
+    get_file_metadata_for_all_files_in_inbox,
 )
 from src.scripts.ega import (
     LIBRARY_LAYOUT,
@@ -37,7 +38,6 @@ from src.scripts.ega import (
     LIBRARY_SOURCE,
     LIBRARY_SELECTION,
     RUN_FILE_TYPE,
-    INSTRUMENT_MODEL,
     INSTRUMENT_MODEL_MAPPING,
 )
 
@@ -106,7 +106,7 @@ class RegisterEgaExperimentsAndRuns:
                 if (self.study_accession_id == experiment["study_accession_id"]
                         and design_description == experiment["design_description"]):
                     logging.info(f"Found experiment with description {design_description} already. Won't re-create it!")
-                    return experiment["accession_id"]
+                    return experiment["provisional_id"]
                 return None
         else:
             error_message = f"""Received status code {response.status_code} with error: {response.text} while 
@@ -129,8 +129,8 @@ class RegisterEgaExperimentsAndRuns:
 
         # Query for existing experiments. If the one we're trying to register already exists, skip re-creating it
         logging.info(f"Checking to see if experiment {design_description} already exists...")
-        if experiment_accession_id := self._experiment_exists(design_description=design_description):
-            return experiment_accession_id
+        if provisional_id := self._experiment_exists(design_description=design_description):
+            return provisional_id
 
         logging.info("Experiment did not already exist. Attempting to create it now!")
         response = requests.post(
@@ -151,22 +151,21 @@ class RegisterEgaExperimentsAndRuns:
             }
         )
         if response.status_code in VALID_STATUS_CODES:
-            experiment_accession_id = response.json()["accession_id"]
-            logging.info(f"Successfully created experiment with accession id: {experiment_accession_id}")
-            return experiment_accession_id
+            logging.info(f"Response from creating the experiment {response.json()}")
+            provisional_id = [experiment["provisional_id"] for experiment in response.json() if experiment["design_description"] == design_description][0]
+            logging.info(f"Successfully created experiment with provisional id: {provisional_id}")
+            return provisional_id
         else:
             error_message = f"""Received status code {response.status_code} with error: {response.text} while 
             attempting to register experiment"""
             logging.error(error_message)
             raise Exception(error_message)
 
-    def _get_file_metadata_for_files_in_submission(self) -> Optional[list[dict]]:
+    def _get_file_metadata_for_files_in_inbox(self) -> Optional[list[dict]]:
         logging.info(
             f"Attempting to collect metadata for all files registered under submissions {self.submission_accession_id}"
         )
-        return get_file_metadata_for_all_files_in_submission(
-            headers=self._headers(), submission_accession_id=self.submission_accession_id
-        )
+        return get_file_metadata_for_all_files_in_inbox(headers=self._headers())
 
     def _get_metadata_for_registered_sample(self) -> Optional[dict]:
         """
@@ -191,7 +190,7 @@ class RegisterEgaExperimentsAndRuns:
                     logging.info(f"Found sample {self.sample_alias} in registered samples metadata! Continuing.")
                     return {
                             "sample_alias": a["alias"],
-                            "sample_accession_id": a["accession_id"]
+                            "sample_provisional_id": a["provisional_id"]
                         }
             logging.error(
                 f"Could not find {self.sample_alias} in registered sample metadata. It could be that the sample "
@@ -205,7 +204,7 @@ class RegisterEgaExperimentsAndRuns:
                          attempting to query sample accession IDs"""
             raise Exception(error_message)
 
-    def _run_exists(self, experiment_accession_id: str, sample_metadata: dict) -> Optional[str]:
+    def _run_exists(self, experiment_provisional_id: str, sample_metadata: dict) -> Optional[int]:
         """
         Collects information on all runs in submission
         Endpoint documentation located here:
@@ -221,22 +220,22 @@ class RegisterEgaExperimentsAndRuns:
             registered_runs = response.json()
 
             sample_alias = sample_metadata["sample_alias"]
-            sample_accession_id = sample_metadata["sample_accession_id"]
+            sample_provisional_id = sample_metadata["sample_provisional_id"]
 
             for run in registered_runs:
-                run_experiment_accession_id = run["experiment"]["accession_id"]
-                run_sample_accession_id = run["sample"]["accession_id"]
+                run_experiment_provisional_id = run["experiment"]["provisional_id"]
+                run_sample_provisional_id = run["sample"]["provisional_id"]
                 run_sample_alias = run["sample"]["alias"]
-                run_accession_id = run["accession_id"]
+                run_provisional_id = run["provisional_id"]
 
-                if (run_experiment_accession_id == experiment_accession_id
-                        and run_sample_accession_id == sample_accession_id
+                if (run_experiment_provisional_id == experiment_provisional_id
+                        and run_sample_provisional_id == sample_provisional_id
                         and run_sample_alias == sample_alias):
                     logging.info(
-                        f"Found a registered run with accession ID {run_accession_id} for {self.sample_alias}. "
+                        f"Found a registered run with accession ID {run_provisional_id} for {self.sample_alias}. "
                         f"The run will not be re-created!"
                     )
-                    return run_accession_id
+                    return run_provisional_id
             logging.error(f"Did not find an existing registered run for sample {self.sample_alias}")
             return None
 
@@ -269,20 +268,20 @@ class RegisterEgaExperimentsAndRuns:
                 f"Expected to find at least 1 file associated with sample {self.sample_alias}. Instead found none."
             )
 
-    def _conditionally_register_run(self, experiment_accession_id: str, sample_metadata: dict) -> Optional[str]:
+    def _conditionally_register_run(self, experiment_provisional_id: str, sample_metadata: dict) -> Optional[str]:
         """
         Registers the run for the sample
         Endpoint documentation located here:
         https://submission.ega-archive.org/api/spec/#/paths/submissions-accession_id--runs/post
         """
         if run_accession_id := self._run_exists(
-                experiment_accession_id=experiment_accession_id, sample_metadata=sample_metadata
+                experiment_provisional_id=experiment_provisional_id, sample_metadata=sample_metadata
         ):
             return run_accession_id
 
         # If the run for the sample doesn't already exist, gather the metadat for all files in the submission and
         # link the files to the sample of interest in order to register the run
-        file_metadata = self._get_file_metadata_for_files_in_submission()
+        file_metadata = self._get_file_metadata_for_files_in_inbox()
         if file_metadata:
             sample_and_file_metadata = self._link_files_to_samples(file_metadata, sample_metadata)
 
@@ -293,8 +292,8 @@ class RegisterEgaExperimentsAndRuns:
                 json={
                     "run_file_type": self.run_file_type,
                     "files": sample_and_file_metadata["files"],
-                    "experiment_accession_id": experiment_accession_id,
-                    "sample_accession_id": sample_and_file_metadata["sample_accession_id"],
+                    "experiment_provisional_id": experiment_provisional_id,
+                    "sample_provisional_id": sample_and_file_metadata["sample_provisional_id"],
                 }
             )
             if response.status_code in VALID_STATUS_CODES:
@@ -322,15 +321,17 @@ class RegisterEgaExperimentsAndRuns:
         """
 
         # Register the experiment if it doesn't already exist
-        experiment_accession_id = self._conditionally_create_experiment()
+        experiment_provisional_id = self._conditionally_create_experiment()
 
         # Gather the sample accession ID that corresponds to the sample we're trying to register a run for
         sample_metadata = self._get_metadata_for_registered_sample()
 
-        if experiment_accession_id and sample_metadata:
+        print(f"provisional_id - {experiment_provisional_id}, sample metadata {sample_metadata}")
+
+        if experiment_provisional_id and sample_metadata:
             # Register the run if it doesn't already exist
             run_accession_id = self._conditionally_register_run(
-                experiment_accession_id=experiment_accession_id, sample_metadata=sample_metadata
+                experiment_provisional_id=experiment_provisional_id, sample_metadata=sample_metadata
             )
 
             # Write info to a tsv so that it can be written to the Terra data tables
@@ -359,15 +360,10 @@ if __name__ == "__main__":
         help="The EGA username"
     )
     parser.add_argument(
-        "-password",
-        required=True,
-        help="The EGA password"
-    )
-    parser.add_argument(
         "-instrument_model",
         required=True,
         help="The experiment instrument model",
-        choices=INSTRUMENT_MODEL
+        choices=[a for a in INSTRUMENT_MODEL_MAPPING.keys()]
     )
     """Source: https://submission.ega-archive.org/api/spec/#/paths/enums-library_layouts/get"""
     parser.add_argument(
@@ -446,7 +442,9 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    access_token = LoginAndGetToken(username=args.user_name, password=args.password).login_and_get_token()
+
+    password = SecretManager(project_id="gdc-submissions", secret_id="ega_password", version_id=1).get_ega_password_secret()
+    access_token = LoginAndGetToken(username=args.user_name, password=password).login_and_get_token()
 
     if access_token:
         logging.info("Successfully generated access token. Will continue with metadata registration now.")

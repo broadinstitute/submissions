@@ -22,10 +22,10 @@ import logging
 from datetime import datetime
 from typing import Optional
 
-
 sys.path.append("./")
 from src.scripts.ega.utils import (
     LoginAndGetToken,
+    SecretManager,
     SUBMISSION_PROTOCOL_API_URL,
     format_request_header,
     VALID_STATUS_CODES,
@@ -219,11 +219,6 @@ if __name__ == '__main__':
         help="The EGA username"
     )
     parser.add_argument(
-        "-password",
-        required=True,
-        help="The EGA password"
-    )
-    parser.add_argument(
         "-policy_title",
         required=True,
         help="The name of the policy exactly as it was registered for the associated DAC"
@@ -251,7 +246,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    access_token = LoginAndGetToken(username=args.user_name, password=args.password).login_and_get_token()
+    password = SecretManager(project_id="gdc-submissions", secret_id="ega_password", version_id=1).get_ega_password_secret()
+    access_token = LoginAndGetToken(username=args.user_name, password=password).login_and_get_token()
     if access_token:
         logging.info("Successfully generated access token. Will continue with dataset registration now.")
         RegisterEgaDatasetAndFinalizeSubmission(

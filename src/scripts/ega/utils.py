@@ -1,5 +1,7 @@
 import requests
 import logging
+import google_crc32c
+from google.cloud import secretmanager
 from typing import Optional
 
 LOGIN_URL = "https://idp.ega-archive.org/realms/EGA/protocol/openid-connect/token"
@@ -45,9 +47,9 @@ def format_request_header(token: str) -> dict:
     }
 
 
-def get_file_metadata_for_all_files_in_submission(headers: dict, submission_accession_id: str) -> Optional[list[dict]]:
+def get_file_metadata_for_all_files_in_inbox(headers: dict) -> Optional[list[dict]]:
     """
-    Retrieves file metadata for all files in submission
+    Retrieves file metadata for all files in the inbox
     Endpoint documentation located here:
     https://submission.ega-archive.org/api/spec/#/paths/files/get
     """
@@ -58,20 +60,54 @@ def get_file_metadata_for_all_files_in_submission(headers: dict, submission_acce
     )
     if response.status_code in VALID_STATUS_CODES:
         file_metadata = response.json()
-        files_of_interest = [
-            f for f in file_metadata if f["submission_accession_id"] == submission_accession_id
-        ]
-        if files_of_interest:
-            logging.info(f"Found {len(files_of_interest)} files associated with submission {submission_accession_id}!")
-            return files_of_interest
+
+        if file_metadata:
+            return file_metadata
         else:
-            raise Exception(
-                f"Expected to find at least 1 file associated with submission {submission_accession_id}. Instead "
-                f"found none."
-            )
+            raise Exception("Expected to find at least 1 file in the inbox. Instead found none.")
 
     else:
         error_message = f"""Received status code {response.status_code} with error: {response.text} while
                  attempting to query for file metadata"""
         logging.error(error_message)
         raise Exception(error_message)
+
+
+class SecretManager:
+    def __init__(self, project_id, secret_id, version_id):
+        self.project_id = project_id
+        self.secret_id = secret_id
+        self.version_id = version_id
+
+    def _get_secret_version_name(self):
+        return f"projects/{self.project_id}/secrets/{self.secret_id}/versions/{self.version_id}"
+
+    @staticmethod
+    def _validate_payload_checksum(response):
+        crc32c = google_crc32c.Checksum()
+        crc32c.update(response.payload.data)
+        return response.payload.data_crc32c == int(crc32c.hexdigest(), 16)
+
+    def _access_secret_version(self):
+        client = secretmanager.SecretManagerServiceClient()
+        name = self._get_secret_version_name()
+        
+        try:
+            response = client.access_secret_version(request={"name": name})
+            if self._validate_payload_checksum(response):
+                logging.info("Successfully accessed secret")
+                return response.payload.data.decode("UTF-8")
+            else:
+                logging.error("Data corruption detected.")
+        except Exception as e:
+            logging.error(f"Failed to access secret: {str(e)}")
+
+        return None
+
+    def get_ega_password_secret(self):
+        secret_payload = self._access_secret_version()
+
+        if secret_payload is None:
+            raise ValueError("Unable to retrieve secret. Application will now exit.")
+
+        return secret_payload
