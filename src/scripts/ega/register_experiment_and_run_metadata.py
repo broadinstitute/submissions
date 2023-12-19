@@ -268,16 +268,16 @@ class RegisterEgaExperimentsAndRuns:
                 f"Expected to find at least 1 file associated with sample {self.sample_alias}. Instead found none."
             )
 
-    def _conditionally_register_run(self, experiment_provisional_id: str, sample_metadata: dict) -> Optional[str]:
+    def _conditionally_register_run(self, experiment_provisional_id: str, sample_metadata: dict) -> Optional[int]:
         """
         Registers the run for the sample
         Endpoint documentation located here:
         https://submission.ega-archive.org/api/spec/#/paths/submissions-accession_id--runs/post
         """
-        if run_accession_id := self._run_exists(
+        if run_provisional_id := self._run_exists(
                 experiment_provisional_id=experiment_provisional_id, sample_metadata=sample_metadata
         ):
-            return run_accession_id
+            return run_provisional_id
 
         # If the run for the sample doesn't already exist, gather the metadat for all files in the submission and
         # link the files to the sample of interest in order to register the run
@@ -297,21 +297,22 @@ class RegisterEgaExperimentsAndRuns:
                 }
             )
             if response.status_code in VALID_STATUS_CODES:
-                run_accession_id = [a["accession_id"] for a in response.json()][0]
+                print("json response", response.json())
+                run_provisional_id = [a["provisional_id"] for a in response.json()][0]
                 logging.info(f"Successfully registered run for sample {self.sample_alias}")
-                return run_accession_id
+                return run_provisional_id
             else:
                 error_message = f"""Received status code {response.status_code} with error: {response.text} while 
                 attempting to register run"""
                 logging.error(error_message)
                 raise Exception(error_message)
 
-    def _write_tsv(self, run_accession_id: str) -> None:
-        logging.info("Writing sample metadata and run accession id to output file")
-        with open("/cromwell_root/sample_id_and_run_accession_id.tsv", "w") as tsv_file:
-            writer = DictWriter(tsv_file, fieldnames=["sample_id", "ega_run_accession_id"])
+    def _write_tsv(self, run_provisional_id: int) -> None:
+        logging.info("Writing sample metadata and run provisional id to output file")
+        with open("/cromwell_root/sample_id_and_run_provisional_id.tsv", "w") as tsv_file:
+            writer = DictWriter(tsv_file, fieldnames=["sample_id", "ega_run_provisional_id"])
             writer.writeheader()
-            writer.writerow({"sample_id": self.sample_id, "ega_run_accession_id": run_accession_id})
+            writer.writerow({"sample_id": self.sample_id, "ega_run_provisional_id": run_provisional_id})
 
     def register_metadata(self):
         """
@@ -330,13 +331,14 @@ class RegisterEgaExperimentsAndRuns:
 
         if experiment_provisional_id and sample_metadata:
             # Register the run if it doesn't already exist
-            run_accession_id = self._conditionally_register_run(
+            run_provisional_id = self._conditionally_register_run(
                 experiment_provisional_id=experiment_provisional_id, sample_metadata=sample_metadata
             )
 
+            print("provisional id", run_provisional_id)
             # Write info to a tsv so that it can be written to the Terra data tables
-            if run_accession_id:
-                self._write_tsv(run_accession_id=run_accession_id)
+            if run_provisional_id:
+                self._write_tsv(run_provisional_id=run_provisional_id)
 
 
 if __name__ == "__main__":

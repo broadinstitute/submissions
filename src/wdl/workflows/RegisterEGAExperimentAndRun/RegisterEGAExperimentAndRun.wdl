@@ -136,7 +136,7 @@ task RegisterExperimentAndRun{
     }
 
     output {
-        File run_accession_tsv = "sample_id_and_run_accession_id.tsv"
+        File run_accession_tsv = "sample_id_and_run_provisional_id.tsv"
     }
 
 }
