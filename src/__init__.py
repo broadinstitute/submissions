@@ -1,1 +1,0 @@
-from src.eddy.submit_metadata import submit, getEntity
