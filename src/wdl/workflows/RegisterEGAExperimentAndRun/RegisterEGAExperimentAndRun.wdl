@@ -132,7 +132,6 @@ task RegisterExperimentAndRun{
     }
 
     runtime {
-        preemptible: 3
         docker: "schaluvadi/horsefish:submissionV2GDC"
     }
 
