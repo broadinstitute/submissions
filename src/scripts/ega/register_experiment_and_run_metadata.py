@@ -313,9 +313,9 @@ class RegisterEgaExperimentsAndRuns:
     def _write_tsv(self, run_provisional_id: int) -> None:
         logging.info("Writing sample metadata and run provisional id to output file")
         with open("/cromwell_root/sample_id_and_run_provisional_id.tsv", "w") as tsv_file:
-            writer = DictWriter(tsv_file, fieldnames=["sample_id", "ega_run_provisional_id"])
+            writer = DictWriter(tsv_file, fieldnames=["entity:sample_id", "ega_run_provisional_id"], delimiter='\t')
             writer.writeheader()
-            writer.writerow({"sample_id": self.sample_id, "ega_run_provisional_id": run_provisional_id})
+            writer.writerow({"entity:sample_id": self.sample_id, "ega_run_provisional_id": run_provisional_id})
 
     def register_metadata(self):
         """

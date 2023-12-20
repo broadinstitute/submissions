@@ -15,7 +15,7 @@ def get_access_token():
 
     return credentials.get_access_token().access_token
 
-curl --header "X-Auth-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJmMDY4MzQyYTBlNGE0NmQ0YTZmODI1M2Y4YjQxYjY4YyIsImlhdCI6MTY5ODc2MTU2NSwiZXhwIjoxNzAxMzUzNTY1LCJvcGVuc3RhY2tfbWV0aG9kcyI6WyJzYW1sMiJdLCJvcGVuc3RhY2tfYXVkaXRfaWRzIjpbIlF2N09pcVE2VEV5NjlkbHJSMDFyUFEiXSwib3BlbnN0YWNrX2dyb3VwX2lkcyI6W3siaWQiOiIwZDIxZWFjOTViMTE0YTM2YjUxN2Y1Yjc1MGU3ZDFlYiJ9XSwib3BlbnN0YWNrX2lkcF9pZCI6ImVyYV9jb21tb24iLCJvcGVuc3RhY2tfcHJvdG9jb2xfaWQiOiJzYW1sMiJ9.itPDdBek7ceptOCTQ9kcfNZrD7Gk7Sx45NDy528g8kXq_I00Kusn7cUp56eqhS2CKQJgrnpwpJca-cU05t3ZUg" --request DELETE https://api.gdc.cancer.gov/v0/submission/CPTAC/3/entities/80c3842b-90b2-4887-891f-5eb745d21435
+
 def call_rawls_batch_upsert(workspace_name, project, request):
     """Post entities to Terra workspace using batchUpsert."""
 
