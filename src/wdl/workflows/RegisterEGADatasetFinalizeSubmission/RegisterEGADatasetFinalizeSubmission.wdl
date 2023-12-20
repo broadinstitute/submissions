@@ -6,7 +6,7 @@ workflow RegisterEGADatasetFinalizeSubmission {
         String ega_inbox
         String policy_title
         Array[String] library_strategy
-        Array[String] run_accession_ids
+        Array[String] run_provisional_ids
         String? dataset_title
         String? dataset_description
     }
@@ -17,7 +17,7 @@ workflow RegisterEGADatasetFinalizeSubmission {
             ega_inbox = ega_inbox,
             policy_title = policy_title,
             library_strategy = library_strategy,
-            run_accession_ids = run_accession_ids,
+            run_provisional_ids = run_provisional_ids,
             dataset_title = dataset_title,
             dataset_description = dataset_description
     }
@@ -30,7 +30,7 @@ task RegisterDatasetFinalizeSubmission {
         String ega_inbox
         String policy_title
         Array[String] library_strategy
-        Array[String] run_accession_ids
+        Array[String] run_provisional_ids
         String? dataset_title
         String? dataset_description
     }
@@ -41,7 +41,7 @@ task RegisterDatasetFinalizeSubmission {
             -user_name ~{ega_inbox} \
             -policy_title ~{policy_title} \
             -library_strategy ~{library_strategy} \
-            -run_accession_ids ~{run_accession_ids} \
+            -run_provisional_ids ~{run_provisional_ids} \
             -dataset_title ~{dataset_title} \
             -dataset_description ~{dataset_description} \
     }
