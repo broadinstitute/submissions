@@ -129,7 +129,8 @@ if __name__ == '__main__':
 
     password = SecretManager(
         project_id="gdc-submissions",
-        secret_id="ega_password", version_id=1
+        secret_id="ega_password",
+        version_id=1
     ).get_ega_password_secret()
     access_token = LoginAndGetToken(username=args.user_name, password=password).login_and_get_token()
 

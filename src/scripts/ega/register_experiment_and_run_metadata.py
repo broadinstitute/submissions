@@ -152,7 +152,10 @@ class RegisterEgaExperimentsAndRuns:
         )
         if response.status_code in VALID_STATUS_CODES:
             logging.info(f"Response from creating the experiment {response.json()}")
-            provisional_id = [experiment["provisional_id"] for experiment in response.json() if experiment["design_description"] == design_description][0]
+            provisional_id = [
+                experiment["provisional_id"] for experiment in response.json()
+                if experiment["design_description"] == design_description
+            ][0]
             logging.info(f"Successfully created experiment with provisional id: {provisional_id}")
             return provisional_id
         else:
@@ -445,7 +448,11 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    password = SecretManager(project_id="gdc-submissions", secret_id="ega_password", version_id=1).get_ega_password_secret()
+    password = SecretManager(
+        project_id="gdc-submissions",
+        secret_id="ega_password",
+        version_id=1
+    ).get_ega_password_secret()
     access_token = LoginAndGetToken(username=args.user_name, password=password).login_and_get_token()
 
     if access_token:
