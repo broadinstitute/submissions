@@ -10,3 +10,5 @@ pandas==1.4.4
 google-crc32c==1.5.0
 google-api-python-client
 google-cloud-secret-manager
+crypt4gh
+paramiko

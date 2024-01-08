@@ -49,12 +49,12 @@ if __name__ == '__main__':
         description="Transfer a file to EGA using an FTP server"
     )
     parser.add_argument(
-        "--encrypted-data-file",
+        "--encrypted_data_file",
         required=True,
         help="Data file that is already encrypted"
     )
     parser.add_argument(
-        "--ega-inbox",
+        "--ega_inbox",
         required=True,
         help="Inbox assigned to the current PM"
     )
