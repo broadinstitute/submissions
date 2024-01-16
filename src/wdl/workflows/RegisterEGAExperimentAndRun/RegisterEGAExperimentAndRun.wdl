@@ -70,7 +70,7 @@ workflow RegisterEGAExperimentAndRun {
             input:
                 workspace_name = workspace_name,
                 workspace_project = workspace_project,
-                tsv = RegisterExperimentAndRun.run_accession_tsv
+                tsv = RegisterExperimentAndRun.run_provisional_tsv
         }
 
         # If delete_files is set to true, proceed with deleting the cram/crai/md5 from the Terra bucket
@@ -136,7 +136,7 @@ task RegisterExperimentAndRun{
     }
 
     output {
-        File run_accession_tsv = "sample_id_and_run_accession_id.tsv"
+        File run_provisional_tsv = "sample_id_and_run_provisional_id.tsv"
     }
 
 }

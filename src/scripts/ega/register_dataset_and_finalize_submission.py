@@ -43,8 +43,8 @@ class RegisterEgaDatasetAndFinalizeSubmission:
             token: str,
             submission_accession_id: str,
             policy_title: str,
-            library_strategy: list[str],
-            run_accession_ids: list[str],
+            library_strategy: str,
+            run_provisional_ids: list[int],
             dataset_title: Optional[str],
             dataset_description: Optional[str]
     ):
@@ -52,7 +52,7 @@ class RegisterEgaDatasetAndFinalizeSubmission:
         self.submission_accession_id = submission_accession_id
         self.policy_title = policy_title
         self.library_strategy = library_strategy
-        self.run_accession_ids = run_accession_ids
+        self.run_provisional_ids = run_provisional_ids
         self.dataset_title = dataset_title
         self.dataset_description = dataset_description
 
@@ -153,7 +153,7 @@ class RegisterEgaDatasetAndFinalizeSubmission:
                 "description": dataset_description,
                 "dataset_types": [dataset_type],
                 "policy_accession_id": policy_accession_id,
-                "run_provisional_ids": self.run_accession_ids,
+                "run_provisional_ids": self.run_provisional_ids,
             }
         )
         if response.status_code in VALID_STATUS_CODES:
@@ -229,7 +229,7 @@ if __name__ == '__main__':
         help="A list of the experiment library strategies for each sample",
     )
     parser.add_argument(
-        "-run_accession_ids",
+        "-run_provisional_ids",
         required=True,
         help="An array of all run accession IDs that are to be associated with this dataset"
     )
@@ -255,7 +255,7 @@ if __name__ == '__main__':
             submission_accession_id=args.submission_accession_id,
             policy_title=args.policy_title,
             library_strategy=args.library_strategy,
-            run_accession_ids=args.run_accession_ids,
+            run_provisional_ids=args.run_provisional_ids,
             dataset_title=args.dataset_title if args.dataset_title else None,
             dataset_description=args.dataset_description if args.dataset_description else None,
         ).register_metadata()
