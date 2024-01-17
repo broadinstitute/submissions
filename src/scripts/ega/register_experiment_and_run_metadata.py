@@ -107,7 +107,7 @@ class RegisterEgaExperimentsAndRuns:
                         and design_description == experiment["design_description"]):
                     logging.info(f"Found experiment with description {design_description} already. Won't re-create it!")
                     return experiment["provisional_id"]
-                return None
+            return None
         else:
             error_message = f"""Received status code {response.status_code} with error: {response.text} while 
                         attempting to query existing experiments"""
