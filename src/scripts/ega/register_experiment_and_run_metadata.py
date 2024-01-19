@@ -250,21 +250,26 @@ class RegisterEgaExperimentsAndRuns:
     def _link_files_to_samples(self, file_metadata: list[dict], sample_metadata: dict) -> dict:
         logging.info(f"Found file metadata. Now attempting to link all files associated with {self.sample_alias}")
 
-        files = []
+        file_provisional_ids = []
+        file_names = []
 
-        for file in file_metadata:
-            relative_file_path = file["relative_path"]
-            file_name = Path(relative_file_path).name
-            sample_alias_from_path = Path(file_name).stem
+        for file_path in file_metadata:
+            relative_file_path = file_path["relative_path"]
+            file = Path(relative_file_path).name
+            sample_alias_from_path = Path(file).stem
 
-            # There could be multiple files associated with a given sample, so we loop through ALL files and append
-            # all the file provisional IDs to a list
+            # "rename" all files that end with .c4gh since it's not an extension we're using anymore
+            file_name = file.strip(".c4gh") if file.endswith(".c4gh") else file
             if sample_alias_from_path == self.sample_alias:
-                files.append(file["provisional_id"])
+                # Only add the file's provisional ID to the list of provisional IDs if that exact file hasn't already
+                # been added
+                if file_name not in file_names:
+                    file_names.append(file_name)
+                    file_provisional_ids.append(file_path["provisional_id"])
 
-        if files:
-            logging.info(f"Found {len(files)} associated with sample {self.sample_alias}!")
-            sample_metadata["files"] = files
+        if file_provisional_ids:
+            logging.info(f"Found {len(file_provisional_ids)} associated with sample {self.sample_alias}!")
+            sample_metadata["files"] = file_provisional_ids
             return sample_metadata
         else:
             raise Exception(
@@ -282,7 +287,7 @@ class RegisterEgaExperimentsAndRuns:
         ):
             return run_provisional_id
 
-        # If the run for the sample doesn't already exist, gather the metadat for all files in the submission and
+        # If the run for the sample doesn't already exist, gather the metadata for all files in the submission and
         # link the files to the sample of interest in order to register the run
         file_metadata = self._get_file_metadata_for_files_in_inbox()
         if file_metadata:
