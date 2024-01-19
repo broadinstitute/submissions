@@ -1,5 +1,4 @@
 venv
 __pycache__
-*.txt
-Test_aligned_*.bam
 *.xml
+Test_aligned_*.bam

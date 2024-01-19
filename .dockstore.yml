@@ -9,9 +9,16 @@ workflows:
   - name: dbgapTransfer
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/TransferToDbGap/TransferFile.wdl
-  - name: egaTransfer
-    subclass: WDL
-    primaryDescriptorPath: /src/wdl/workflows/TransferToEga/TransferToEga.wdl
   - name: validateGDCStatus
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/ValidateFileStatus/ValidateFileStatus.wdl
+    primaryDescriptorPath: /src/wdl/workflows/VerifyRegistration/VerifyRegistration.wdl
+  - name: registerEGAExperimentAndRuns
+    subclass: WDL
+    primaryDescriptorPath: /src/wdl/workflows/RegisterEGAExperimentAndRun/RegisterEGAExperimentAndRun.wdl
+  - name: registerEGADataset
+    subclass: WDL
+    primaryDescriptorPath: /src/wdl/workflows/RegisterEGADatasetFinalizeSubmission/RegisterEGADatasetFinalizeSubmission.wdl
+  - name: egaFileTransfer
+    subclass: WDL
+    primaryDescriptorPath: /src/wdl/workflows/EGAFileTransfer/EGAFileTransfer.wdl
