@@ -1,5 +1,103 @@
 version 1.0
 
+task CreateDbgapXmlFiles {
+    input {
+        String sample_id
+        String workspace_name
+        String billing_project
+        String md5
+        File? monitoring_script
+    }
+    Int disk_size = 32
+
+    command {
+        # if the WDL/task contains a monitoring script as input
+        if [ ! -z "~{monitoring_script}" ]; then
+            chmod a+x ~{monitoring_script}
+            ~{monitoring_script} > monitoring.log &
+        else
+            echo "No monitoring script given as input" > monitoring.log &
+        fi
+
+        mkdir /cromwell_root/xml
+        python3 /src/scripts/dbgap/create_dbgap_xml_files.py -w ~{workspace_name} \
+                                                      -p ~{billing_project} \
+                                                      -s ~{sample_id} \
+                                                      -m ~{md5}
+        cd /cromwell_root/xml
+        ls
+        tar czf xml_files.tgz *.xml
+        mv xml_files.tgz /cromwell_root
+    }
+
+    runtime {
+      memory: "32 GB"
+      docker: "schaluvadi/horsefish:submissionV2GDC"
+      cpu: 4
+      disks: "local-disk " + disk_size + " HDD"
+    }
+
+    output {
+        File xml_tar = "xml_files.tgz"
+    }
+}
+
+task CreateValidationStatusTable {
+    input {
+        # values to update to data model
+        String sample_id
+        String file_state
+    }
+
+    parameter_meta {
+        file_state: "State of file from transferBamFile."
+    }
+
+    command {
+        # write header to file
+        echo -e "entity:sample_id\tfile_state" \
+        > sample_metadata.tsv
+
+        # write metadata values to row in tsv file
+        echo -e "~{sample_id}\t~{file_state}" \
+        >> sample_metadata.tsv
+    }
+
+    runtime {
+        preemptible: 3
+        docker: "schaluvadi/horsefish:submissionV1"
+    }
+
+    output {
+        File load_tsv = "sample_metadata.tsv"
+    }
+}
+
+task verifyGDCRegistration {
+    input {
+        String program
+        String project
+        String sample_alias
+        String gdc_token
+    }
+
+    command {
+        python3 /src/scripts/gdc/verify_registration.py --program ~{program} \
+                                                        --project ~{project} \
+                                                        --sample_alias ~{sample_alias} \
+                                                        --token ~{gdc_token}
+    }
+
+    runtime {
+        docker: "schaluvadi/horsefish:submissionV2GDC"
+        preemptible: 1
+    }
+
+    output {
+        Boolean registration_status = read_string(stdout()) == "true"
+    }
+}
+
 task CreateTableLoadFile {
     input {
         # values to update to data model
@@ -36,6 +134,20 @@ task CreateTableLoadFile {
 
     output {
         File load_tsv = "sample_metadata.tsv"
+    }
+}
+
+task DeleteFileFromWorkspace {
+    input {
+        File aggregation_path
+    }
+
+    command {
+        gsutil rm -a ~{aggregation_path}
+    }
+
+    runtime {
+        docker: "schaluvadi/horsefish:submissionV1"
     }
 }
 
@@ -113,17 +225,23 @@ task addReadsField {
         String workspace_name
         String workspace_project
         String sample_id
+        String gdc_token
+        String project
+        String program
     }
 
     command {
-        python3 /src/scripts/extract_reads_data.py -w ~{workspace_name} \
+        python3 /src/scripts/gdc/extract_reads_data.py -w ~{workspace_name} \
                                                       -p ~{workspace_project} \
-                                                      -s ~{sample_id}
+                                                      -s ~{sample_id} \
+                                                      -t ~{gdc_token} \
+                                                      -pj ~{project} \
+                                                      -pg ~{program}
     }
 
     runtime {
         preemptible: 3
-        docker: "schaluvadi/horsefish:submissionV1"
+        docker: "schaluvadi/horsefish:submissionV2GDC"
     }
 
     output {

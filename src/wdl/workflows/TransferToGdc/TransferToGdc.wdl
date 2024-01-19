@@ -6,34 +6,46 @@ workflow TransferToGdc {
   input {
     # Sample input
     String sample_id
+    String alias_name
     String bam_file
     String agg_project
     String data_type
     String file_size
-    String md5
     String program
     String project
     String workspace_name
     String workspace_project
+    File md5_file
     File gdc_token
     Boolean dry_run = false
-    Boolean registration_status
     File?   monitoring_script
   }
 
-  call tasks.addReadsField as reads {
+  String token_value = (read_lines(gdc_token))[0]
+  String md5 = (read_lines(md5_file))[0]
+
+  call tasks.verifyGDCRegistration as verified {
     input:
-      workspace_name = workspace_name,
-      workspace_project = workspace_project,
-      sample_id = sample_id
+      program = program,
+      project = project,
+      gdc_token = token_value,
+      sample_alias = alias_name
   }
 
-  if (registration_status) {
-    String token_value = (read_lines(gdc_token))[0]
+  if (verified.registration_status) {
+    call tasks.addReadsField as reads {
+      input:
+        workspace_name = workspace_name,
+        workspace_project = workspace_project,
+        sample_id = alias_name,
+        gdc_token = token_value,
+        project = project,
+        program = program
+    }
 
     call submitMetadataToGDC {
       input:
-        sample_id = sample_id,
+        sample_alias = alias_name,
         bam_file = bam_file,
         agg_project = agg_project,
         data_type = data_type,
@@ -56,7 +68,7 @@ workflow TransferToGdc {
 
     call TransferBamToGdc {
       input:
-        bam_path = submitMetadataToGDC.bam_path,
+        bam_path = bam_file,
         bam_name = submitMetadataToGDC.bam_file_name,
         manifest = RetrieveGdcManifest.manifest,
         gdc_token = gdc_token,
@@ -68,7 +80,7 @@ workflow TransferToGdc {
       input:
         program = program,
         project = project,
-        sample_id = sample_id,
+        sample_id = alias_name,
         agg_project = agg_project,
         data_type = data_type,
         gdc_token = token_value,
@@ -81,7 +93,7 @@ workflow TransferToGdc {
         uuid = submitMetadataToGDC.UUID,
         file_state = validateFileStatus.file_state,
         state = validateFileStatus.state,
-        registration_status = registration_status,
+        registration_status = verified.registration_status,
         read_json_file = submitMetadataToGDC.read_json_file
     }
 
@@ -95,7 +107,6 @@ workflow TransferToGdc {
 }
 
 task RetrieveGdcManifest {
-
   input {
     String  program
     String  project
@@ -118,7 +129,7 @@ task RetrieveGdcManifest {
 
   runtime {
     memory: "3.75 GB"
-    docker: "schaluvadi/horsefish:submissionV2GDC"
+    docker: "schaluvadi/horsefish:submissionV1"
     cpu: 1
     preemptible: 3
     disks: "local-disk " + 20 + " HDD"
@@ -130,7 +141,6 @@ task RetrieveGdcManifest {
 }
 
 task TransferBamToGdc {
-
   input {
     String  bam_path
     String  bam_name
@@ -176,10 +186,9 @@ task TransferBamToGdc {
   }
 
   runtime {
-    memory: "7.5 GB"
-    docker: "schaluvadi/horsefish:submissionV2GDC"
+    memory: "8 GB"
+    docker: "schaluvadi/horsefish:submissionV1"
     cpu: 2
-    preemptible: 3
     disks: "local-disk " + disk_size + " HDD"
   }
 
@@ -191,7 +200,7 @@ task TransferBamToGdc {
 
 task submitMetadataToGDC {
     input {
-      String sample_id
+      String sample_alias
       String bam_file
       String agg_project
       String data_type
@@ -206,11 +215,10 @@ task submitMetadataToGDC {
     File json_file = write_json(read_groups)
 
     command {
-        python3 /main.py --step "submit_metadata" \
-                        --alias_value ~{sample_id} \
+        python3 /src/scripts/gdc/submit_metadata.py --sample_alias ~{sample_alias} \
                         --program ~{program} \
                         --project ~{project} \
-                        --agg_path ~{bam_file} \
+                        --aggregation_path ~{bam_file} \
                         --agg_project ~{agg_project} \
                         --data_type ~{data_type} \
                         --file_size ~{file_size} \
@@ -221,13 +229,12 @@ task submitMetadataToGDC {
 
     runtime {
       preemptible: 3
-      docker: "schaluvadi/horsefish:submissionV1"
+      docker: "schaluvadi/horsefish:submissionV2GDC"
     }
 
     output {
       String UUID = read_lines("UUID.txt")[0]
-      String bam_path = read_lines("bam.txt")[0]
-      String bam_file_name = read_lines("bam.txt")[1]
+      String bam_file_name = read_lines("bam.txt")[0]
       File read_json_file = json_file
     }
 }
@@ -244,18 +251,15 @@ task validateFileStatus {
     }
 
     command {
-        python3 /main.py --alias_value ~{sample_id} \
-                        --agg_project ~{agg_project} \
-                        --data_type ~{data_type} \
+        python3 /src/scripts/gdc/validate_gdc_file_status.py --sample_id ~{sample_id} \
                         --program ~{program} \
                         --project ~{project} \
-                        --step "validate_status" \
                         --token ~{gdc_token}
     }
 
     runtime {
       preemptible: 3
-      docker: "schaluvadi/horsefish:submissionV1"
+      docker: "schaluvadi/horsefish:submissionV2GDC"
     }
 
     output {
