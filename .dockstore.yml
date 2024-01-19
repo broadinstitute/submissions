@@ -12,6 +12,8 @@ workflows:
   - name: validateGDCStatus
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/ValidateFileStatus/ValidateFileStatus.wdl
+  - name: verify
+    subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/VerifyRegistration/VerifyRegistration.wdl
   - name: registerEGAExperimentAndRuns
     subclass: WDL
