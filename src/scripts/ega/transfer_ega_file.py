@@ -1,8 +1,10 @@
 import os
+import sys
 import logging
 import argparse
 import paramiko
 import subprocess
+sys.path.append("./")
 from src.scripts.ega.utils import (
     LoginAndGetToken,
     SecretManager,
@@ -32,35 +34,22 @@ def get_active_account() -> str:
     except Exception as e:
         return f"Exception: {str(e)}"
 
-def file_pre_validation(password: str, ega_inbox: str, token: str) -> bool:
+def file_pre_validation(encrypted_data_file: str, token: str) -> bool:
     headers = format_request_header(token)
+    file_name = os.path.basename(encrypted_data_file)
     file_metadata = get_file_metadata_for_all_files_in_inbox(headers=headers)
-
-    logging.info(f"Found file metadata. Now attempting to link all files associated with {self.sample_alias}")
-
-    files = []
 
     for file in file_metadata:
         relative_file_path = file["relative_path"]
-        file_name = Path(relative_file_path).name
-        sample_alias_from_path = Path(file_name).stem
+        incoming_file_name = os.path.basename(relative_file_path)
 
-        # There could be multiple files associated with a given sample, so we loop through ALL files and append
-        # all the file provisional IDs to a list
-        if sample_alias_from_path == self.sample_alias:
-            files.append(file["provisional_id"])
+        if file_name == incoming_file_name:
+            raise ValueError(f"Found file {file_name} in metadata.")
+    logging.info(f"Did not find any files with the given file name {file_name}")
 
-    if files:
-        logging.info(f"Found {len(files)} associated with sample {self.sample_alias}!")
-        sample_metadata["files"] = files
-        return sample_metadata
-    else:
-        raise Exception(
-            f"Expected to find at least 1 file associated with sample {self.sample_alias}. Instead found none."
-        )
+    return True
 
-
-def transfer_file(data_file, encrypted_data_file: str, ega_inbox: str) -> None:
+def transfer_file(encrypted_data_file: str, ega_inbox: str, password: str) -> None:
     """Transfer encrypted data file to EGA inbox via SFTP."""
     try:    
         # Establish an SFTP connection
@@ -81,23 +70,24 @@ if __name__ == '__main__':
         description="Transfer a file to EGA using an FTP server"
     )
     parser.add_argument(
-        "--encrypted-data-file",
+        "--encrypted_data_file",
         required=True,
         help="Data file that is already encrypted"
     )
     parser.add_argument(
-        "--ega-inbox",
+        "--ega_inbox",
         required=True,
         help="Inbox assigned to the current PM"
     )
     args = parser.parse_args()
 
     # Retrieve the secret value from Google Secret Manager
-    password = SecretManager(project_id="gdc-submissions", secret_id="ega_password", version_id=1).get_ega_password_secret()
-    access_token = LoginAndGetToken(username=args.user_name, password=password).login_and_get_token()
-
+    # password = SecretManager(project_id="gdc-submissions", secret_id="ega_password", version_id=1).get_ega_password_secret()
+    password = "qMTEX8SX"
+    access_token = LoginAndGetToken(username=args.ega_inbox, password=password).login_and_get_token()
+    file_pre_validation(args.encrypted_data_file, access_token)
     logging.info("Starting script to transfer file to EGA")
 
-    transfer_file(args.encrypted_data_file, args.ega_inbox)
+    # transfer_file(args.encrypted_data_file, args.ega_inbox)
 
     logging.info("Script finished")
