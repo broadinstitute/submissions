@@ -82,12 +82,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Retrieve the secret value from Google Secret Manager
-    # password = SecretManager(project_id="gdc-submissions", secret_id="ega_password", version_id=1).get_ega_password_secret()
-    password = "qMTEX8SX"
+    password = SecretManager(project_id="gdc-submissions", secret_id="ega_password", version_id=1).get_ega_password_secret()
     access_token = LoginAndGetToken(username=args.ega_inbox, password=password).login_and_get_token()
-    file_pre_validation(args.encrypted_data_file, access_token)
+    passed_validation = file_pre_validation(args.encrypted_data_file, access_token)
     logging.info("Starting script to transfer file to EGA")
 
-    # transfer_file(args.encrypted_data_file, args.ega_inbox)
+    if passed_validation:
+        transfer_file(args.encrypted_data_file, args.ega_inbox)
 
     logging.info("Script finished")
