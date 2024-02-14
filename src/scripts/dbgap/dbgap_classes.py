@@ -45,10 +45,11 @@ class Sample:
 
     def __init__(self, json_object, md5):
         sample_json = json_object[0]["attributes"]
-        self._set_sample_attributes(sample_json, md5)
+        sample_id = json_object[0]['name']
+        self._set_sample_attributes(sample_json, sample_id, md5)
         self.set_telemetry_report_info()
 
-    def _set_sample_attributes(self, sample_json, md5):
+    def _set_sample_attributes(self, sample_json, sample_id, md5):
         self.project = sample_json["aggregation_project"]
         self.location = sample_json["location"]
         self.version = sample_json["version"]
@@ -57,7 +58,7 @@ class Sample:
         self.data_type = sample_json["data_type"]
         self.alias = sample_json["alias"]
         self.file_type = self._get_file_extension(sample_json["aggregation_path"])
-        self.data_file = f"{json_object[0]['name']}.{self.file_type}"
+        self.data_file = f"{sample_id}.{self.file_type}"
         self.set_telemetry_report_info()
 
     def _get_file_extension(self, aggregation_path):
@@ -102,7 +103,12 @@ class ReadGroup:
         self.set_aggregate_values(json_objects)
 
         if "submission_metadata" in first_read_group:
-            self.submission_metadata = self.sub_data_to_dict(first_read_group["submission_metadata"]["items"])
+            # Replace single quotes with double quotes to make it valid JSON
+            submission_metadata_str = first_read_group["submission_metadata"].replace("'", "\"")
+
+            # Convert the string to a Python list of dictionaries
+            submission_metadata = json.loads(submission_metadata_str)
+            self.submission_metadata = self.sub_data_to_dict(submission_metadata)
         else:
             self.submission_metadata = []
 
@@ -392,6 +398,9 @@ class Run:
         flowcell_barcodes = ".".join(self.read_group.flowcell_barcodes)
         sample_id = self.sample.alias
         return f"{flowcell_barcodes}.{sample_id}.{self.sample.project}.{self.sample.version}.{self.sample.file_type}"
+
+    def get_file_name(self):
+        return f"{self.get_submitter_id()}.xml"
 
     def generate_run_attributes(self):
         attributes_dict = {
