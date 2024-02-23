@@ -18,6 +18,7 @@ workflow TransferToGdc {
     File md5_file
     File gdc_token
     Boolean dry_run = false
+    Boolean deliver_files = true
     File?   monitoring_script
   }
 
@@ -57,48 +58,50 @@ workflow TransferToGdc {
         gdc_token = token_value
     }
 
-    call RetrieveGdcManifest {
-      input:
-        program   = program,
-        project   = project,
-        sar_id    = submitMetadataToGDC.UUID,
-        gdc_token = token_value,
-        dry_run   = dry_run
-    }
+    if (deliver_files) {
+      call RetrieveGdcManifest {
+        input:
+          program   = program,
+          project   = project,
+          sar_id    = submitMetadataToGDC.UUID,
+          gdc_token = token_value,
+          dry_run   = dry_run
+      }
 
-    call TransferBamToGdc {
-      input:
-        bam_path = bam_file,
-        bam_name = submitMetadataToGDC.bam_file_name,
-        manifest = RetrieveGdcManifest.manifest,
-        gdc_token = gdc_token,
-        dry_run = dry_run,
-        monitoring_script = monitoring_script
-    }
+      call TransferBamToGdc {
+        input:
+          bam_path = bam_file,
+          bam_name = submitMetadataToGDC.bam_file_name,
+          manifest = RetrieveGdcManifest.manifest,
+          gdc_token = gdc_token,
+          dry_run = dry_run,
+          monitoring_script = monitoring_script
+      }
 
-    call validateFileStatus {
-      input:
-        program = program,
-        project = project,
-        sample_id = sample_id,
-        gdc_token = token_value
-    }
+      call validateFileStatus {
+        input:
+          program = program,
+          project = project,
+          sample_id = sample_id,
+          gdc_token = token_value
+      }
 
-    call tasks.CreateTableLoadFile as tsv_file {
-      input:
-        sample_id = sample_id,
-        uuid = submitMetadataToGDC.UUID,
-        file_state = validateFileStatus.file_state,
-        state = validateFileStatus.state,
-        registration_status = verified.registration_status,
-        read_json_file = submitMetadataToGDC.read_json_file
-    }
+      call tasks.CreateTableLoadFile as tsv_file {
+        input:
+          sample_id = sample_id,
+          uuid = submitMetadataToGDC.UUID,
+          file_state = validateFileStatus.file_state,
+          state = validateFileStatus.state,
+          registration_status = verified.registration_status,
+          read_json_file = submitMetadataToGDC.read_json_file
+      }
 
-    call tasks.UpsertMetadataToDataModel {
-      input:
-        workspace_name    = workspace_name,
-        workspace_project = workspace_project,
-        tsv               = tsv_file.load_tsv
+      call tasks.UpsertMetadataToDataModel {
+        input:
+          workspace_name    = workspace_name,
+          workspace_project = workspace_project,
+          tsv               = tsv_file.load_tsv
+      }
     }
   }
 }
