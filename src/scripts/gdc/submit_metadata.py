@@ -27,6 +27,7 @@ class MetadataSubmission:
 
     def submit(self):
         metadata = self.create_metadata()
+        print("metadata", metadata)
         gdc_wrapper = GdcApiWrapper(program=self.program, project=self.project, token=self.token)
         gdc_wrapper.submit_metadata(metadata)
         time.sleep(100) # Wait a second since gdc can lag a little
@@ -64,7 +65,7 @@ class MetadataSubmission:
             "data_format": "BAM",
             "project_id": f"{self.program}-{self.project}",
             "md5sum": self.md5,
-            "proc_internal": "dna-seq skip",
+            "proc_internal": "dna-seq skip" if self.data_type == "WGS" else "",
             "read_groups": self.get_read_groups()
         }
 

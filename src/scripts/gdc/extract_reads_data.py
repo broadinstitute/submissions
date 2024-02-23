@@ -17,6 +17,13 @@ def extract_reads_data(sample_id, billing_project, workspace_name):
     return formatted_reads
 
 def format_read_group(read):
+    if read['library_selection'] == "HybridSelection":
+        print("HybridSelection")
+        library_selection = "Hybrid Selection"
+    else:
+        print("other")
+        library_selection = read['library_selection']
+
     submitter_id_constant = f"{read['aggregation_project']}.{read['sample_identifier']}"
     formatted_read = {
         "type": "read_group",
@@ -27,7 +34,7 @@ def format_read_group(read):
         "experiment_name": read['experiment_name'],
         "sequencing_center": read['sequencing_center'],
         "platform": read['platform'],
-        "library_selection": read['library_selection'],
+        "library_selection": library_selection,
         "library_strategy": read['data_type'],
         "library_name": read['library_name'],
         "lane_number": read['lane_number'],
@@ -38,8 +45,9 @@ def format_read_group(read):
         "to_trim_adapter_sequence": True,
     }
     library_strand_dict = {key: value for key, value in read.items()
-                            if "library_selection" in key and value is not None and value != ""}
-
+                            if "library_preperation" in key and value is not None and value != ""}
+    print("formatted reads", formatted_read)
+    print("library dict", library_strand_dict)
     return {**formatted_read, **library_strand_dict}
 
 def submit_reads(reads, token, project, program):

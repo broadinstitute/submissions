@@ -80,11 +80,8 @@ workflow TransferToGdc {
       input:
         program = program,
         project = project,
-        sample_id = alias_name,
-        agg_project = agg_project,
-        data_type = data_type,
-        gdc_token = token_value,
-        transfer_log = TransferBamToGdc.gdc_transfer_log
+        sample_id = sample_id,
+        gdc_token = token_value
     }
 
     call tasks.CreateTableLoadFile as tsv_file {
@@ -244,10 +241,7 @@ task validateFileStatus {
       String program
       String project
       String sample_id
-      String agg_project
-      String data_type
       String gdc_token
-      File transfer_log
     }
 
     command {
