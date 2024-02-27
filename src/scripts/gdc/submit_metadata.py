@@ -54,7 +54,7 @@ class MetadataSubmission:
             raise RuntimeError("Data was not returned from GDC properly")
 
     def create_metadata(self):
-        return {
+        gdc_metadata = {
             "file_name": f"{self.submitter_id}.bam",
             "submitter_id": self.submitter_id,
             "data_category": "Sequencing Reads",
@@ -65,9 +65,12 @@ class MetadataSubmission:
             "data_format": "BAM",
             "project_id": f"{self.program}-{self.project}",
             "md5sum": self.md5,
-            "proc_internal": "dna-seq skip" if self.data_type == "WGS" else "",
             "read_groups": self.get_read_groups()
         }
+        if self.data_type == "WGS":
+            gdc_metadata["proc_internal"] = "dna-seq skip"
+
+        return gdc_metadata
 
     def load_read_groups_from_file(self):
         """Opens reads file and loads JSON data"""

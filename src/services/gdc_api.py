@@ -1,10 +1,5 @@
 import requests
 import json
-import logging
-
-logging.basicConfig(
-    format="%(levelname)s: %(asctime)s : %(message)s", level=logging.INFO
-)
 
 class GdcApiWrapper:
     def __init__(self, program=None, project=None, token=None):
@@ -90,9 +85,8 @@ class GdcApiWrapper:
         return {
             "query": base_query.format(entity=entity, program=self.program, project=self.project, submitter_id=submitter_id, additional_fields=additional_fields)
         }
-
     def get_headers(self):
-            return {
-                "Content-Type": "application/json",
-                "X-Auth-Token": self.token
-            }
+        return {
+            "Content-Type": "application/json", 
+            "X-Auth-Token": self.token
+        }

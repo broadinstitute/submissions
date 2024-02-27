@@ -3,10 +3,6 @@ import json
 import logging
 from src.services.gdc_api import GdcApiWrapper
 
-logging.basicConfig(
-    format="%(levelname)s: %(asctime)s : %(message)s", level=logging.INFO
-)
-
 def check_file_status(sample_id, token, program, project):
     """Calls the GDC API to check the current status of the file transfer."""
 
@@ -21,11 +17,11 @@ def check_file_status(sample_id, token, program, project):
             
             with open('/cromwell_root/file_state.txt', 'w') as file_state_file:
                 file_state_file.write(f"{submitted_aligned_reads['state']}\n{submitted_aligned_reads['file_state']}")
-            logging.info("Successfully recieved file status from gdc")
+            print("Successfully recieved file status from gdc")
         else:
-            logging.error(f"We ran into an issue trying to query GDC - {response_json}")
+            print(f"We ran into an issue trying to query GDC - {response_json}")
     except Exception as e:
-        logging.error(f"An error occurred: {str(e)}")
+        print(f"An error occurred: {str(e)}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Check the current status of file transfer using GDC API.')
