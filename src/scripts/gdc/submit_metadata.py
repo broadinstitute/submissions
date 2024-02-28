@@ -27,7 +27,6 @@ class MetadataSubmission:
 
     def submit(self):
         metadata = self.create_metadata()
-        print("metadata", metadata)
         gdc_wrapper = GdcApiWrapper(program=self.program, project=self.project, token=self.token)
         gdc_wrapper.submit_metadata(metadata)
         time.sleep(100) # Wait a second since gdc can lag a little
