@@ -63,5 +63,4 @@ class TerraAPIWrapper:
                 if page_number >= filtered_page_count:
                     break
         
-        print("results, ", results)
         return results
