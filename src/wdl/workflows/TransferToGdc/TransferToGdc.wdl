@@ -262,7 +262,7 @@ task validateFileStatus {
     }
 
     output {
-      String state = read_lines("fileStatus.txt")[0]
-      String file_state = read_lines("fileStatus.txt")[1]
+      String state = read_lines("file_state.txt")[0]
+      String file_state = read_lines("file_state.txt")[1]
     }
 }
