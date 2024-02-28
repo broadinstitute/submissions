@@ -84,7 +84,7 @@ workflow TransferToGdc {
           project = project,
           sample_id = sample_id,
           gdc_token = token_value,
-          gdc_transfer_log = TransferBamToGdc.gdc_transfer_log
+          previous_task = TransferBamToGdc.done
       }
 
       call tasks.CreateTableLoadFile as tsv_file {
@@ -196,6 +196,7 @@ task TransferBamToGdc {
   output {
     File  gdc_transfer_log = "gdc_transfer.log"
     File? monitoring_log = "monitoring.log"
+    Boolean done = true
   }
 }
 
@@ -246,7 +247,7 @@ task validateFileStatus {
       String project
       String sample_id
       String gdc_token
-      File gdc_transfer_log
+      Boolean previous_task
     }
 
     command {

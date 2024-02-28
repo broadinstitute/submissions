@@ -12,8 +12,6 @@ def run(sample_id, billing_project, workspace_name, md5):
     sample_json = terra_service.call_terra_api(sample_id, "sample")
     readGroup_json = terra_service.call_terra_api(sample_id, "read-group")
 
-    print("sample_json, ", sample_json)
-    print("readGroup_json, ", readGroup_json)
     sample = Sample(sample_json, md5)
     read_group = ReadGroup(readGroup_json)
 
