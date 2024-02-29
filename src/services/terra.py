@@ -58,8 +58,7 @@ class TerraAPIWrapper:
                 # Check if the next page exists based on metadata
                 metadata = data.get('resultMetadata', {})
                 filtered_page_count = metadata.get('filteredPageCount', 0)
-                print("page number", page_number)
-                print("filtered", filtered_page_count)
+
                 if page_number >= filtered_page_count:
                     break
         
