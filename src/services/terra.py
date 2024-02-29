@@ -4,7 +4,7 @@ from oauth2client.client import GoogleCredentials
 
 class TerraAPIWrapper:
     def __init__(self, billing_project=None, workspace_name=None):
-        self.base_url = "https://rawls.dsde-prod.broadinstitute.org/api/workspaces"
+        self.base_url = "https://api.firecloud.org/api/workspaces"
         self.billing_project = billing_project
         self.workspace_name = workspace_name
 
@@ -23,6 +23,7 @@ class TerraAPIWrapper:
             "Content-Type": "application/json"
         }
 
+ 
     def call_terra_api(self, sample_id, table):
         """
         Call the Terra API to retrieve reads data.
@@ -46,18 +47,19 @@ class TerraAPIWrapper:
                 'filterTerms': sample_id
             }
 
-            try:
-                response = requests.get(workspace_url, headers=headers, params=parameters)
-                response.raise_for_status()
-                data = response.json()
+            response = requests.get(workspace_url, headers=headers, params=parameters)
+            response.raise_for_status()
+            data = response.json()
 
-                if data.get('results'):
-                    results.extend(data['results'])
-                    page_number += 1
-                else:
+            if data.get('results'):
+                results.extend(data['results'])
+                page_number += 1
+
+                # Check if the next page exists based on metadata
+                metadata = data.get('resultMetadata', {})
+                filtered_page_count = metadata.get('filteredPageCount', 0)
+
+                if page_number >= filtered_page_count:
                     break
-            except requests.exceptions.RequestException as e:
-                print(f"Error calling Terra API: {e}")
-                break
-
+        
         return results

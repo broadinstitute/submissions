@@ -9,11 +9,11 @@ from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission
 
 def run(sample_id, billing_project, workspace_name, md5):
     terra_service = TerraAPIWrapper(billing_project, workspace_name)
-    sample_json = terra_service.call_terra_api(sample_id, "read-group")
+    sample_json = terra_service.call_terra_api(sample_id, "sample")
     readGroup_json = terra_service.call_terra_api(sample_id, "read-group")
 
-    sample = Sample(sample_json["results"], md5)
-    read_group = ReadGroup(readGroup_json["results"])
+    sample = Sample(sample_json, md5)
+    read_group = ReadGroup(readGroup_json)
 
     experiment = Experiment(sample, read_group)
     experiment.create_file()

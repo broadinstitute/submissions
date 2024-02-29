@@ -18,6 +18,7 @@ workflow TransferToGdc {
     File md5_file
     File gdc_token
     Boolean dry_run = false
+    Boolean deliver_files = true
     File?   monitoring_script
   }
 
@@ -57,51 +58,51 @@ workflow TransferToGdc {
         gdc_token = token_value
     }
 
-    call RetrieveGdcManifest {
-      input:
-        program   = program,
-        project   = project,
-        sar_id    = submitMetadataToGDC.UUID,
-        gdc_token = token_value,
-        dry_run   = dry_run
-    }
+    if (deliver_files) {
+      call RetrieveGdcManifest {
+        input:
+          program   = program,
+          project   = project,
+          sar_id    = submitMetadataToGDC.UUID,
+          gdc_token = token_value,
+          dry_run   = dry_run
+      }
 
-    call TransferBamToGdc {
-      input:
-        bam_path = bam_file,
-        bam_name = submitMetadataToGDC.bam_file_name,
-        manifest = RetrieveGdcManifest.manifest,
-        gdc_token = gdc_token,
-        dry_run = dry_run,
-        monitoring_script = monitoring_script
-    }
+      call TransferBamToGdc {
+        input:
+          bam_path = bam_file,
+          bam_name = submitMetadataToGDC.bam_file_name,
+          manifest = RetrieveGdcManifest.manifest,
+          gdc_token = gdc_token,
+          dry_run = dry_run,
+          monitoring_script = monitoring_script
+      }
 
-    call validateFileStatus {
-      input:
-        program = program,
-        project = project,
-        sample_id = alias_name,
-        agg_project = agg_project,
-        data_type = data_type,
-        gdc_token = token_value,
-        transfer_log = TransferBamToGdc.gdc_transfer_log
-    }
+      call validateFileStatus {
+        input:
+          program = program,
+          project = project,
+          sample_id = sample_id,
+          gdc_token = token_value,
+          previous_task = TransferBamToGdc.done
+      }
 
-    call tasks.CreateTableLoadFile as tsv_file {
-      input:
-        sample_id = sample_id,
-        uuid = submitMetadataToGDC.UUID,
-        file_state = validateFileStatus.file_state,
-        state = validateFileStatus.state,
-        registration_status = verified.registration_status,
-        read_json_file = submitMetadataToGDC.read_json_file
-    }
+      call tasks.CreateTableLoadFile as tsv_file {
+        input:
+          sample_id = sample_id,
+          uuid = submitMetadataToGDC.UUID,
+          file_state = validateFileStatus.file_state,
+          state = validateFileStatus.state,
+          registration_status = verified.registration_status,
+          read_json_file = submitMetadataToGDC.read_json_file
+      }
 
-    call tasks.UpsertMetadataToDataModel {
-      input:
-        workspace_name    = workspace_name,
-        workspace_project = workspace_project,
-        tsv               = tsv_file.load_tsv
+      call tasks.UpsertMetadataToDataModel {
+        input:
+          workspace_name    = workspace_name,
+          workspace_project = workspace_project,
+          tsv               = tsv_file.load_tsv
+      }
     }
   }
 }
@@ -195,6 +196,7 @@ task TransferBamToGdc {
   output {
     File  gdc_transfer_log = "gdc_transfer.log"
     File? monitoring_log = "monitoring.log"
+    Boolean done = true
   }
 }
 
@@ -244,10 +246,8 @@ task validateFileStatus {
       String program
       String project
       String sample_id
-      String agg_project
-      String data_type
       String gdc_token
-      File transfer_log
+      Boolean previous_task
     }
 
     command {
@@ -263,7 +263,7 @@ task validateFileStatus {
     }
 
     output {
-      String state = read_lines("fileStatus.txt")[0]
-      String file_state = read_lines("fileStatus.txt")[1]
+      String state = read_lines("file_state.txt")[0]
+      String file_state = read_lines("file_state.txt")[1]
     }
 }
