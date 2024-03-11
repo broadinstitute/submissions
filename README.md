@@ -1,7 +1,7 @@
 # SSH Key Creation and Usage Guide
 
 ## Introduction
-This guide provides instructions for creating an SSH key pair and utilizing it to establish secure connections.
+This guide provides instructions for creating an SSH key pair and utilizing it to establish secure connections with DbGap.
 
 ## SSH Key Generation
 To generate an SSH key pair, follow these steps:
