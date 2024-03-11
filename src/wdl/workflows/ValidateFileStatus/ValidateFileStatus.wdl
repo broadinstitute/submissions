@@ -60,7 +60,7 @@ task validateFileStatus {
     input {
         String program
         String project
-        String alias
+        String sample_alias
         String agg_project
         String data_type
         String gdc_token
@@ -69,7 +69,7 @@ task validateFileStatus {
     command {
         python3 /src/scripts/gdc/validate_gdc_file_status.py -program ~{program} \
                                                 -project ~{project} \
-                                                -alias ~{alias} \
+                                                -sample_alias ~{sample_alias} \
                                                 -aggregation_project ~{agg_project} \
                                                 -data_type ~{data_type} \
                                                 -token ~{gdc_token}
