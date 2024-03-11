@@ -32,5 +32,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     state, file_state = get_file_status(args.program, args.project, args.sample_alias, args.aggregation_project, args.data_type, args.token)
+    print(f"Successfully received file status from GDC. \nState - {state}. File_state - {file_state}")
     save_file_state(f"{file_state}\n{state}")
-    print("Successfully received file status from GDC.")
