@@ -89,21 +89,12 @@ workflow TransferToGdc {
           previous_task = TransferBamToGdc.done
       }
 
-      call tasks.ValidateFileStatus as validate{
-        input:
-          program = program,
-          project = project,
-          sample_id = sample_id,
-          gdc_token = token_value,
-          previous_task = TransferBamToGdc.done
-      }
-
       call tasks.CreateTableLoadFile as tsv_file {
         input:
           sample_id = sample_id,
           uuid = submitMetadataToGDC.UUID,
-          file_state = validateFileStatus.file_state,
-          state = validateFileStatus.state,
+          file_state = file_status.file_state,
+          state = file_status.state,
           registration_status = verified.registration_status,
           read_json_file = submitMetadataToGDC.read_json_file
       }
