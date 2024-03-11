@@ -57,7 +57,7 @@ task CreateValidationStatusTable {
 
     command {
         # write header to file
-        echo -e "entity:sample_id\tfile_state\state" \
+        echo -e "entity:sample_id\tfile_state\tstate" \
         > sample_metadata.tsv
 
         # write metadata values to row in tsv file
