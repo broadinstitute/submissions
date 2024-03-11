@@ -78,7 +78,18 @@ workflow TransferToGdc {
           monitoring_script = monitoring_script
       }
 
-      call validateFileStatus {
+      call tasks.ValidateFileStatus as file_status {
+        input:
+          program = program,
+          project = project,
+          sample_alias = sample_alias,
+          agg_project = agg_project,
+          data_type = data_type,
+          gdc_token = token_value,
+          previous_task = TransferBamToGdc.done
+      }
+
+      call tasks.ValidateFileStatus as validate{
         input:
           program = program,
           project = project,
@@ -238,32 +249,5 @@ task submitMetadataToGDC {
       String UUID = read_lines("UUID.txt")[0]
       String bam_file_name = read_lines("bam.txt")[0]
       File read_json_file = json_file
-    }
-}
-
-task validateFileStatus {
-    input {
-      String program
-      String project
-      String sample_id
-      String gdc_token
-      Boolean previous_task
-    }
-
-    command {
-        python3 /src/scripts/gdc/validate_gdc_file_status.py --sample_id ~{sample_id} \
-                        --program ~{program} \
-                        --project ~{project} \
-                        --token ~{gdc_token}
-    }
-
-    runtime {
-      preemptible: 3
-      docker: "schaluvadi/horsefish:submissionV2GDC"
-    }
-
-    output {
-      String state = read_lines("file_state.txt")[0]
-      String file_state = read_lines("file_state.txt")[1]
     }
 }

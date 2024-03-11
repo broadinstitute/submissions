@@ -19,14 +19,15 @@ workflow ValidateGDCFileStatus {
 
   String token_value = (read_lines(gdc_token))[0]
 
-  call validateFileStatus as file_status {
+  call tasks.ValidateFileStatus as file_status {
     input:
       program = program,
       project = project,
       sample_alias = sample_alias,
       agg_project = agg_project,
       data_type = data_type,
-      gdc_token = token_value
+      gdc_token = token_value,
+      previous_task = true
   }
 
   call tasks.CreateValidationStatusTable as tsv {
@@ -55,34 +56,4 @@ workflow ValidateGDCFileStatus {
   output {
     String file_state = file_status.file_state
   }
-}
-
-task validateFileStatus {
-    input {
-        String program
-        String project
-        String sample_alias
-        String agg_project
-        String data_type
-        String gdc_token
-    }
-
-    command {
-        python3 /src/scripts/gdc/validate_gdc_file_status.py -program ~{program} \
-                                                -project ~{project} \
-                                                -sample_alias ~{sample_alias} \
-                                                -aggregation_project ~{agg_project} \
-                                                -data_type ~{data_type} \
-                                                -token ~{gdc_token}
-    }
-
-    runtime {
-        docker: "schaluvadi/horsefish:submissionV2GDC"
-        preemptible: 1
-    }
-
-    output {
-        String file_state = read_lines("file_state.txt")[0]
-        String state = read_lines("file_state.txt")[1]
-    }
 }
