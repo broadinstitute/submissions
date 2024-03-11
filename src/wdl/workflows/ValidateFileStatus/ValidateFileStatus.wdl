@@ -10,6 +10,9 @@ workflow ValidateGDCFileStatus {
     String workspace_name
     String workspace_project
     String sample_id
+    String alias
+    String agg_project
+    String data_type
     Boolean delete = false
     File aggregation_path
   }
@@ -20,9 +23,10 @@ workflow ValidateGDCFileStatus {
     input:
       program = program,
       project = project,
-      sample_id = sample_id,
-      gdc_token = token_value,
-      delete = delete
+      alias = alias,
+      agg_project = agg_project,
+      data_type = data_type,
+      gdc_token = token_value
   }
 
   call tasks.CreateValidationStatusTable as tsv {
@@ -56,16 +60,19 @@ task validateFileStatus {
     input {
         String program
         String project
-        String sample_id
+        String alias
+        String agg_project
+        String data_type
         String gdc_token
-        Boolean delete
     }
 
     command {
-        python3 /src/scripts/gdc/validate_gdc_file_status.py -pg ~{program} \
-                                                -pj ~{project} \
-                                                -s ~{sample_id} \
-                                                -t ~{gdc_token}
+        python3 /src/scripts/gdc/validate_gdc_file_status.py -program ~{program} \
+                                                -project ~{project} \
+                                                -alias ~{alias} \
+                                                -aggregation_project ~{agg_project} \
+                                                -data_type ~{data_type} \
+                                                -token ~{gdc_token}
     }
 
     runtime {
