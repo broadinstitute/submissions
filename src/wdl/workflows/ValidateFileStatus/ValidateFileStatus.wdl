@@ -10,7 +10,7 @@ workflow ValidateGDCFileStatus {
     String workspace_name
     String workspace_project
     String sample_id
-    String alias
+    String sample_alias
     String agg_project
     String data_type
     Boolean delete = false
@@ -23,7 +23,7 @@ workflow ValidateGDCFileStatus {
     input:
       program = program,
       project = project,
-      alias = alias,
+      sample_alias = sample_alias,
       agg_project = agg_project,
       data_type = data_type,
       gdc_token = token_value
