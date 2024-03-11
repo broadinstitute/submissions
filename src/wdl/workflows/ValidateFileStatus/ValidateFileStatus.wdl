@@ -32,7 +32,7 @@ workflow ValidateGDCFileStatus {
   call tasks.CreateValidationStatusTable as tsv {
     input:
       sample_id = sample_id,
-      file_state = file_status.file_state
+      file_state = file_status.file_state,
       state = file_status.state
   }
 
