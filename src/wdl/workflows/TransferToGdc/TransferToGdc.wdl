@@ -7,7 +7,7 @@ workflow TransferToGdc {
     # Sample input
     String sample_id
     String sample_alias
-    String bam_file
+    String aggregation_path
     String agg_project
     String data_type
     String file_size
@@ -47,7 +47,7 @@ workflow TransferToGdc {
     call submitMetadataToGDC {
       input:
         sample_alias = sample_alias,
-        bam_file = bam_file,
+        aggregation_path = aggregation_path,
         agg_project = agg_project,
         data_type = data_type,
         file_size = file_size,
@@ -70,7 +70,7 @@ workflow TransferToGdc {
 
       call TransferBamToGdc {
         input:
-          bam_path = bam_file,
+          aggregation_path = aggregation_path,
           bam_name = submitMetadataToGDC.bam_file_name,
           manifest = RetrieveGdcManifest.manifest,
           gdc_token = gdc_token,
@@ -143,7 +143,7 @@ task RetrieveGdcManifest {
 
 task TransferBamToGdc {
   input {
-    String  bam_path
+    String  aggregation_path
     String  bam_name
     File    manifest
     File    gdc_token
@@ -151,7 +151,7 @@ task TransferBamToGdc {
     File?   monitoring_script
   }
 
-  File bam_file = bam_path
+  File bam_file = aggregation_path
   Int disk_size = ceil(size(bam_file, "GiB") * 1.5)
 
   command {
@@ -176,7 +176,7 @@ task TransferBamToGdc {
     if ~{dry_run}; then
       pwd
       echo "This was a dry run of uploading to GDC" > gdc_transfer.log
-      echo "BAM_FILE=~{bam_path}" >> gdc_transfer.log
+      echo "BAM_FILE=~{aggregation_path}" >> gdc_transfer.log
       echo "MANIFEST=~{manifest}" >> gdc_transfer.log
     else
       gdc-client --version
@@ -203,7 +203,7 @@ task TransferBamToGdc {
 task submitMetadataToGDC {
     input {
       String sample_alias
-      String bam_file
+      String aggregation_path
       String agg_project
       String data_type
       String file_size
@@ -220,7 +220,7 @@ task submitMetadataToGDC {
         python3 /src/scripts/gdc/submit_metadata.py --sample_alias ~{sample_alias} \
                         --program ~{program} \
                         --project ~{project} \
-                        --aggregation_path ~{bam_file} \
+                        --aggregation_path ~{aggregation_path} \
                         --agg_project ~{agg_project} \
                         --data_type ~{data_type} \
                         --file_size ~{file_size} \
