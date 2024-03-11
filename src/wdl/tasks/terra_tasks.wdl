@@ -47,19 +47,21 @@ task CreateValidationStatusTable {
         # values to update to data model
         String sample_id
         String file_state
+        String state
     }
 
     parameter_meta {
         file_state: "State of file from transferBamFile."
+        state: "state of the metadata upload"
     }
 
     command {
         # write header to file
-        echo -e "entity:sample_id\tfile_state" \
+        echo -e "entity:sample_id\tfile_state\state" \
         > sample_metadata.tsv
 
         # write metadata values to row in tsv file
-        echo -e "~{sample_id}\t~{file_state}" \
+        echo -e "~{sample_id}\t~{file_state}\t~{state}" \
         >> sample_metadata.tsv
     }
 

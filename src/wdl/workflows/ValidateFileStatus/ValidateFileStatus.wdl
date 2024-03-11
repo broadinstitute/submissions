@@ -30,16 +30,17 @@ workflow ValidateGDCFileStatus {
   }
 
   call tasks.CreateValidationStatusTable as tsv {
-      input:
-        sample_id = sample_id,
-        file_state = file_status.file_state
+    input:
+      sample_id = sample_id,
+      file_state = file_status.file_state
+      state = file_status.state
   }
 
   call tasks.UpsertMetadataToDataModel {
-      input:
-        workspace_name = workspace_name,
-        workspace_project = workspace_project,
-        tsv = tsv.load_tsv
+    input:
+      workspace_name = workspace_name,
+      workspace_project = workspace_project,
+      tsv = tsv.load_tsv
   }
 
   if (delete) {
@@ -81,6 +82,7 @@ task validateFileStatus {
     }
 
     output {
-        String file_state = read_string("file_state.txt")
+        String file_state = read_string("file_state.txt")[0]
+        String state = read_string("file_state.txt")[1]
     }
 }
