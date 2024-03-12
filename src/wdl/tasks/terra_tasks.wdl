@@ -47,19 +47,21 @@ task CreateValidationStatusTable {
         # values to update to data model
         String sample_id
         String file_state
+        String state
     }
 
     parameter_meta {
         file_state: "State of file from transferBamFile."
+        state: "state of the metadata upload"
     }
 
     command {
         # write header to file
-        echo -e "entity:sample_id\tfile_state" \
+        echo -e "entity:sample_id\tfile_state\tstate" \
         > sample_metadata.tsv
 
         # write metadata values to row in tsv file
-        echo -e "~{sample_id}\t~{file_state}" \
+        echo -e "~{sample_id}\t~{file_state}\t~{state}" \
         >> sample_metadata.tsv
     }
 
@@ -246,5 +248,36 @@ task addReadsField {
 
     output {
         String reads_json = read_string("reads.json")
+    }
+}
+
+task ValidateFileStatus {
+    input {
+        String program
+        String project
+        String sample_alias
+        String agg_project
+        String data_type
+        String gdc_token
+        Boolean previous_task
+    }
+
+    command {
+        python3 /src/scripts/gdc/validate_gdc_file_status.py -program ~{program} \
+                                                -project ~{project} \
+                                                -sample_alias ~{sample_alias} \
+                                                -aggregation_project ~{agg_project} \
+                                                -data_type ~{data_type} \
+                                                -token ~{gdc_token}
+    }
+
+    runtime {
+        docker: "schaluvadi/horsefish:submissionV2GDC"
+        preemptible: 1
+    }
+
+    output {
+        String file_state = read_lines("file_state.txt")[0]
+        String state = read_lines("file_state.txt")[1]
     }
 }

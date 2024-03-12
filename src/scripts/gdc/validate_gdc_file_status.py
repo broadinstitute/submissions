@@ -1,34 +1,36 @@
 import argparse
 import json
-import logging
 from src.services.gdc_api import GdcApiWrapper
 
-def check_file_status(sample_id, token, program, project):
+FILE_STATE_PATH = '/cromwell_root/file_state.txt'
+
+def get_file_status(program, project, sample_alias, aggregation_project, data_type, token):
     """Calls the GDC API to check the current status of the file transfer."""
+    submitter_id = f"{sample_alias}.{data_type}.{aggregation_project}"
+    response = GdcApiWrapper(program=program, project=project, token=token).get_entity("submitted_aligned_reads", submitter_id)
+    response_json = response.json()
 
-    try:
-        [agg_project, alias, _, data_type, _] = sample_id.split("_")
-        submitter_id = f"{alias}.{data_type}.{agg_project}"
-        response = GdcApiWrapper(program=program, project=project, token=token).get_entity("submitted_aligned_reads", submitter_id)
-        response_json = response.json()
+    if 'data' in response_json and response_json['data'].get('submitted_aligned_reads'):
+        submitted_aligned_reads = response_json['data']['submitted_aligned_reads'][0]
+        return submitted_aligned_reads['state'], submitted_aligned_reads['file_state']
+    else:
+        raise ValueError(f"We ran into an issue trying to query GDC - {response_json}")
 
-        if response_json.get('data') and response_json['data'].get('submitted_aligned_reads') and len(response_json['data']['submitted_aligned_reads']) > 0:
-            submitted_aligned_reads = response_json['data']['submitted_aligned_reads'][0]
-            
-            with open('/cromwell_root/file_state.txt', 'w') as file_state_file:
-                file_state_file.write(f"{submitted_aligned_reads['state']}\n{submitted_aligned_reads['file_state']}")
-            print("Successfully recieved file status from gdc")
-        else:
-            print(f"We ran into an issue trying to query GDC - {response_json}")
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
+def save_file_state(state_info):
+    """Saves the file state information to a file."""
+    with open(FILE_STATE_PATH, 'w') as file_state_file:
+        file_state_file.write(state_info)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Check the current status of file transfer using GDC API.')
-    parser.add_argument('-s', '--sample_id', required=True, help='List of aliases to check registration status')
-    parser.add_argument('-t', '--token', required=True, help='API token to communicate with GDC')
-    parser.add_argument('-pg', '--program', required=True, help='GDC program')
-    parser.add_argument('-pj', '--project', required=True, help='GDC project')
+    parser.add_argument('-program', required=True, help='GDC program')
+    parser.add_argument('-project', required=True, help='GDC project')
+    parser.add_argument('-sample_alias', required=True, help='Sample alias to use when querying GDC')
+    parser.add_argument('-aggregation_project', required=True, help='Aggregation project to use when querying GDC')
+    parser.add_argument('-data_type', required=True, help='Data type to use when querying GDC')
+    parser.add_argument('-token', required=True, help='API token to communicate with GDC')
     args = parser.parse_args()
 
-    check_file_status(args.sample_id, args.token, args.program, args.project)
+    state, file_state = get_file_status(args.program, args.project, args.sample_alias, args.aggregation_project, args.data_type, args.token)
+    print(f"Successfully received file status from GDC. \nState - {state}. File_state - {file_state}")
+    save_file_state(f"{file_state}\n{state}")

@@ -10,32 +10,38 @@ workflow ValidateGDCFileStatus {
     String workspace_name
     String workspace_project
     String sample_id
+    String sample_alias
+    String agg_project
+    String data_type
     Boolean delete = false
     File aggregation_path
   }
 
   String token_value = (read_lines(gdc_token))[0]
 
-  call validateFileStatus as file_status {
+  call tasks.ValidateFileStatus as file_status {
     input:
       program = program,
       project = project,
-      sample_id = sample_id,
+      sample_alias = sample_alias,
+      agg_project = agg_project,
+      data_type = data_type,
       gdc_token = token_value,
-      delete = delete
+      previous_task = true
   }
 
   call tasks.CreateValidationStatusTable as tsv {
-      input:
-        sample_id = sample_id,
-        file_state = file_status.file_state
+    input:
+      sample_id = sample_id,
+      file_state = file_status.file_state,
+      state = file_status.state
   }
 
   call tasks.UpsertMetadataToDataModel {
-      input:
-        workspace_name = workspace_name,
-        workspace_project = workspace_project,
-        tsv = tsv.load_tsv
+    input:
+      workspace_name = workspace_name,
+      workspace_project = workspace_project,
+      tsv = tsv.load_tsv
   }
 
   if (delete) {
@@ -50,30 +56,4 @@ workflow ValidateGDCFileStatus {
   output {
     String file_state = file_status.file_state
   }
-}
-
-task validateFileStatus {
-    input {
-        String program
-        String project
-        String sample_id
-        String gdc_token
-        Boolean delete
-    }
-
-    command {
-        python3 /src/scripts/gdc/validate_gdc_file_status.py -pg ~{program} \
-                                                -pj ~{project} \
-                                                -s ~{sample_id} \
-                                                -t ~{gdc_token}
-    }
-
-    runtime {
-        docker: "schaluvadi/horsefish:submissionV2GDC"
-        preemptible: 1
-    }
-
-    output {
-        String file_state = read_string("file_state.txt")
-    }
 }
