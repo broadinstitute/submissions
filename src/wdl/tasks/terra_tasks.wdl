@@ -12,6 +12,7 @@ task CreateDbgapXmlFiles {
 
     command {
         # if the WDL/task contains a monitoring script as input
+        set -eo pipefail
         if [ ! -z "~{monitoring_script}" ]; then
             chmod a+x ~{monitoring_script}
             ~{monitoring_script} > monitoring.log &
@@ -56,6 +57,7 @@ task CreateValidationStatusTable {
     }
 
     command {
+        set -eo pipefail
         # write header to file
         echo -e "entity:sample_id\tfile_state\tstate" \
         > sample_metadata.tsv
@@ -84,6 +86,7 @@ task verifyGDCRegistration {
     }
 
     command {
+        set -eo pipefail
         python3 /src/scripts/gdc/verify_registration.py --program ~{program} \
                                                         --project ~{project} \
                                                         --sample_alias ~{sample_alias} \
@@ -120,6 +123,7 @@ task CreateTableLoadFile {
     }
 
     command {
+        set -eo pipefail
         # write header to file
         echo -e "entity:sample_id\tfile_state\tstate\tregistration_status\tuuid\tread_groups" \
         > sample_metadata.tsv
@@ -145,6 +149,7 @@ task DeleteFileFromWorkspace {
     }
 
     command {
+        set -eo pipefail
         gsutil rm -a ~{aggregation_path}
     }
 
@@ -170,6 +175,7 @@ task UpsertMetadataToDataModel {
     }
 
     command {
+        set -eo pipefail
         python3 /src/scripts/batch_upsert_entities.py -w ~{workspace_name} \
                                                       -p ~{workspace_project} \
                                                       -t ~{tsv}
@@ -233,6 +239,7 @@ task addReadsField {
     }
 
     command {
+        set -eo pipefail
         python3 /src/scripts/gdc/extract_reads_data.py -w ~{workspace_name} \
                                                       -p ~{workspace_project} \
                                                       -s ~{sample_id} \
@@ -263,6 +270,7 @@ task ValidateFileStatus {
     }
 
     command {
+        set -eo pipefail
         python3 /src/scripts/gdc/validate_gdc_file_status.py -program ~{program} \
                                                 -project ~{project} \
                                                 -sample_alias ~{sample_alias} \
