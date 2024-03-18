@@ -187,7 +187,9 @@ class ReadGroup:
         return "paired-end" if self.paired_run else "single-end"
 
     def get_pdo_or_wr(self):
-        return self.product_order_id if self.product_order_id else self.work_request_id if self.work_request_id else ""
+        order_id = self.product_order_id if self.product_order_id else self.work_request_id if self.work_request_id else ""
+
+        return str(order_id)
 
     def get_library_descriptor(self):
         library_descriptor = {
