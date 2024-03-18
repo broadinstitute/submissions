@@ -1,6 +1,5 @@
 import requests
 import json
-import os
 import re
 import xml.etree.ElementTree as ET
 from datetime import datetime
@@ -9,11 +8,14 @@ BROAD_ABBREVIATION = "BI"
 NONAMESPACESCHEMALOCATION = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.submission.xsd?view=co"
 XSI = "http://www.w3.org/2001/XMLSchema-instance"
 
+
 class StudyNotRegisteredException(Exception):
     pass
 
+
 class SampleNotRegisteredException(Exception):
     pass
+
 
 class Sample:
     DATA_TYPE_MAPPING = {
@@ -61,7 +63,8 @@ class Sample:
         self.data_file = f"{sample_id}.{self.file_type}"
         self.set_telemetry_report_info()
 
-    def _get_file_extension(self, aggregation_path):
+    @staticmethod
+    def _get_file_extension(aggregation_path):
         return aggregation_path.split(".")[-1]
 
     def set_telemetry_report_info(self):
@@ -95,6 +98,7 @@ class Sample:
 
     def get_biospecimen_repo(self):
         return self.dbgap_sample_info.get("repository", "")
+
 
 class ReadGroup:
     def __init__(self, json_objects):
@@ -135,7 +139,8 @@ class ReadGroup:
         self.nominal_length = str(first_read_group["mean_insert_size"])
         self.nominal_sdex = str(first_read_group["standard_deviation"])
 
-    def sub_data_to_dict(self, submission_metadata):
+    @staticmethod
+    def sub_data_to_dict(submission_metadata):
         if submission_metadata and len(submission_metadata):
             library_construction = {}
             target_capture = {}
@@ -220,6 +225,7 @@ class ReadGroup:
         else:
             raise Exception(f"Read structure not populated for read {self.root_sample_id}")
 
+
 class Experiment:
     def __init__(self, sample, read_group):
         self.sample = sample
@@ -243,7 +249,8 @@ class Experiment:
 
         return f"{repo} Illumina {library_strategy_string} sequencing of '{library_source_string}' {paired_end} library '{self.read_group.library_name}' containing sample '{self.sample.alias}' {self.sample.subject_string()}"
 
-    def get_read_spec(self, label, index, base_coord):
+    @staticmethod
+    def get_read_spec(label, index, base_coord):
         return {
             "read_label": label,
             "read_type": "Forward" if label == "forward" else "Reverse",
@@ -253,7 +260,10 @@ class Experiment:
         }
 
     def get_spot_length(self):
-        return str(self.read_group.get_read_length() * 2) if self.read_group.paired_run else str(self.read_group.get_read_length())
+        return (
+            str(self.read_group.get_read_length() * 2)
+            if self.read_group.paired_run else str(self.read_group.get_read_length())
+        )
 
     def generate_experiment_attributes(self):
         attributes_dict = {
@@ -338,7 +348,8 @@ class Experiment:
         layout = ET.SubElement(library_descriptor, "LIBRARY_LAYOUT")
         ET.SubElement(layout, "PAIRED")
 
-    def set_spec_values(self, dict, decode_spec):
+    @staticmethod
+    def set_spec_values(dict, decode_spec):
         read_spec = ET.SubElement(decode_spec, "READ_SPEC")
 
         ET.SubElement(read_spec, "READ_INDEX").text = dict["read_index"]
@@ -388,6 +399,7 @@ class Experiment:
 
         write_xml_file(self.get_file_name(), root)
 
+
 class Run:
     def __init__(self, sample, read_group, experiment):
         self.sample = sample
@@ -426,7 +438,8 @@ class Run:
 
         return attributes_dict
 
-    def create_identifiers(self, parent, submitter_id):
+    @staticmethod
+    def create_identifiers(parent, submitter_id):
         identifier = ET.SubElement(parent, "IDENTIFIERS")
         ET.SubElement(identifier, "SUBMITTER_ID", namespace=BROAD_ABBREVIATION).text = submitter_id
 
@@ -464,6 +477,7 @@ class Run:
 
         write_xml_file(self.get_file_name(), root)
 
+
 class Submission:
     def __init__(self, experiment, run, phs):
         self.phs = str(phs)
@@ -477,7 +491,8 @@ class Submission:
     def get_alias(self):
         return f"{BROAD_ABBREVIATION}.{self.phs}.{get_run_date().year}"
 
-    def get_submission_comment(self):
+    @staticmethod
+    def get_submission_comment():
         return f"Produced by user picard on {get_submission_comment_formatted_date()} EST {get_run_date().year}"
 
     def create_actions(self, submission):
@@ -493,7 +508,8 @@ class Submission:
         ET.SubElement(action_run, "ADD", source=self.run.get_file_name(), schema="run")
         print("this is the run file name ", self.run.get_file_name())
 
-    def create_submission_attributes(self, submission):
+    @staticmethod
+    def create_submission_attributes(submission):
         submission_attributes = ET.SubElement(submission, "SUBMISSION_ATTRIBUTES")
         submission_attribute = ET.SubElement(submission_attributes, "SUBMISSION_ATTRIBUTE")
         ET.SubElement(submission_attribute, "TAG").text = "Submission Site"
@@ -515,27 +531,31 @@ class Submission:
 
         write_xml_file("submission.xml", root)
 
-################### Helper Function ####################
+
+# Helper Functions #
 def write_xml_file(file_name, root):
     file_path = f"/cromwell_root/xml/{file_name}"
     with open(file_path, 'wb') as xfile:
         xfile.write(ET.tostring(root, encoding="ASCII"))
 
+
 def get_submission_comment_formatted_date():
     return datetime.now().strftime("%A %B %d %H:%M:%S")
+
 
 def get_date():
     current_datetime = datetime.now()
     date_str = current_datetime.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
     return f"{date_str}-04:00"
 
+
 def get_run_date():
     return datetime.now()
+
 
 def call_telemetry_report(phs_id):
     base_url = f"https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id={phs_id}"
     headers = {"Content-Type": "application/json"}
     response = requests.get(base_url, headers=headers)
-    status_code = response.status_code
 
     return response.text

@@ -219,16 +219,17 @@ task submitMetadataToGDC {
     File json_file = write_json(read_groups)
 
     command {
-        python3 /src/scripts/gdc/submit_metadata.py --sample_alias ~{sample_alias} \
-                        --program ~{program} \
-                        --project ~{project} \
-                        --aggregation_path ~{aggregation_path} \
-                        --agg_project ~{agg_project} \
-                        --data_type ~{data_type} \
-                        --file_size ~{file_size} \
-                        --md5 ~{md5} \
-                        --read_groups ~{json_file} \
-                        --token ~{gdc_token}
+      set -eo pipefail
+      python3 /src/scripts/gdc/submit_metadata.py --sample_alias ~{sample_alias} \
+                      --program ~{program} \
+                      --project ~{project} \
+                      --aggregation_path ~{aggregation_path} \
+                      --agg_project ~{agg_project} \
+                      --data_type ~{data_type} \
+                      --file_size ~{file_size} \
+                      --md5 ~{md5} \
+                      --read_groups ~{json_file} \
+                      --token ~{gdc_token}
     }
 
     runtime {
