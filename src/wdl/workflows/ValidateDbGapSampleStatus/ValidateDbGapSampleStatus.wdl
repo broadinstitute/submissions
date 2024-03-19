@@ -2,7 +2,7 @@ version 1.0
 
 import "../../tasks/terra_tasks.wdl" as tasks
 
-workflow ValidateGDCFileStatus {
+workflow ValidateDbGapSampleStatus {
   input {
     String workspace_name
     String workspace_project
@@ -21,17 +21,11 @@ workflow ValidateGDCFileStatus {
       data_type = data_type
   }
 
-  call tasks.CreateValidationStatusTable as tsv {
-    input:
-      sample_id = sample_id,
-      sample_status = ValidateDbgapSample.sample_status
-  }
-
   call tasks.UpsertMetadataToDataModel {
     input:
       workspace_name = workspace_name,
       workspace_project = workspace_project,
-      tsv = tsv.load_tsv
+      tsv = ValidateDbgapSample.sample_status_tsv
   }
 
   if (delete) {
@@ -68,6 +62,6 @@ task ValidateDbgapSample {
     }
 
     output {
-        String sample_status = read_lines("sample_status.txt")[0]
+        File sample_status_tsv = "sample_status.tsv"
     }
 }
