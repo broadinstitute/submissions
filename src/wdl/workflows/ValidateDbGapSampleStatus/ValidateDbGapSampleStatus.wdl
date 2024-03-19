@@ -35,7 +35,7 @@ workflow ValidateGDCFileStatus {
   }
 
   if (delete) {
-    if (file_status.file_state == "validated") {
+    if (ValidateDbgapSample.sample_status == "public") {
       call tasks.DeleteFileFromWorkspace {
         input:
           aggregation_path = aggregation_path
