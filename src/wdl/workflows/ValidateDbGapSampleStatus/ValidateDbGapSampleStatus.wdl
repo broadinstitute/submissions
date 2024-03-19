@@ -1,7 +1,5 @@
 version 1.0
 
-import "../../tasks/terra_tasks.wdl" as tasks
-
 workflow ValidateDbGapSampleStatus {
   input {
     String workspace_name
@@ -10,8 +8,6 @@ workflow ValidateDbGapSampleStatus {
     String sample_alias
     String phs_id
     String data_type
-    Boolean delete = false
-    File aggregation_path
   }
 
   call ValidateDbgapSample {
@@ -28,18 +24,7 @@ workflow ValidateDbGapSampleStatus {
       tsv = ValidateDbgapSample.sample_status_tsv
   }
 
-  if (delete) {
-    if (ValidateDbgapSample.sample_status == "public") {
-      call tasks.DeleteFileFromWorkspace {
-        input:
-          aggregation_path = aggregation_path
-      }
-    }
-  }
-
-  output {
-    String sample_status = ValidateDbgapSample.sample_status
-  }
+  output { }
 }
 
 task ValidateDbgapSample {
