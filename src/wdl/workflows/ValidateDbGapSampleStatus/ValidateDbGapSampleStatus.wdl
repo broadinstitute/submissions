@@ -15,6 +15,7 @@ workflow ValidateDbGapSampleStatus {
   call ValidateDbgapSample {
     input:
       sample_alias = sample_alias,
+      sample_id = sample_id,
       phs_id = phs_id,
       data_type = data_type
   }
@@ -32,6 +33,7 @@ workflow ValidateDbGapSampleStatus {
 task ValidateDbgapSample {
     input {
         String sample_alias
+        String sample_id
         String phs_id
         String data_type
     }
@@ -39,6 +41,7 @@ task ValidateDbgapSample {
     command {
         set -eo pipefail
         python3 /src/scripts/dbgap/validate_dbgap_sample.py -sample_alias ~{sample_alias} \
+                                                            -sample_id ~{sample_id} \
                                                             -phs_id ~{phs_id} \
                                                             -data_type ~{data_type}
     }
