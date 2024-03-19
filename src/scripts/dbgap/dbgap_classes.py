@@ -106,7 +106,12 @@ class ReadGroup:
         self._set_constant_values(first_read_group)
         self.set_aggregate_values(json_objects)
 
-        if "submission_metadata" in first_read_group:
+        # submission_metadata can have three different structures. 
+        # 1. It will not exist if no samples have the column
+        # 2. It can have a dict with keys itemsType , and items. This happens when the metadata is empty, but not for other samples
+        # 3. Just has the metadata
+        if "submission_metadata" in first_read_group and "items" not in first_read_group["submission_metadata"]:
+            print("vlaue", first_read_group.get("items"))
             # Replace single quotes with double quotes to make it valid JSON
             submission_metadata_str = first_read_group["submission_metadata"].replace("'", "\"")
 
