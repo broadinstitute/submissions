@@ -3,7 +3,7 @@ import json
 import requests
 import xmltodict
 import xml.etree.ElementTree as ET
-# from src.services.dbgap_telemetry_report import DbgapTelemetryWrapper
+from src.services.dbgap_telemetry_report import DbgapTelemetryWrapper
 
 SAMPLE_STATUS_FILE_PATH = '/cromwell_root/sample_status.tsv'
 
