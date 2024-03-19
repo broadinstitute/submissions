@@ -24,8 +24,7 @@ workflow ValidateGDCFileStatus {
   call tasks.CreateValidationStatusTable as tsv {
     input:
       sample_id = sample_id,
-      file_state = file_status.file_state,
-      state = file_status.state
+      sample_status = ValidateDbgapSample.sample_status
   }
 
   call tasks.UpsertMetadataToDataModel {
