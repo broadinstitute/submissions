@@ -44,7 +44,7 @@ workflow ValidateGDCFileStatus {
   }
 
   output {
-    String file_state = file_status.file_state
+    String sample_status = ValidateDbgapSample.sample_status
   }
 }
 
