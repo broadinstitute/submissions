@@ -6,14 +6,19 @@ workflow ValidateGDCFileStatus {
   input {
     String workspace_name
     String workspace_project
+    String sample_id
     String sample_alias
+    String phs_id
+    String data_type
     Boolean delete = false
     File aggregation_path
   }
 
   call ValidateDbgapSample {
     input:
-      sample_alias = sample_alias
+      sample_alias = sample_alias,
+      phs_id = phs_id,
+      data_type = data_type
   }
 
   call tasks.CreateValidationStatusTable as tsv {
@@ -47,11 +52,15 @@ workflow ValidateGDCFileStatus {
 task ValidateDbgapSample {
     input {
         String sample_alias
+        String phs_id
+        String data_type
     }
 
     command {
         set -eo pipefail
-        python3 /src/scripts/dbgap/validate_dbgap_sample.py -sample_alias ~{sample_alias}
+        python3 /src/scripts/dbgap/validate_dbgap_sample.py -sample_alias ~{sample_alias} \
+                                                            -phs_id ~{phs_id} \
+                                                            -data_type ~{data_type}
     }
 
     runtime {
@@ -60,7 +69,6 @@ task ValidateDbgapSample {
     }
 
     output {
-        String file_state = read_lines("file_state.txt")[0]
-        String state = read_lines("file_state.txt")[1]
+        String sample_status = read_lines("sample_status.txt")[0]
     }
 }
