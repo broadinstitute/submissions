@@ -1,6 +1,5 @@
 import requests
 import xmltodict
-import xml.etree.ElementTree as ET
 
 class SampleNotFoundError(Exception):
     """Exception raised when a sample is not found."""

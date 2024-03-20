@@ -5,7 +5,7 @@ SAMPLE_STATUS_FILE_PATH = '/cromwell_root/sample_status.tsv'
 
 def save_sample_status(sample_id, state_info):
     """Saves the file state information to a file."""
-    with open(SAMPLE_STATUS_FILE_PATH, 'w') as file_state_file:
+    with open(SAMPLE_STATUS_FILE_PATH, 'w') as file:
         # Write header
         file.write("entity:sample_id\tsample_status\n")
         # Write data
@@ -21,3 +21,4 @@ if __name__ == '__main__':
 
     sample_status = DbgapTelemetryWrapper(phs_id=args.phs_id).get_sample_status(args.sample_alias, args.data_type)
     save_sample_status(args.sample_id, sample_status)
+    print(f"Script finished with sample status of - {sample_status}")
