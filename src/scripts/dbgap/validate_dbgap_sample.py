@@ -20,4 +20,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     sample_status = DbgapTelemetryWrapper(phs_id=args.phs_id).get_sample_status(args.sample_alias, args.data_type)
-    save_sample_status(sample_id, sample_status)
+    save_sample_status(args.sample_id, sample_status)
