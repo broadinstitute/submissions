@@ -18,7 +18,8 @@ class DbgapTelemetryWrapper:
             self.endpoint, 
             headers={"Content-Type": "application/json"}
         )
-        status_code = response.status_code
+        # Raise an HTTPError for bad responses (4xx or 5xx)
+        response.raise_for_status()
 
         return xmltodict.parse(response.text)
 
