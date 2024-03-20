@@ -117,8 +117,6 @@ class ReadGroup:
 
             # Convert the string to a Python list of dictionaries
             submission_metadata = json.loads(submission_metadata_str)
-            print("data", submission_metadata)
-            print("type", type(submission_metadata))
             self.submission_metadata = self.sub_data_to_dict(submission_metadata)
         else:
             self.submission_metadata = []
