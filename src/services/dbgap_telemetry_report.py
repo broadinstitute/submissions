@@ -33,14 +33,20 @@ class DbgapTelemetryWrapper:
             for sample in sample_list:
                 if sample.get("@submitted_sample_id") == alias:
                     sra_data = sample["SRAData"]
-                    sra_sample_stats = sra_data["Stats"]
 
-                    if isinstance(sra_sample_stats, list):
-                        for stat in sra_sample_stats:
-                            if stat.get("@experiment_type") == data_type:
-                                return stat["@status"]
-                    elif isinstance(sra_sample_stats, dict):
-                        return sra_sample_stats["@status"]
+                    # If sra_data is null this means that the dbgap has not recieved data
+                    if sra_data:
+                        sra_sample_stats = sra_data["Stats"]
+
+                        # Check instance type since xmltoDict will return different datatypes
+                        if isinstance(sra_sample_stats, list):
+                            for stat in sra_sample_stats:
+                                if stat.get("@experiment_type") == data_type:
+                                    return stat["@status"]
+                        elif isinstance(sra_sample_stats, dict):
+                            return sra_sample_stats["@status"]
+                    else:
+                        return "Empty sequence_data_details column"
             
             raise SampleNotFoundError(alias)
  
