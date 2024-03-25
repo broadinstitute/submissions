@@ -11,14 +11,6 @@ NONAMESPACESCHEMALOCATION = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc
 XSI = "http://www.w3.org/2001/XMLSchema-instance"
 
 
-class StudyNotRegisteredException(Exception):
-    pass
-
-
-class SampleNotRegisteredException(Exception):
-    pass
-
-
 class Sample:
     DATA_TYPE_MAPPING = {
         "WGS": {
@@ -53,14 +45,19 @@ class Sample:
         self._set_sample_attributes(sample_json, sample_id, md5)
 
     def _set_sample_attributes(self, sample_json, sample_id, md5):
-        self.project = sample_json.get("aggregation_project", "")
-        self.location = sample_json.get("location", "")
-        self.version = sample_json.get("version", "")
-        self.md5 = md5
-        self.phs = str(sample_json.get("phs_id", ""))
-        self.data_type = sample_json.get("data_type", "")
-        self.alias = sample_json.get("alias", "")
-        self.file_type = self._get_file_extension(sample_json.get("aggregation_path", ""))
+        try:
+            self.project = sample_json["aggregation_project"]
+            self.location = sample_json["location"]
+            self.version = sample_json["version"]
+            self.md5 = md5
+            self.phs = str(sample_json["phs_id"])
+            self.data_type = sample_json["data_type"]
+            self.alias = sample_json["alias"]
+            self.aggregation_project = sample_json["aggregation_path"]
+        except KeyError as e:
+            raise ValueError(f"Missing required field: {e}")
+
+        self.file_type = self._get_file_extension(self.aggregation_project)
         self.data_file = f"{sample_id}.{self.file_type}"
         self._dbgap_info = None
 
@@ -81,6 +78,7 @@ class Sample:
     @property
     def subject_string(self):
         subject_id = self.dbgap_info.get("submitted_subject_id", "")
+
         return f"from subject '{subject_id}'" if subject_id else ""
 
     @property
