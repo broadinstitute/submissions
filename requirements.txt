@@ -11,3 +11,4 @@ google-crc32c==1.5.0
 google-api-python-client
 google-cloud-secret-manager
 xmltodict
+lxml
