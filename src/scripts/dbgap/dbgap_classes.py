@@ -398,7 +398,7 @@ class Experiment:
         self.set_experiment_attributes(experiment)
 
         validate_xml(root, EXPERIMENT_XSD)
-        # write_xml_file(self.get_file_name(), root)
+        write_xml_file(self.get_file_name(), root)
 
 
 class Run:
@@ -477,7 +477,7 @@ class Run:
         self.create_run_attrs(run)
 
         validate_xml(root, RUN_XSD)
-        # write_xml_file(self.get_file_name(), root)
+        write_xml_file(self.get_file_name(), root)
 
 
 class Submission:
@@ -532,7 +532,7 @@ class Submission:
         self.create_submission_attributes(submission)
 
         validate_xml(root, SUBMISSION_XSD)
-        # write_xml_file("submission.xml", root)
+        write_xml_file("submission.xml", root)
 
 
 # Helper Functions #
