@@ -1,8 +1,10 @@
 import requests
 import json
 import re
+import os
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from src.services.dbgap_telemetry_report import DbgapTelemetryWrapper
 
 BROAD_ABBREVIATION = "BI"
 NONAMESPACESCHEMALOCATION = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.submission.xsd?view=co"
@@ -49,55 +51,41 @@ class Sample:
         sample_json = json_object[0]["attributes"]
         sample_id = json_object[0]['name']
         self._set_sample_attributes(sample_json, sample_id, md5)
-        self.set_telemetry_report_info()
 
     def _set_sample_attributes(self, sample_json, sample_id, md5):
-        self.project = sample_json["aggregation_project"]
-        self.location = sample_json["location"]
-        self.version = sample_json["version"]
+        self.project = sample_json.get("aggregation_project", "")
+        self.location = sample_json.get("location", "")
+        self.version = sample_json.get("version", "")
         self.md5 = md5
-        self.phs = str(sample_json["phs_id"])
-        self.data_type = sample_json["data_type"]
-        self.alias = sample_json["alias"]
-        self.file_type = self._get_file_extension(sample_json["aggregation_path"])
+        self.phs = str(sample_json.get("phs_id", ""))
+        self.data_type = sample_json.get("data_type", "")
+        self.alias = sample_json.get("alias", "")
+        self.file_type = self._get_file_extension(sample_json.get("aggregation_path", ""))
         self.data_file = f"{sample_id}.{self.file_type}"
-        self.set_telemetry_report_info()
+        self._dbgap_info = None
 
     @staticmethod
     def _get_file_extension(aggregation_path):
-        return aggregation_path.split(".")[-1]
+        return os.path.splitext(aggregation_path)[1][1:]
 
-    def set_telemetry_report_info(self):
-        def is_bioproject_admin(xml_object):
-            return xml_object.attrib['bp_type'] == 'admin'
-        
-        def is_sample(xml_object):
-            return xml_object.attrib['submitted_sample_id'] == self.alias
+    @property
+    def dbgap_info(self):
+        if self._dbgap_info is None:
+            self._dbgap_info = DbgapTelemetryWrapper(phs_id=self.phs).get_sample_info(alias=self.alias)
+        return self._dbgap_info
 
-        root = ET.fromstring(call_telemetry_report(self.phs))
-        samples = [x.attrib for x in root.iter('Sample') if is_sample(x)]
-        bio_projects = [x.attrib['bp_id'] for x in root.iter('BioProject') if is_bioproject_admin(x)]
-
-        if not samples:
-            raise SampleNotRegisteredException('Sample not registered with Dbgap')
-        if not bio_projects:
-            raise StudyNotRegisteredException('Study not registered with Dbgap')
-        if len(samples) > 1:
-            raise Exception('Could not find specific sample in report')
-        
-        self.study = root[0].attrib
-        self.bio_project = bio_projects[0]
-        self.dbgap_sample_info = samples[0]
-
+    @property
     def formatted_data_type(self):
         return self.DATA_TYPE_MAPPING.get(self.data_type, {"constant": "Unknown", "name": "Unknown"})
 
+    @property
     def subject_string(self):
-        subject_id = self.dbgap_sample_info.get("submitted_subject_id", "")
+        subject_id = self.dbgap_info.get("submitted_subject_id", "")
         return f"from subject '{subject_id}'" if subject_id else ""
 
-    def get_biospecimen_repo(self):
-        return self.dbgap_sample_info.get("repository", "")
+    @property
+    def biospecimen_repo(self):
+        return self.dbgap_info.get("repository", "")
 
 
 class ReadGroup:
