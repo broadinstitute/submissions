@@ -23,9 +23,9 @@ class DbgapTelemetryWrapper:
 
         return xmltodict.parse(response.text)
 
-    def _get_sample(alias):
+    def _get_sample(self, alias):
         try:
-            telemetry_data = self.call_telemetry_report()
+            telemetry_data = self._call_telemetry_report()
             study_data = telemetry_data["DbGap"]["Study"]
             sample_list = study_data["SampleList"]["Sample"]
 
@@ -53,8 +53,10 @@ class DbgapTelemetryWrapper:
 
     def get_sample_info(self, alias):
         sample = self._get_sample(alias)
-
-        return {
-            "repository": sample["@repository"],
-            "submitted_subject_id": sample["@submitted_subject_id"]
-        }
+        try:
+            return {
+                "repository": sample["@repository"],
+                "submitted_subject_id": sample["@submitted_subject_id"]
+            }
+        except KeyError as e:
+            raise KeyError(f"Key error occurred when accessing {e} in sample with alias '{alias}'")

@@ -65,17 +65,11 @@ class Sample:
 
         self.file_type = self._get_file_extension(self.aggregation_project)
         self.data_file = f"{sample_id}.{self.file_type}"
-        self._dbgap_info = None
+        self.dbgap_info = DbgapTelemetryWrapper(phs_id=self.phs).get_sample_info(alias=self.alias)
 
     @staticmethod
     def _get_file_extension(aggregation_path):
         return os.path.splitext(aggregation_path)[1][1:]
-
-    @property
-    def dbgap_info(self):
-        if self._dbgap_info is None:
-            self._dbgap_info = DbgapTelemetryWrapper(phs_id=self.phs).get_sample_info(alias=self.alias)
-        return self._dbgap_info
 
     @property
     def formatted_data_type(self):
@@ -83,13 +77,13 @@ class Sample:
 
     @property
     def subject_string(self):
-        subject_id = self.dbgap_info.get("submitted_subject_id", "")
+        subject_id = self.dbgap_info["submitted_subject_id"]
 
         return f"from subject '{subject_id}'" if subject_id else ""
 
     @property
     def biospecimen_repo(self):
-        return self.dbgap_info.get("repository", "")
+        return self.dbgap_info["repository"]
 
 
 class ReadGroup:
