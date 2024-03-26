@@ -198,7 +198,7 @@ class ReadGroup:
         if self.product_order_id is None and self.work_request_id is None:
             raise ValueError("Neither 'product_order_id' nor 'work_request_id' instance variables are set.")
 
-        order_id = self.product_order_id if self.product_order_id else self.work_request_id if self.work_request_id else ""
+        order_id = self.product_order_id if self.product_order_id else self.work_request_id
         return str(order_id)
 
     def get_library_descriptor(self):
