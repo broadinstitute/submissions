@@ -241,17 +241,14 @@ class ReadGroup:
         }
 
     def get_read_length(self):
-        if self.read_structure:
-            reg_expr = re.search("[SBM](\d+)T", self.read_structure)
+        reg_expr = re.search("[SBM](\d+)T", self.read_structure)
 
-            if reg_expr:
-                return int(reg_expr.group(1))
-            else:
-                # Right now it looks like Dbgap just calculates their own read length
-                # but keeping this here to be consistent with epsilon9. but will probably remove this dtl
-                return 0
+        if reg_expr:
+            return int(reg_expr.group(1))
         else:
-            raise Exception(f"Read structure not populated")
+            # Right now it looks like Dbgap just calculates their own read length
+            # but keeping this here to be consistent with epsilon9. but will probably remove this dtl
+            return 0
 
 
 class Experiment:
