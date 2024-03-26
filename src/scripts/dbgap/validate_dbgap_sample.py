@@ -7,7 +7,7 @@ def save_sample_status(sample_id, state_info):
     """Saves the file state information to a file."""
     with open(SAMPLE_STATUS_FILE_PATH, 'w') as file:
         # Write header
-        file.write("entity:sample_id\tsample_status")
+        file.write("entity:sample_id\tsample_status\n")
         # Write data
         file.write(f"{sample_id}\t{sample_status}")
 
