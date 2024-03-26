@@ -90,8 +90,10 @@ class ReadGroup:
     def __init__(self, json_objects):
         first_read_group = json_objects[0]["attributes"]
         self._set_constant_values(first_read_group)
-        self.set_aggregate_values(json_objects)
+        self._set_aggregate_values(json_objects)
+        self._set_submission_metadata(first_read_group)
 
+    def _set_submission_metadata(self, first_read_group):
         # submission_metadata can have three different structures. 
         # 1. It will not exist if no samples have the column
         # 2. It can have a dict with keys itemsType , and items. This happens when the metadata is empty, but not for other samples
@@ -107,27 +109,24 @@ class ReadGroup:
             self.submission_metadata = []
 
     def _set_constant_values(self, first_read_group):
-        self.product_order_id = first_read_group.get("product_order_id", "")
-        self.sample_type = first_read_group["sample_type"]
-        self.sample_material_type = first_read_group.get("sample_material_type", "")
-        self.library_name = first_read_group["library_name"]
-        self.library_type = first_read_group["library_type"]
-        self.version = first_read_group["version"]
-        self.work_request_id = first_read_group["work_request_id"]
-        self.sample_id = first_read_group["sample_id"]
+        try:
+            self.library_name = first_read_group["library_name"]
+            self.library_type = first_read_group["library_type"]
+            self.work_request_id = first_read_group["work_request_id"]
+            self.analysis_type = first_read_group["analysis_type"]
+            self.paired_run = first_read_group["paired_run"]
+            self.read_structure = first_read_group["read_structure"]
+            self.sample_lsid = first_read_group["sample_lsid"]
+            self.reference_sequence = first_read_group["reference_sequence"]
+            self.model = first_read_group["model"]
+        except KeyError as e:
+            raise KeyError(f"Missing required key in read group {e}")
+
         self.research_project_id = first_read_group.get("research_project_id", "")
-        self.analysis_type = first_read_group["analysis_type"]
-        self.paired_run = first_read_group["paired_run"]
-        self.read_structure = first_read_group["read_structure"]
-        self.root_sample_id = first_read_group["root_sample_id"]
-        self.sample_barcode = first_read_group.get("sample_barcode")
-        self.sample_lsid = first_read_group["sample_lsid"]
-        self.primary_disease = first_read_group.get("primary_disease")
-        self.reference_sequence = first_read_group["reference_sequence"]
         self.bait_set = first_read_group.get("bait_set", "")
-        self.model = first_read_group["model"]
-        self.nominal_length = str(first_read_group["mean_insert_size"])
-        self.nominal_sdex = str(first_read_group["standard_deviation"])
+        self.sample_barcode = first_read_group.get("sample_barcode")
+        self.product_order_id = first_read_group.get("product_order_id", "")
+        self.sample_material_type = first_read_group.get("sample_material_type", "")
 
     @staticmethod
     def sub_data_to_dict(submission_metadata):
@@ -147,7 +146,11 @@ class ReadGroup:
         else:
             return None
 
-    def set_aggregate_values(self, json_objects):
+    def _set_aggregate_values(self, json_objects):
+        # Extract relevant attributes using list comprehension
+        attributes_list = [x["attributes"] for x in json_objects]
+
+        # Define helper functions for constructing aggregate values
         def construct_read_group_id(row):
             return f"{row['run_barcode'][:5]}.{row['lane']}"
 
@@ -160,15 +163,17 @@ class ReadGroup:
         def construct_rg_platform_lib(row):
             return f"{construct_rg_platform(row)}.{row['library_name']}"
 
-        self.read_group_ids = {construct_read_group_id(x["attributes"]) for x in json_objects}
-        self.molecular_idx_schemes = {construct_molecular_idx(x["attributes"]) for x in json_objects}
-        self.rg_platform_unit = {construct_rg_platform(x["attributes"]) for x in json_objects}
-        self.rg_platform_unit_lib = {construct_rg_platform_lib(x["attributes"]) for x in json_objects}
+        # Set comprehensions to generate aggregate values
+        self.read_group_ids = {construct_read_group_id(x) for x in attributes_list}
+        self.molecular_idx_schemes = {construct_molecular_idx(x) for x in attributes_list}
+        self.rg_platform_unit = {construct_rg_platform(x) for x in attributes_list}
+        self.rg_platform_unit_lib = {construct_rg_platform_lib(x) for x in attributes_list}
 
-        self.run_barcode = {x["attributes"]["run_barcode"] for x in json_objects}
-        self.run_name = {x["attributes"]["run_name"] for x in json_objects}
-        self.instrument_names = {x["attributes"]["machine_name"] for x in json_objects}
-        self.flowcell_barcodes = {x["attributes"]["flowcell_barcode"] for x in json_objects}
+        # Use set comprehension to extract unique values
+        self.run_barcode = {x['run_barcode'] for x in attributes_list}
+        self.run_name = {x['run_name'] for x in attributes_list}
+        self.instrument_names = {x['machine_name'] for x in attributes_list}
+        self.flowcell_barcodes = {x['flowcell_barcode'] for x in attributes_list}
 
     def pairing_code(self):
         return "P" if self.paired_run else "S"
@@ -177,45 +182,48 @@ class ReadGroup:
         return "paired-end" if self.paired_run else "single-end"
 
     def get_pdo_or_wr(self):
-        order_id = self.product_order_id if self.product_order_id else self.work_request_id if self.work_request_id else ""
+        if self.product_order_id is None and self.work_request_id is None:
+            raise ValueError("Neither 'product_order_id' nor 'work_request_id' instance variables are set.")
 
+        order_id = self.product_order_id if self.product_order_id else self.work_request_id
         return str(order_id)
 
     def get_library_descriptor(self):
-        library_descriptor = {
-            "strategy": {},
-            "source": {},
-            "selection": ""
+        library_descriptors = {
+            "WholeGenomeShotgun": {
+                "strategy": {"ncbi_string": "WGS", "humanized_string": "whole genome shotgun"},
+                "source": {"ncbi_string": "GENOMIC", "humanized_string": "genomic DNA"},
+                "selection": "RANDOM"
+            },
+            "cDNAShotgun": {
+                "strategy": {"ncbi_string": "RNA_SEQ", "humanized_string": "RNA"},
+                "source": {"ncbi_string": "TRANSCRIPTOMIC", "humanized_string": "transcriptome"},
+                "selection": "CDNA"
+            },
+            "HybridSelection": {
+                "strategy": {"ncbi_string": "WXS", "humanized_string": "random exon"},
+                "source": {"ncbi_string": "GENOMIC", "humanized_string": "genomic DNA"},
+                "selection": "Hybrid Selection"
+            }
         }
 
-        if self.library_type == "WholeGenomeShotgun":
-            library_descriptor["strategy"] = {"ncbi_string": "WGS", "humanized_string": "whole genome shotgun"}
-            library_descriptor["source"] = {"ncbi_string": "GENOMIC", "humanized_string": "genomic DNA"}
-            library_descriptor["selection"] = "RANDOM"
-        elif (self.library_type == "cDNAShotgunReadTwoSense" or self.library_type == "cDNAShotgunStrandAgnostic" or
-              self.analysis_type == "cDNA") and self.analysis_type != "AssemblyWithoutReference":
-            library_descriptor["strategy"] = {"ncbi_string": "RNA-Seq", "humanized_string": "RNA"}
-            library_descriptor["source"] = {"ncbi_string": "TRANSCRIPTOMIC", "humanized_string": "transcriptome"}
-            library_descriptor["selection"] = "CDNA"
-        elif self.library_type == "HybridSelection":
-            library_descriptor["strategy"] = {"ncbi_string": "WXS", "humanized_string": "random exon"}
-            library_descriptor["source"] = {"ncbi_string": "GENOMIC", "humanized_string": "genomic DNA"}
-            library_descriptor["selection"] = "Hybrid Selection"
+        if self.library_type in library_descriptors:
+            return library_descriptors[self.library_type]
 
-        return library_descriptor
+        if (
+            (self.library_type in ("cDNAShotgunReadTwoSense", "cDNAShotgunStrandAgnostic") 
+            or self.analysis_type == "cDNA")
+            and self.analysis_type != "AssemblyWithoutReference"
+        ):
+            return library_descriptors["cDNAShotgun"]
+
+        # If library descriptor is not found, raise an error
+        raise ValueError(f"No library descriptor found for the given parameters - library type: {self.library_type}")
 
     def get_read_length(self):
-        if self.read_structure:
-            reg_expr = re.search("[SBM](\d+)T", self.read_structure)
+        reg_expr = re.search("[SBM](\d+)T", self.read_structure)
 
-            if reg_expr:
-                return int(reg_expr.group(1))
-            else:
-                # Right now it looks like Dbgap just calculates their own read length
-                # but keeping this here to be consistent with epsilon9. but will probably remove this dtl
-                return 0
-        else:
-            raise Exception(f"Read structure not populated for read {self.root_sample_id}")
+        return int(reg_expr.group(1)) if reg_expr else 0
 
 
 class Experiment:
