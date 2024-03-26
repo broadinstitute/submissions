@@ -23,23 +23,16 @@ def run_xml_creation(sample_id, billing_project, workspace_name, md5):
 
     print("Done creating xml files")
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Create XML files for dbGaP submission')
+    parser.add_argument('-w', '--workspace_name', required=True, help='Name of workspace')
+    parser.add_argument('-p', '--project', required=True, help='Billing project (namespace)')
+    parser.add_argument('-s', '--sample_id', required=True, help='Sample ID to extract read data')
+    parser.add_argument('-m', '--md5', required=True, help='MD5 value for the sample')
+
+    return parser.parse_args()
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='')
-    parser.add_argument(
-        '-w',
-        '--workspace_name',
-        required=True,
-        help='name of workspace in which to make changes'
-    )
-    parser.add_argument(
-        '-p',
-        '--project',
-        required=True,
-        help='billing project (namespace) of workspace in which to make changes'
-    )
-    parser.add_argument('-s', '--sample_id', required=True, help='sample_id to extract read data')
-    parser.add_argument('-m', '--md5', required=True, help='md5 value for the sample')
-    args = parser.parse_args()
-
-    run_xml_creation(args.sample_id, args.project, args.workspace_name, args.md5)
+    args = parse_arguments()
+    create_xml_files(args.sample_id, args.project, args.workspace_name, args.md5)
