@@ -1,20 +1,20 @@
 import requests
 import json
 import re
+import os
 import xml.etree.ElementTree as ET
+from lxml import etree
+from io import BytesIO
 from datetime import datetime
+from src.services.dbgap_telemetry_report import DbgapTelemetryWrapper
+
 
 BROAD_ABBREVIATION = "BI"
 NONAMESPACESCHEMALOCATION = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.submission.xsd?view=co"
 XSI = "http://www.w3.org/2001/XMLSchema-instance"
-
-
-class StudyNotRegisteredException(Exception):
-    pass
-
-
-class SampleNotRegisteredException(Exception):
-    pass
+EXPERIMENT_XSD = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.experiment.xsd?view=co"
+RUN_XSD = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.run.xsd?view=co"
+SUBMISSION_XSD = "https://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.submission.xsd?view=co"
 
 
 class Sample:
@@ -49,55 +49,41 @@ class Sample:
         sample_json = json_object[0]["attributes"]
         sample_id = json_object[0]['name']
         self._set_sample_attributes(sample_json, sample_id, md5)
-        self.set_telemetry_report_info()
 
     def _set_sample_attributes(self, sample_json, sample_id, md5):
-        self.project = sample_json["aggregation_project"]
-        self.location = sample_json["location"]
-        self.version = sample_json["version"]
-        self.md5 = md5
-        self.phs = str(sample_json["phs_id"])
-        self.data_type = sample_json["data_type"]
-        self.alias = sample_json["alias"]
-        self.file_type = self._get_file_extension(sample_json["aggregation_path"])
+        try:
+            self.project = sample_json["aggregation_project"]
+            self.location = sample_json["location"]
+            self.version = sample_json["version"]
+            self.md5 = md5
+            self.phs = str(sample_json["phs_id"])
+            self.data_type = sample_json["data_type"]
+            self.alias = sample_json["alias"]
+            self.aggregation_project = sample_json["aggregation_path"]
+        except KeyError as e:
+            raise ValueError(f"Missing required field: {e}")
+
+        self.file_type = self._get_file_extension(self.aggregation_project)
         self.data_file = f"{sample_id}.{self.file_type}"
-        self.set_telemetry_report_info()
+        self.dbgap_info = DbgapTelemetryWrapper(phs_id=self.phs).get_sample_info(alias=self.alias)
 
     @staticmethod
     def _get_file_extension(aggregation_path):
-        return aggregation_path.split(".")[-1]
+        return os.path.splitext(aggregation_path)[1][1:]
 
-    def set_telemetry_report_info(self):
-        def is_bioproject_admin(xml_object):
-            return xml_object.attrib['bp_type'] == 'admin'
-        
-        def is_sample(xml_object):
-            return xml_object.attrib['submitted_sample_id'] == self.alias
-
-        root = ET.fromstring(call_telemetry_report(self.phs))
-        samples = [x.attrib for x in root.iter('Sample') if is_sample(x)]
-        bio_projects = [x.attrib['bp_id'] for x in root.iter('BioProject') if is_bioproject_admin(x)]
-
-        if not samples:
-            raise SampleNotRegisteredException('Sample not registered with Dbgap')
-        if not bio_projects:
-            raise StudyNotRegisteredException('Study not registered with Dbgap')
-        if len(samples) > 1:
-            raise Exception('Could not find specific sample in report')
-        
-        self.study = root[0].attrib
-        self.bio_project = bio_projects[0]
-        self.dbgap_sample_info = samples[0]
-
+    @property
     def formatted_data_type(self):
         return self.DATA_TYPE_MAPPING.get(self.data_type, {"constant": "Unknown", "name": "Unknown"})
 
+    @property
     def subject_string(self):
-        subject_id = self.dbgap_sample_info.get("submitted_subject_id", "")
+        subject_id = self.dbgap_info["submitted_subject_id"]
+
         return f"from subject '{subject_id}'" if subject_id else ""
 
-    def get_biospecimen_repo(self):
-        return self.dbgap_sample_info.get("repository", "")
+    @property
+    def biospecimen_repo(self):
+        return self.dbgap_info["repository"]
 
 
 class ReadGroup:
@@ -208,7 +194,7 @@ class ReadGroup:
             library_descriptor["selection"] = "RANDOM"
         elif (self.library_type == "cDNAShotgunReadTwoSense" or self.library_type == "cDNAShotgunStrandAgnostic" or
               self.analysis_type == "cDNA") and self.analysis_type != "AssemblyWithoutReference":
-            library_descriptor["strategy"] = {"ncbi_string": "RNA_SEQ", "humanized_string": "RNA"}
+            library_descriptor["strategy"] = {"ncbi_string": "RNA-Seq", "humanized_string": "RNA"}
             library_descriptor["source"] = {"ncbi_string": "TRANSCRIPTOMIC", "humanized_string": "transcriptome"}
             library_descriptor["selection"] = "CDNA"
         elif self.library_type == "HybridSelection":
@@ -240,7 +226,7 @@ class Experiment:
     def get_submitter_id(self):
         pairing_code = self.read_group.pairing_code()
         pdo_or_wr = self.read_group.get_pdo_or_wr()
-        formatted_data_type = self.sample.formatted_data_type()["constant"].replace(" ", "_")
+        formatted_data_type = self.sample.formatted_data_type["constant"].replace(" ", "_")
 
         return f"{self.sample.phs}.{pdo_or_wr}.{self.read_group.library_name}.{pairing_code}.{self.sample.alias}.{self.sample.project}.{formatted_data_type}.{self.sample.version}"
 
@@ -248,12 +234,12 @@ class Experiment:
         return f"{self.get_submitter_id()}.add.experiment.xml"
 
     def get_title(self):
-        repo = self.sample.get_biospecimen_repo()
+        repo = self.sample.biospecimen_repo
         library_strategy_string = self.read_group.get_library_descriptor()["strategy"]["humanized_string"]
         library_source_string = self.read_group.get_library_descriptor()["source"]["humanized_string"]
         paired_end = self.read_group.is_paired_end()
 
-        return f"{repo} Illumina {library_strategy_string} sequencing of '{library_source_string}' {paired_end} library '{self.read_group.library_name}' containing sample '{self.sample.alias}' {self.sample.subject_string()}"
+        return f"{repo} Illumina {library_strategy_string} sequencing of '{library_source_string}' {paired_end} library '{self.read_group.library_name}' containing sample '{self.sample.alias}' {self.sample.subject_string}"
 
     @staticmethod
     def get_read_spec(label, index, base_coord):
@@ -374,10 +360,12 @@ class Experiment:
         self.set_spec_values(self.get_read_spec("reverse", "1", str(self.read_group.get_read_length() + 1)), decode_spec)
 
     def set_platform(self, experiment):
+        # Constants
         platform = ET.SubElement(experiment, "PLATFORM")
         illumina = ET.SubElement(platform, "ILLUMINA")
 
-        ET.SubElement(illumina, "INSTRUMENT_MODEL").text = self.read_group.model
+        instrument_model = "Illumina HiSeq X" if self.read_group.model == "Illumina HiSeq X 10" else self.read_group.model
+        ET.SubElement(illumina, "INSTRUMENT_MODEL").text = instrument_model
 
     def set_experiment_attributes(self, experiment):
         experiment_attrs = ET.SubElement(experiment, "EXPERIMENT_ATTRIBUTES")
@@ -392,8 +380,8 @@ class Experiment:
         print("creating experiment xml files")
 
         root = ET.Element("EXPERIMENT_SET")
-        root.set("xsi:noNamespaceSchemaLocation", "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.experiment.xsd?view=co")
-        root.set("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+        root.set("xsi:noNamespaceSchemaLocation", EXPERIMENT_XSD)
+        root.set("xmlns:xsi", XSI)
         experiment = ET.SubElement(root, "EXPERIMENT")
 
         self.set_identifiers(experiment)
@@ -403,6 +391,7 @@ class Experiment:
         self.set_platform(experiment)
         self.set_experiment_attributes(experiment)
 
+        validate_xml(root, EXPERIMENT_XSD)
         write_xml_file(self.get_file_name(), root)
 
 
@@ -472,8 +461,8 @@ class Run:
         print("creating run xml files")
 
         root = ET.Element("RUN_SET")
-        root.set("xsi:noNamespaceSchemaLocation", "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.run.xsd?view=co")
-        root.set("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+        root.set("xsi:noNamespaceSchemaLocation", RUN_XSD)
+        root.set("xmlns:xsi", XSI)
         run = ET.SubElement(root, "RUN")
 
         self.create_identifiers(run, self.get_submitter_id())
@@ -481,6 +470,7 @@ class Run:
         self.create_data_blocks(run)
         self.create_run_attrs(run)
 
+        validate_xml(root, RUN_XSD)
         write_xml_file(self.get_file_name(), root)
 
 
@@ -525,8 +515,8 @@ class Submission:
         print("Creating submission xml file")
 
         root = ET.Element("SUBMISSION_SET")
-        root.set("xsi:noNamespaceSchemaLocation", "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.submission.xsd?view=co")
-        root.set("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+        root.set("xsi:noNamespaceSchemaLocation", SUBMISSION_XSD)
+        root.set("xmlns:xsi", XSI)
         submission = ET.SubElement(root, "SUBMISSION", submission_date=get_date(), submission_comment=self.get_submission_comment(), lab_name="Genome Sequencing", alias=self.get_alias(), center_name=BROAD_ABBREVIATION)
 
         contacts = ET.SubElement(submission, "CONTACTS")
@@ -535,10 +525,32 @@ class Submission:
         self.create_actions(submission)
         self.create_submission_attributes(submission)
 
+        validate_xml(root, SUBMISSION_XSD)
         write_xml_file("submission.xml", root)
 
 
 # Helper Functions #
+def validate_xml(xml_tree, xsd_url):
+    try:
+        # Download XSD content
+        xsd_content = requests.get(xsd_url).content
+        # Create XMLSchema object
+        xmlschema_doc = etree.parse(BytesIO(xsd_content))
+        xmlschema = etree.XMLSchema(xmlschema_doc)
+        # Convert ElementTree to string and parse
+        xml_string = ET.tostring(xml_tree)
+        xml_doc = etree.fromstring(xml_string)
+        # Validate XML against XSD
+        xmlschema.assertValid(xml_doc)
+        print("Validation successful. XML is valid according to XSD.")
+    except etree.XMLSchemaError as e:
+        raise ValueError("Error in XML Schema: {}".format(e))
+    except etree.XMLSyntaxError as e:
+        raise ValueError("Error in XML Syntax: {}".format(e))
+    except Exception as e:
+        raise ValueError("Error: {}".format(e))
+
+
 def write_xml_file(file_name, root):
     file_path = f"/cromwell_root/xml/{file_name}"
     with open(file_path, 'wb') as xfile:
