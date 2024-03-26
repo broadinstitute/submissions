@@ -196,32 +196,49 @@ class ReadGroup:
         return "paired-end" if self.paired_run else "single-end"
 
     def get_pdo_or_wr(self):
-        order_id = self.product_order_id if self.product_order_id else self.work_request_id if self.work_request_id else ""
+        if self.product_order_id is None and self.work_request_id is None:
+            raise ValueError("Neither 'product_order_id' nor 'work_request_id' instance variables are set.")
 
+        order_id = self.product_order_id if self.product_order_id else self.work_request_id if self.work_request_id else ""
         return str(order_id)
 
     def get_library_descriptor(self):
-        library_descriptor = {
+        library_descriptors = {
+            "WholeGenomeShotgun": {
+                "strategy": {"ncbi_string": "WGS", "humanized_string": "whole genome shotgun"},
+                "source": {"ncbi_string": "GENOMIC", "humanized_string": "genomic DNA"},
+                "selection": "RANDOM"
+            },
+            "cDNAShotgunReadTwoSense": {
+                "strategy": {"ncbi_string": "RNA_SEQ", "humanized_string": "RNA"},
+                "source": {"ncbi_string": "TRANSCRIPTOMIC", "humanized_string": "transcriptome"},
+                "selection": "CDNA"
+            },
+            "cDNAShotgunStrandAgnostic": {
+                "strategy": {"ncbi_string": "RNA_SEQ", "humanized_string": "RNA"},
+                "source": {"ncbi_string": "TRANSCRIPTOMIC", "humanized_string": "transcriptome"},
+                "selection": "CDNA"
+            },
+            "HybridSelection": {
+                "strategy": {"ncbi_string": "WXS", "humanized_string": "random exon"},
+                "source": {"ncbi_string": "GENOMIC", "humanized_string": "genomic DNA"},
+                "selection": "Hybrid Selection"
+            }
+        }
+
+        if self.library_type in library_descriptors:
+            return library_descriptors[self.library_type]
+
+        if self.library_type in ("cDNAShotgunReadTwoSense", "cDNAShotgunStrandAgnostic"):
+            if self.analysis_type == "cDNA" and self.analysis_type != "AssemblyWithoutReference":
+                return library_descriptors["cDNAShotgunStrandAgnostic"]
+
+        # Default descriptor if library_type is not found
+        return {
             "strategy": {},
             "source": {},
             "selection": ""
         }
-
-        if self.library_type == "WholeGenomeShotgun":
-            library_descriptor["strategy"] = {"ncbi_string": "WGS", "humanized_string": "whole genome shotgun"}
-            library_descriptor["source"] = {"ncbi_string": "GENOMIC", "humanized_string": "genomic DNA"}
-            library_descriptor["selection"] = "RANDOM"
-        elif (self.library_type == "cDNAShotgunReadTwoSense" or self.library_type == "cDNAShotgunStrandAgnostic" or
-              self.analysis_type == "cDNA") and self.analysis_type != "AssemblyWithoutReference":
-            library_descriptor["strategy"] = {"ncbi_string": "RNA_SEQ", "humanized_string": "RNA"}
-            library_descriptor["source"] = {"ncbi_string": "TRANSCRIPTOMIC", "humanized_string": "transcriptome"}
-            library_descriptor["selection"] = "CDNA"
-        elif self.library_type == "HybridSelection":
-            library_descriptor["strategy"] = {"ncbi_string": "WXS", "humanized_string": "random exon"}
-            library_descriptor["source"] = {"ncbi_string": "GENOMIC", "humanized_string": "genomic DNA"}
-            library_descriptor["selection"] = "Hybrid Selection"
-
-        return library_descriptor
 
     def get_read_length(self):
         if self.read_structure:
