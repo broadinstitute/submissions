@@ -9,6 +9,63 @@ NONAMESPACESCHEMALOCATION = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc
 XSI = "http://www.w3.org/2001/XMLSchema-instance"
 
 
+import xmltodict
+
+class SampleNotFoundError(Exception):
+    """Exception raised when a sample is not found."""
+    def __init__(self, alias):
+        self.alias = alias
+        super().__init__(f"Sample with alias '{alias}' not found")
+
+class DbgapTelemetryWrapper:
+    def __init__(self, phs_id=None):
+        self.endpoint = f"https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id={phs_id}"
+        self.phs_id = phs_id
+
+    def call_telemetry_report(self):
+        """Example xml - https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id=phs000452"""
+        response = requests.get(
+            self.endpoint, 
+            headers={"Content-Type": "application/json"}
+        )
+        # Raise an HTTPError for bad responses (4xx or 5xx)
+        response.raise_for_status()
+
+        return xmltodict.parse(response.text)
+
+    def get_sample_status(self, alias, data_type):
+        try:
+            telemetry_data = self.call_telemetry_report()
+
+            study_data = telemetry_data["DbGap"]["Study"]
+            sample_list = study_data["SampleList"]["Sample"]
+
+            for sample in sample_list:
+                if sample.get("@submitted_sample_id") == alias:
+                    sra_data = sample["SRAData"]
+
+                    # If sra_data is null this means that the dbgap has not recieved data
+                    if sra_data:
+                        sra_sample_stats = sra_data["Stats"]
+
+                        # Check instance type since xmltoDict will return different datatypes
+                        if isinstance(sra_sample_stats, list):
+                            for stat in sra_sample_stats:
+                                if stat.get("@experiment_type") == data_type:
+                                    return stat["@status"]
+                        elif isinstance(sra_sample_stats, dict):
+                            return sra_sample_stats["@status"]
+                    else:
+                        return "Empty sequence_data_details column"
+            
+            raise SampleNotFoundError(alias)
+ 
+        except KeyError as e:
+            print(f"Error: {e}")
+            # Re-raise the exception so we force the wdl to fail
+            raise e
+
+
 class StudyNotRegisteredException(Exception):
     pass
 
@@ -209,12 +266,7 @@ class ReadGroup:
                 "source": {"ncbi_string": "GENOMIC", "humanized_string": "genomic DNA"},
                 "selection": "RANDOM"
             },
-            "cDNAShotgunReadTwoSense": {
-                "strategy": {"ncbi_string": "RNA_SEQ", "humanized_string": "RNA"},
-                "source": {"ncbi_string": "TRANSCRIPTOMIC", "humanized_string": "transcriptome"},
-                "selection": "CDNA"
-            },
-            "cDNAShotgunStrandAgnostic": {
+            "cDNAShotgun": {
                 "strategy": {"ncbi_string": "RNA_SEQ", "humanized_string": "RNA"},
                 "source": {"ncbi_string": "TRANSCRIPTOMIC", "humanized_string": "transcriptome"},
                 "selection": "CDNA"
@@ -229,16 +281,15 @@ class ReadGroup:
         if self.library_type in library_descriptors:
             return library_descriptors[self.library_type]
 
-        if self.library_type in ("cDNAShotgunReadTwoSense", "cDNAShotgunStrandAgnostic"):
-            if self.analysis_type == "cDNA" and self.analysis_type != "AssemblyWithoutReference":
-                return library_descriptors["cDNAShotgunStrandAgnostic"]
+        if (
+            (self.library_type in ("cDNAShotgunReadTwoSense", "cDNAShotgunStrandAgnostic") 
+            or self.analysis_type == "cDNA")
+            and self.analysis_type != "AssemblyWithoutReference"
+        ):
+            return library_descriptors["cDNAShotgun"]
 
-        # Default descriptor if library_type is not found
-        return {
-            "strategy": {},
-            "source": {},
-            "selection": ""
-        }
+        # If library descriptor is not found, raise an error
+        raise ValueError(f"No library descriptor found for the given parameters - library type: {self.library_type}")
 
     def get_read_length(self):
         reg_expr = re.search("[SBM](\d+)T", self.read_structure)
