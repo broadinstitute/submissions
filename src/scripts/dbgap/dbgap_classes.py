@@ -2,6 +2,7 @@ import requests
 import json
 import re
 import os
+import xmltodict
 import xml.etree.ElementTree as ET
 from lxml import etree
 from io import BytesIO
@@ -500,41 +501,60 @@ class Submission:
         return f"Produced by user picard on {get_submission_comment_formatted_date()} EST {get_run_date().year}"
 
     def create_actions(self, submission):
-        actions = ET.SubElement(submission, "ACTIONS")
-        action_protect = ET.SubElement(actions, "ACTION")
-        ET.SubElement(action_protect, "PROTECT")
-        action_release = ET.SubElement(actions, "ACTION")
-        ET.SubElement(action_release, "RELEASE")
-        action_experiment = ET.SubElement(actions, "ACTION")
-        ET.SubElement(action_experiment, "ADD", source=self.experiment.get_file_name(), schema="experiment")
-        print("this is the experiment file name ", self.experiment.get_file_name())
-        action_run = ET.SubElement(actions, "ACTION")
-        ET.SubElement(action_run, "ADD", source=self.run.get_file_name(), schema="run")
-        print("this is the run file name ", self.run.get_file_name())
+        actions = {
+            "ACTIONS": {
+                "ACTION": [
+                    {"PROTECT": None},
+                    {"RELEASE": None},
+                    {"ADD": {"@source": self.experiment.get_file_name(), "@schema": "experiment"}},
+                    {"ADD": {"@source": self.run.get_file_name(), "@schema": "run"}}
+                ]
+            }
+        }
+        submission.update(actions)
 
     @staticmethod
     def create_submission_attributes(submission):
-        submission_attributes = ET.SubElement(submission, "SUBMISSION_ATTRIBUTES")
-        submission_attribute = ET.SubElement(submission_attributes, "SUBMISSION_ATTRIBUTE")
-        ET.SubElement(submission_attribute, "TAG").text = "Submission Site"
-        ET.SubElement(submission_attribute, "VALUE").text = "NCBI_PROTECTED"
+        submission_attributes = {
+            "SUBMISSION_ATTRIBUTES": {
+                "SUBMISSION_ATTRIBUTE": [
+                    {"TAG": "Submission Site"},
+                    {"VALUE": "NCBI_PROTECTED"}
+                ]
+            }
+        }
+        submission.update(submission_attributes)
 
     def create_file(self):
         print("Creating submission xml file")
 
-        root = ET.Element("SUBMISSION_SET")
-        root.set("xsi:noNamespaceSchemaLocation", SUBMISSION_XSD)
-        root.set("xmlns:xsi", XSI)
-        submission = ET.SubElement(root, "SUBMISSION", submission_date=get_date(), submission_comment=self.get_submission_comment(), lab_name="Genome Sequencing", alias=self.get_alias(), center_name=BROAD_ABBREVIATION)
+        submission_dict = {
+            "SUBMISSION_SET": {
+                "@xsi:noNamespaceSchemaLocation": SUBMISSION_XSD,
+                "@xmlns:xsi": XSI,
+                "SUBMISSION": {
+                    "@submission_date": get_date(),
+                    "@submission_comment": self.get_submission_comment(),
+                    "@lab_name": "Genome Sequencing",
+                    "@alias": self.get_alias(),
+                    "@center_name": BROAD_ABBREVIATION,
+                    "CONTACTS": {
+                        "CONTACT": {
+                            "@name": "sra_sumissions",
+                            "@inform_on_status": "mailto:dsde-ops@broadinstitute.org",
+                            "@inform_on_error": "mailto:dsde-ops@broadinstitute.org"
+                        }
+                    }
+                }
+            }
+        }
 
-        contacts = ET.SubElement(submission, "CONTACTS")
-        contact = ET.SubElement(contacts, "CONTACT", name="sra_sumissions", inform_on_status="mailto:dsde-ops@broadinstitute.org", inform_on_error="mailto:dsde-ops@broadinstitute.org")
-
+        submission = submission_dict["SUBMISSION_SET"]["SUBMISSION"]
         self.create_actions(submission)
         self.create_submission_attributes(submission)
 
-        validate_xml(root, SUBMISSION_XSD)
-        write_xml_file("submission.xml", root)
+        xml_string = xmltodict.unparse(submission_dict, pretty=True)
+        write_xml_file("submission.xml", xml_string)
 
 
 # Helper Functions #
