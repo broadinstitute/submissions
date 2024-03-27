@@ -250,22 +250,6 @@ class Experiment:
 
         return f"{repo} Illumina {library_strategy_string} sequencing of '{library_source_string}' {paired_end} library '{self.read_group.library_name}' containing sample '{self.sample.alias}' {self.sample.subject_string}"
 
-    @staticmethod
-    def get_read_spec(label, index, base_coord):
-        return {
-            "read_label": label,
-            "read_type": "Forward" if label == "forward" else "Reverse",
-            "read_index": index,
-            "base_coord": base_coord,
-            "read_class": "Application Read"
-        }
-
-    def get_spot_length(self):
-        return (
-            str(self.read_group.get_read_length() * 2)
-            if self.read_group.paired_run else str(self.read_group.get_read_length())
-        )
-
     def generate_experiment_attributes(self):
         attributes_dict = {
             "aggregation_project": self.sample.project,
@@ -304,104 +288,65 @@ class Experiment:
 
         return f"{library_description}{library_construction}{target_construction}"
 
-    def set_identifiers(self, experiment):
-        identifier = ET.SubElement(experiment, "IDENTIFIERS")
-        ET.SubElement(
-            identifier,
-            "SUBMITTER_ID",
-            namespace=BROAD_ABBREVIATION
-        ).text = self.get_submitter_id()
+    def create_experiment_dict(self):
+        experiment_dict = {
+            "EXPERIMENT_SET": {
+                "@xsi:noNamespaceSchemaLocation": EXPERIMENT_XSD,
+                "@xmlns:xsi": XSI,
+                "EXPERIMENT": {
+                    "IDENTIFIERS": {
+                        "SUBMITTER_ID": {
+                            "@namespace": BROAD_ABBREVIATION,
+                            "#text": self.get_submitter_id()
+                        }
+                    },
+                    "TITLE": self.get_title(),
+                    "STUDY_REF": {
+                        "@accession": self.sample.phs
+                    },
+                    "DESIGN": {
+                        "DESIGN_DESCRIPTION": self.get_design_description(),
+                        "LIBRARY_DESCRIPTOR": {
+                            "LIBRARY_NAME": self.read_group.library_name,
+                            "LIBRARY_STRATEGY": self.read_group.get_library_descriptor()["strategy"]["ncbi_string"],
+                            "LIBRARY_SOURCE": self.read_group.get_library_descriptor()["source"]["ncbi_string"],
+                            "LIBRARY_SELECTION": self.read_group.get_library_descriptor()["selection"],
+                            "LIBRARY_LAYOUT": {
+                                "PAIRED": None
+                            }
+                        },
+                        "SPOT_DESCRIPTOR": {
+                            "SPOT_DECODE_SPEC": {
+                                "SPOT_LENGTH": self.get_spot_length(),
+                                "READ_SPEC": [
+                                    self.get_read_spec("forward", "0", "1"),
+                                    self.get_read_spec("reverse", "1", str(self.read_group.get_read_length() + 1))
+                                ]
+                            }
+                        }
+                    },
+                    "PLATFORM": {
+                        "ILLUMINA": {
+                            "INSTRUMENT_MODEL": "Illumina HiSeq X" if self.read_group.model == "Illumina HiSeq X 10" else self.read_group.model
+                        }
+                    },
+                    "EXPERIMENT_ATTRIBUTES": {
+                        "EXPERIMENT_ATTRIBUTE": [
+                            {"TAG": key, "VALUE": value} for key, value in self.generate_experiment_attributes().items()
+                        ]
+                    }
+                }
+            }
+        }
 
-    def set_study_ref(self, experiment):
-        study_ref = ET.SubElement(
-            experiment,
-            "STUDY_REF",
-            accession=self.sample.phs
-        )
-
-    def set_design(self, experiment):
-        design = ET.SubElement(
-            experiment,
-            "DESIGN"
-        )
-        ET.SubElement(
-            design,
-            "DESIGN_DESCRIPTION"
-        ).text = self.get_design_description()
-
-        sample_descriptor = ET.SubElement(
-            design,
-            "SAMPLE_DESCRIPTOR",
-            refname=self.sample.alias,
-            refcenter=self.sample.phs
-        )
-
-        self.set_library_descriptor(design)
-        self.set_spot_descriptor(design)
-
-    def set_library_descriptor(self, design):
-        library_descriptor = ET.SubElement(design, "LIBRARY_DESCRIPTOR")
-
-        ET.SubElement(library_descriptor, "LIBRARY_NAME").text = self.read_group.library_name
-        ET.SubElement(library_descriptor, "LIBRARY_STRATEGY").text = self.read_group.get_library_descriptor()["strategy"]["ncbi_string"]
-        ET.SubElement(library_descriptor, "LIBRARY_SOURCE").text = self.read_group.get_library_descriptor()["source"]["ncbi_string"]
-        ET.SubElement(library_descriptor, "LIBRARY_SELECTION").text = self.read_group.get_library_descriptor()["selection"]
-        layout = ET.SubElement(library_descriptor, "LIBRARY_LAYOUT")
-        ET.SubElement(layout, "PAIRED")
-
-    @staticmethod
-    def set_spec_values(dict, decode_spec):
-        read_spec = ET.SubElement(decode_spec, "READ_SPEC")
-
-        ET.SubElement(read_spec, "READ_INDEX").text = dict["read_index"]
-        ET.SubElement(read_spec, "READ_LABEL").text = dict["read_label"]
-        ET.SubElement(read_spec, "READ_CLASS").text = dict["read_class"]
-        ET.SubElement(read_spec, "READ_TYPE").text = dict["read_type"]
-        ET.SubElement(read_spec, "BASE_COORD").text = dict["base_coord"]
-
-    def set_spot_descriptor(self, design):
-        spot_descriptor = ET.SubElement(design, "SPOT_DESCRIPTOR")
-        decode_spec = ET.SubElement(spot_descriptor, "SPOT_DECODE_SPEC")
-
-        ET.SubElement(decode_spec, "SPOT_LENGTH").text = self.get_spot_length()
-
-        self.set_spec_values(self.get_read_spec("forward", "0", "1"), decode_spec)
-        self.set_spec_values(self.get_read_spec("reverse", "1", str(self.read_group.get_read_length() + 1)), decode_spec)
-
-    def set_platform(self, experiment):
-        # Constants
-        platform = ET.SubElement(experiment, "PLATFORM")
-        illumina = ET.SubElement(platform, "ILLUMINA")
-
-        instrument_model = "Illumina HiSeq X" if self.read_group.model == "Illumina HiSeq X 10" else self.read_group.model
-        ET.SubElement(illumina, "INSTRUMENT_MODEL").text = instrument_model
-
-    def set_experiment_attributes(self, experiment):
-        experiment_attrs = ET.SubElement(experiment, "EXPERIMENT_ATTRIBUTES")
-
-        for key, value in self.generate_experiment_attributes().items():
-            experiment_attr = ET.SubElement(experiment_attrs, "EXPERIMENT_ATTRIBUTE")
-
-            ET.SubElement(experiment_attr, "TAG").text = key
-            ET.SubElement(experiment_attr, "VALUE").text = value
+        return experiment_dict
 
     def create_file(self):
-        print("creating experiment xml files")
+        print("Creating experiment xml files")
 
-        root = ET.Element("EXPERIMENT_SET")
-        root.set("xsi:noNamespaceSchemaLocation", EXPERIMENT_XSD)
-        root.set("xmlns:xsi", XSI)
-        experiment = ET.SubElement(root, "EXPERIMENT")
-
-        self.set_identifiers(experiment)
-        ET.SubElement(experiment, "TITLE").text = self.get_title()
-        self.set_study_ref(experiment)
-        self.set_design(experiment)
-        self.set_platform(experiment)
-        self.set_experiment_attributes(experiment)
-
-        validate_xml(root, EXPERIMENT_XSD)
-        write_xml_file(self.get_file_name(), root)
+        experiment_dict = self.create_experiment_dict()
+        xml_string = xmltodict.unparse(experiment_dict, pretty=True)
+        write_xml_file(self.get_file_name(), xml_string)
 
 
 class Run:
@@ -564,15 +509,14 @@ class Submission:
 
 
 # Helper Functions #
-def validate_xml(xml_tree, xsd_url):
+def validate_xml(xml_string, xsd_url):
     try:
         # Download XSD content
         xsd_content = requests.get(xsd_url).content
         # Create XMLSchema object
         xmlschema_doc = etree.parse(BytesIO(xsd_content))
         xmlschema = etree.XMLSchema(xmlschema_doc)
-        # Convert ElementTree to string and parse
-        xml_string = ET.tostring(xml_tree)
+        # Parse the XML string
         xml_doc = etree.fromstring(xml_string)
         # Validate XML against XSD
         xmlschema.assertValid(xml_doc)
