@@ -415,9 +415,6 @@ class Run:
         sample_id = self.sample.alias
         return f"{flowcell_barcodes}.{sample_id}.{self.sample.project}.{self.sample.version}.{self.sample.file_type}"
 
-    def get_file_name(self):
-        return f"{self.get_submitter_id()}.xml"
-
     def generate_run_attributes(self):
         attributes_dict = {
             "aggregation_project": self.sample.project,
@@ -442,45 +439,54 @@ class Run:
 
         return attributes_dict
 
-    @staticmethod
-    def create_identifiers(parent, submitter_id):
-        identifier = ET.SubElement(parent, "IDENTIFIERS")
-        ET.SubElement(identifier, "SUBMITTER_ID", namespace=BROAD_ABBREVIATION).text = submitter_id
+    def create_run_dict(self):
+        run_dict = {
+            "RUN_SET": {
+                "@xsi:noNamespaceSchemaLocation": RUN_XSD,
+                "@xmlns:xsi": XSI,
+                "RUN": {
+                    "IDENTIFIERS": {
+                        "SUBMITTER_ID": {
+                            "@namespace": BROAD_ABBREVIATION,
+                            "#text": self.get_submitter_id()
+                        }
+                    },
+                    "EXPERIMENT_REF": {
+                        "IDENTIFIERS": {
+                            "SUBMITTER_ID": {
+                                "@namespace": BROAD_ABBREVIATION,
+                                "#text": self.experiment.get_submitter_id()
+                            }
+                        }
+                    },
+                    "DATA_BLOCK": {
+                        "FILES": {
+                            "FILE": {
+                                "@filename": self.sample.data_file,
+                                "@filetype": self.sample.file_type,
+                                "@checksum_method": "MD5",
+                                "@checksum": self.sample.md5
+                            }
+                        }
+                    },
+                    "RUN_ATTRIBUTES": {
+                        "RUN_ATTRIBUTE": [
+                            {"TAG": key, "VALUE": value} for key, value in self.generate_run_attributes().items()
+                        ]
+                    }
+                }
+            }
+        }
 
-    def create_experiment_ref(self, run):
-        experiment_ref = ET.SubElement(run, "EXPERIMENT_REF")
-        self.create_identifiers(experiment_ref, self.experiment.get_submitter_id())
-
-    def create_data_blocks(self, run):
-        data_block = ET.SubElement(run, "DATA_BLOCK")
-        files = ET.SubElement(data_block, "FILES")
-
-        ET.SubElement(files, "FILE", filename=self.sample.data_file, filetype=self.sample.file_type,
-                      checksum_method="MD5", checksum=self.sample.md5)
-
-    def create_run_attrs(self, run):
-        run_attrs = ET.SubElement(run, "RUN_ATTRIBUTES")
-
-        for key, value in self.generate_run_attributes().items():
-            run_attr = ET.SubElement(run_attrs, "RUN_ATTRIBUTE")
-            ET.SubElement(run_attr, "TAG").text = key
-            ET.SubElement(run_attr, "VALUE").text = value
+        return run_dict
 
     def create_file(self):
-        print("creating run xml files")
+        print("Creating run xml files")
 
-        root = ET.Element("RUN_SET")
-        root.set("xsi:noNamespaceSchemaLocation", RUN_XSD)
-        root.set("xmlns:xsi", XSI)
-        run = ET.SubElement(root, "RUN")
+        run_dict = self.create_run_dict()
+        xml_string = xmltodict.unparse(run_dict, pretty=True)
+        write_xml_file(self.get_file_name(), xml_string)
 
-        self.create_identifiers(run, self.get_submitter_id())
-        self.create_experiment_ref(run)
-        self.create_data_blocks(run)
-        self.create_run_attrs(run)
-
-        validate_xml(root, RUN_XSD)
-        write_xml_file(self.get_file_name(), root)
 
 
 class Submission:
