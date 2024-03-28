@@ -2,7 +2,7 @@ import requests
 import json
 import re
 import os
-import xml.etree.ElementTree as ET
+import xmltodict
 from lxml import etree
 from io import BytesIO
 from datetime import datetime
@@ -252,11 +252,11 @@ class Experiment:
     @staticmethod
     def get_read_spec(label, index, base_coord):
         return {
-            "read_label": label,
-            "read_type": "Forward" if label == "forward" else "Reverse",
-            "read_index": index,
-            "base_coord": base_coord,
-            "read_class": "Application Read"
+            "READ_INDEX": index,
+            "READ_LABEL": label,
+            "READ_CLASS": "Application Read",
+            "READ_TYPE": "Forward" if label == "forward" else "Reverse",
+            "BASE_COORD": base_coord
         }
 
     def get_spot_length(self):
@@ -303,104 +303,71 @@ class Experiment:
 
         return f"{library_description}{library_construction}{target_construction}"
 
-    def set_identifiers(self, experiment):
-        identifier = ET.SubElement(experiment, "IDENTIFIERS")
-        ET.SubElement(
-            identifier,
-            "SUBMITTER_ID",
-            namespace=BROAD_ABBREVIATION
-        ).text = self.get_submitter_id()
+    def create_experiment_dict(self):
+        experiment_dict = {
+            "EXPERIMENT_SET": {
+                "@xsi:noNamespaceSchemaLocation": EXPERIMENT_XSD,
+                "@xmlns:xsi": XSI,
+                "EXPERIMENT": {
+                    "IDENTIFIERS": {
+                        "SUBMITTER_ID": {
+                            "@namespace": BROAD_ABBREVIATION,
+                            "#text": self.get_submitter_id()
+                        }
+                    },
+                    "TITLE": self.get_title(),
+                    "STUDY_REF": {
+                        "@accession": self.sample.phs,
+                        "#text": None
+                    },
+                    "DESIGN": {
+                        "DESIGN_DESCRIPTION": self.get_design_description(),
+                        "SAMPLE_DESCRIPTOR": {
+                            "@refname": self.sample.alias,
+                            "@refcenter": self.sample.phs,
+                            '#text': None
+                        },
+                        "LIBRARY_DESCRIPTOR": {
+                            "LIBRARY_NAME": self.read_group.library_name,
+                            "LIBRARY_STRATEGY": self.read_group.get_library_descriptor()["strategy"]["ncbi_string"],
+                            "LIBRARY_SOURCE": self.read_group.get_library_descriptor()["source"]["ncbi_string"],
+                            "LIBRARY_SELECTION": self.read_group.get_library_descriptor()["selection"],
+                            "LIBRARY_LAYOUT": {
+                                "PAIRED": None
+                            }
+                        },
+                        "SPOT_DESCRIPTOR": {
+                            "SPOT_DECODE_SPEC": {
+                                "SPOT_LENGTH": self.get_spot_length(),
+                                "READ_SPEC": [
+                                    self.get_read_spec("forward", "0", "1"),
+                                    self.get_read_spec("reverse", "1", str(self.read_group.get_read_length() + 1))
+                                ]
+                            }
+                        }
+                    },
+                    "PLATFORM": {
+                        "ILLUMINA": {
+                            "INSTRUMENT_MODEL": "Illumina HiSeq X" if self.read_group.model == "Illumina HiSeq X 10" else self.read_group.model
+                        }
+                    },
+                    "EXPERIMENT_ATTRIBUTES": {
+                        "EXPERIMENT_ATTRIBUTE": [
+                            {"TAG": key, "VALUE": value} for key, value in self.generate_experiment_attributes().items()
+                        ]
+                    }
+                }
+            }
+        }
 
-    def set_study_ref(self, experiment):
-        study_ref = ET.SubElement(
-            experiment,
-            "STUDY_REF",
-            accession=self.sample.phs
-        )
-
-    def set_design(self, experiment):
-        design = ET.SubElement(
-            experiment,
-            "DESIGN"
-        )
-        ET.SubElement(
-            design,
-            "DESIGN_DESCRIPTION"
-        ).text = self.get_design_description()
-
-        sample_descriptor = ET.SubElement(
-            design,
-            "SAMPLE_DESCRIPTOR",
-            refname=self.sample.alias,
-            refcenter=self.sample.phs
-        )
-
-        self.set_library_descriptor(design)
-        self.set_spot_descriptor(design)
-
-    def set_library_descriptor(self, design):
-        library_descriptor = ET.SubElement(design, "LIBRARY_DESCRIPTOR")
-
-        ET.SubElement(library_descriptor, "LIBRARY_NAME").text = self.read_group.library_name
-        ET.SubElement(library_descriptor, "LIBRARY_STRATEGY").text = self.read_group.get_library_descriptor()["strategy"]["ncbi_string"]
-        ET.SubElement(library_descriptor, "LIBRARY_SOURCE").text = self.read_group.get_library_descriptor()["source"]["ncbi_string"]
-        ET.SubElement(library_descriptor, "LIBRARY_SELECTION").text = self.read_group.get_library_descriptor()["selection"]
-        layout = ET.SubElement(library_descriptor, "LIBRARY_LAYOUT")
-        ET.SubElement(layout, "PAIRED")
-
-    @staticmethod
-    def set_spec_values(dict, decode_spec):
-        read_spec = ET.SubElement(decode_spec, "READ_SPEC")
-
-        ET.SubElement(read_spec, "READ_INDEX").text = dict["read_index"]
-        ET.SubElement(read_spec, "READ_LABEL").text = dict["read_label"]
-        ET.SubElement(read_spec, "READ_CLASS").text = dict["read_class"]
-        ET.SubElement(read_spec, "READ_TYPE").text = dict["read_type"]
-        ET.SubElement(read_spec, "BASE_COORD").text = dict["base_coord"]
-
-    def set_spot_descriptor(self, design):
-        spot_descriptor = ET.SubElement(design, "SPOT_DESCRIPTOR")
-        decode_spec = ET.SubElement(spot_descriptor, "SPOT_DECODE_SPEC")
-
-        ET.SubElement(decode_spec, "SPOT_LENGTH").text = self.get_spot_length()
-
-        self.set_spec_values(self.get_read_spec("forward", "0", "1"), decode_spec)
-        self.set_spec_values(self.get_read_spec("reverse", "1", str(self.read_group.get_read_length() + 1)), decode_spec)
-
-    def set_platform(self, experiment):
-        # Constants
-        platform = ET.SubElement(experiment, "PLATFORM")
-        illumina = ET.SubElement(platform, "ILLUMINA")
-
-        instrument_model = "Illumina HiSeq X" if self.read_group.model == "Illumina HiSeq X 10" else self.read_group.model
-        ET.SubElement(illumina, "INSTRUMENT_MODEL").text = instrument_model
-
-    def set_experiment_attributes(self, experiment):
-        experiment_attrs = ET.SubElement(experiment, "EXPERIMENT_ATTRIBUTES")
-
-        for key, value in self.generate_experiment_attributes().items():
-            experiment_attr = ET.SubElement(experiment_attrs, "EXPERIMENT_ATTRIBUTE")
-
-            ET.SubElement(experiment_attr, "TAG").text = key
-            ET.SubElement(experiment_attr, "VALUE").text = value
+        return experiment_dict
 
     def create_file(self):
-        print("creating experiment xml files")
+        print("Creating experiment xml files")
 
-        root = ET.Element("EXPERIMENT_SET")
-        root.set("xsi:noNamespaceSchemaLocation", EXPERIMENT_XSD)
-        root.set("xmlns:xsi", XSI)
-        experiment = ET.SubElement(root, "EXPERIMENT")
-
-        self.set_identifiers(experiment)
-        ET.SubElement(experiment, "TITLE").text = self.get_title()
-        self.set_study_ref(experiment)
-        self.set_design(experiment)
-        self.set_platform(experiment)
-        self.set_experiment_attributes(experiment)
-
-        validate_xml(root, EXPERIMENT_XSD)
-        write_xml_file(self.get_file_name(), root)
+        experiment_dict = self.create_experiment_dict()
+        validate_xml(experiment_dict, EXPERIMENT_XSD)
+        write_xml_file(self.get_file_name(), experiment_dict)
 
 
 class Run:
@@ -441,45 +408,53 @@ class Run:
 
         return attributes_dict
 
-    @staticmethod
-    def create_identifiers(parent, submitter_id):
-        identifier = ET.SubElement(parent, "IDENTIFIERS")
-        ET.SubElement(identifier, "SUBMITTER_ID", namespace=BROAD_ABBREVIATION).text = submitter_id
+    def create_run_dict(self):
+        run_dict = {
+            "RUN_SET": {
+                "@xsi:noNamespaceSchemaLocation": RUN_XSD,
+                "@xmlns:xsi": XSI,
+                "RUN": {
+                    "IDENTIFIERS": {
+                        "SUBMITTER_ID": {
+                            "@namespace": BROAD_ABBREVIATION,
+                            "#text": self.get_submitter_id()
+                        }
+                    },
+                    "EXPERIMENT_REF": {
+                        "IDENTIFIERS": {
+                            "SUBMITTER_ID": {
+                                "@namespace": BROAD_ABBREVIATION,
+                                "#text": self.experiment.get_submitter_id()
+                            }
+                        }
+                    },
+                    "DATA_BLOCK": {
+                        "FILES": {
+                            "FILE": {
+                                "@filename": self.sample.data_file,
+                                "@filetype": self.sample.file_type,
+                                "@checksum_method": "MD5",
+                                "@checksum": self.sample.md5
+                            }
+                        }
+                    },
+                    "RUN_ATTRIBUTES": {
+                        "RUN_ATTRIBUTE": [
+                            {"TAG": key, "VALUE": value} for key, value in self.generate_run_attributes().items()
+                        ]
+                    }
+                }
+            }
+        }
 
-    def create_experiment_ref(self, run):
-        experiment_ref = ET.SubElement(run, "EXPERIMENT_REF")
-        self.create_identifiers(experiment_ref, self.experiment.get_submitter_id())
-
-    def create_data_blocks(self, run):
-        data_block = ET.SubElement(run, "DATA_BLOCK")
-        files = ET.SubElement(data_block, "FILES")
-
-        ET.SubElement(files, "FILE", filename=self.sample.data_file, filetype=self.sample.file_type,
-                      checksum_method="MD5", checksum=self.sample.md5)
-
-    def create_run_attrs(self, run):
-        run_attrs = ET.SubElement(run, "RUN_ATTRIBUTES")
-
-        for key, value in self.generate_run_attributes().items():
-            run_attr = ET.SubElement(run_attrs, "RUN_ATTRIBUTE")
-            ET.SubElement(run_attr, "TAG").text = key
-            ET.SubElement(run_attr, "VALUE").text = value
+        return run_dict
 
     def create_file(self):
-        print("creating run xml files")
+        print("Creating run xml files")
 
-        root = ET.Element("RUN_SET")
-        root.set("xsi:noNamespaceSchemaLocation", RUN_XSD)
-        root.set("xmlns:xsi", XSI)
-        run = ET.SubElement(root, "RUN")
-
-        self.create_identifiers(run, self.get_submitter_id())
-        self.create_experiment_ref(run)
-        self.create_data_blocks(run)
-        self.create_run_attrs(run)
-
-        validate_xml(root, RUN_XSD)
-        write_xml_file(self.get_file_name(), root)
+        run_dict = self.create_run_dict()
+        validate_xml(run_dict, RUN_XSD)
+        write_xml_file(self.get_file_name(), run_dict)
 
 
 class Submission:
@@ -500,57 +475,78 @@ class Submission:
         return f"Produced by user picard on {get_submission_comment_formatted_date()} EST {get_run_date().year}"
 
     def create_actions(self, submission):
-        actions = ET.SubElement(submission, "ACTIONS")
-        action_protect = ET.SubElement(actions, "ACTION")
-        ET.SubElement(action_protect, "PROTECT")
-        action_release = ET.SubElement(actions, "ACTION")
-        ET.SubElement(action_release, "RELEASE")
-        action_experiment = ET.SubElement(actions, "ACTION")
-        ET.SubElement(action_experiment, "ADD", source=self.experiment.get_file_name(), schema="experiment")
-        print("this is the experiment file name ", self.experiment.get_file_name())
-        action_run = ET.SubElement(actions, "ACTION")
-        ET.SubElement(action_run, "ADD", source=self.run.get_file_name(), schema="run")
-        print("this is the run file name ", self.run.get_file_name())
+        actions = {
+            "ACTIONS": {
+                "ACTION": [
+                    {"PROTECT": None},
+                    {"RELEASE": None},
+                    {"ADD": {"@source": self.experiment.get_file_name(), "@schema": "experiment"}},
+                    {"ADD": {"@source": self.run.get_file_name(), "@schema": "run"}}
+                ]
+            }
+        }
+        submission.update(actions)
 
     @staticmethod
     def create_submission_attributes(submission):
-        submission_attributes = ET.SubElement(submission, "SUBMISSION_ATTRIBUTES")
-        submission_attribute = ET.SubElement(submission_attributes, "SUBMISSION_ATTRIBUTE")
-        ET.SubElement(submission_attribute, "TAG").text = "Submission Site"
-        ET.SubElement(submission_attribute, "VALUE").text = "NCBI_PROTECTED"
+        submission_attributes = {
+            "SUBMISSION_ATTRIBUTES": {
+                "SUBMISSION_ATTRIBUTE": {
+                    "TAG": "Submission Site",
+                    "VALUE": "NCBI_PROTECTED"
+                }
+            }
+        }
+        submission.update(submission_attributes)
 
     def create_file(self):
         print("Creating submission xml file")
 
-        root = ET.Element("SUBMISSION_SET")
-        root.set("xsi:noNamespaceSchemaLocation", SUBMISSION_XSD)
-        root.set("xmlns:xsi", XSI)
-        submission = ET.SubElement(root, "SUBMISSION", submission_date=get_date(), submission_comment=self.get_submission_comment(), lab_name="Genome Sequencing", alias=self.get_alias(), center_name=BROAD_ABBREVIATION)
+        submission_dict = {
+            "SUBMISSION_SET": {
+                "@xsi:noNamespaceSchemaLocation": SUBMISSION_XSD,
+                "@xmlns:xsi": XSI,
+                "SUBMISSION": {
+                    "@submission_date": get_date(),
+                    "@submission_comment": self.get_submission_comment(),
+                    "@lab_name": "Genome Sequencing",
+                    "@alias": self.get_alias(),
+                    "@center_name": BROAD_ABBREVIATION,
+                    "CONTACTS": {
+                        "CONTACT": {
+                            "@name": "sra_sumissions",
+                            "@inform_on_status": "mailto:dsde-ops@broadinstitute.org",
+                            "@inform_on_error": "mailto:dsde-ops@broadinstitute.org"
+                        }
+                    }
+                }
+            }
+        }
 
-        contacts = ET.SubElement(submission, "CONTACTS")
-        contact = ET.SubElement(contacts, "CONTACT", name="sra_sumissions", inform_on_status="mailto:dsde-ops@broadinstitute.org", inform_on_error="mailto:dsde-ops@broadinstitute.org")
-
+        submission = submission_dict["SUBMISSION_SET"]["SUBMISSION"]
         self.create_actions(submission)
         self.create_submission_attributes(submission)
 
-        validate_xml(root, SUBMISSION_XSD)
-        write_xml_file("submission.xml", root)
+        validate_xml(submission_dict, SUBMISSION_XSD)
+        write_xml_file("submission.xml", submission_dict)
 
 
 # Helper Functions #
-def validate_xml(xml_tree, xsd_url):
+def validate_xml(xml_dict, xsd_url):
     try:
+        # Convert dictionary to XML string
+        xml_string = xmltodict.unparse(xml_dict)
+        
         # Download XSD content
         xsd_content = requests.get(xsd_url).content
         # Create XMLSchema object
         xmlschema_doc = etree.parse(BytesIO(xsd_content))
         xmlschema = etree.XMLSchema(xmlschema_doc)
-        # Convert ElementTree to string and parse
-        xml_string = ET.tostring(xml_tree)
-        xml_doc = etree.fromstring(xml_string)
+        # Parse the XML string (convert to bytes first)
+        xml_doc = etree.fromstring(xml_string.encode())
         # Validate XML against XSD
         xmlschema.assertValid(xml_doc)
-        print("Validation successful. XML is valid according to XSD.")
+        print(f"Validation successful. XML is valid according to {xsd_url}.")
     except etree.XMLSchemaError as e:
         raise ValueError("Error in XML Schema: {}".format(e))
     except etree.XMLSyntaxError as e:
@@ -559,10 +555,12 @@ def validate_xml(xml_tree, xsd_url):
         raise ValueError("Error: {}".format(e))
 
 
-def write_xml_file(file_name, root):
-    file_path = f"/cromwell_root/xml/{file_name}"
+def write_xml_file(file_name, xml_dict):
+    file_path = f"cromwell_root/xml/{file_name}"
+    xml_string = xmltodict.unparse(xml_dict, short_empty_elements=True, pretty=True)
+
     with open(file_path, 'wb') as xfile:
-        xfile.write(ET.tostring(root, encoding="ASCII"))
+        xfile.write(xml_string.encode('ASCII'))
 
 
 def get_submission_comment_formatted_date():
