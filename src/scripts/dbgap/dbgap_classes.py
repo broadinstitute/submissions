@@ -546,7 +546,7 @@ def validate_xml(xml_dict, xsd_url):
         xml_doc = etree.fromstring(xml_string.encode())
         # Validate XML against XSD
         xmlschema.assertValid(xml_doc)
-        print("Validation successful. XML is valid according to XSD.")
+        print(f"Validation successful. XML is valid according to {xsd_url}.")
     except etree.XMLSchemaError as e:
         raise ValueError("Error in XML Schema: {}".format(e))
     except etree.XMLSyntaxError as e:
