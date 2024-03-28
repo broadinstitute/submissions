@@ -35,4 +35,4 @@ def parse_arguments():
 
 if __name__ == '__main__':
     args = parse_arguments()
-    create_xml_files(args.sample_id, args.project, args.workspace_name, args.md5)
+    run_xml_creation(args.sample_id, args.project, args.workspace_name, args.md5)

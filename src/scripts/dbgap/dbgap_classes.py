@@ -7,7 +7,67 @@ import xml.etree.ElementTree as ET
 from lxml import etree
 from io import BytesIO
 from datetime import datetime
-from src.services.dbgap_telemetry_report import DbgapTelemetryWrapper
+# from src.services.dbgap_telemetry_report import DbgapTelemetryWrapper
+
+class SampleNotFoundError(Exception):
+    """Exception raised when a sample is not found."""
+    def __init__(self, alias):
+        self.alias = alias
+        super().__init__(f"Sample with alias '{alias}' not found")
+
+class DbgapTelemetryWrapper:
+    def __init__(self, phs_id=None):
+        self.endpoint = f"https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id={phs_id}"
+        self.phs_id = phs_id
+
+    def _call_telemetry_report(self):
+        """Example xml - https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/GetSampleStatus.cgi?rettype=xml&study_id=phs000452"""
+        response = requests.get(
+            self.endpoint, 
+            headers={"Content-Type": "application/json"}
+        )
+        # Raise an HTTPError for bad responses (4xx or 5xx)
+        response.raise_for_status()
+
+        return xmltodict.parse(response.text)
+
+    def _get_sample(self, alias):
+        try:
+            telemetry_data = self._call_telemetry_report()
+            study_data = telemetry_data["DbGap"]["Study"]
+            sample_list = study_data["SampleList"]["Sample"]
+
+            for sample in sample_list:
+                if sample.get("@submitted_sample_id") == alias:
+                    return sample
+
+            raise SampleNotFoundError(alias)
+        except KeyError as e:
+            print(f"Error: {e}")
+            # Re-raise the exception so we force the wdl to fail
+            raise e
+
+    def get_sample_status(self, alias, data_type):
+        sample = self._get_sample(alias)
+        sra_data = sample["SRAData"]
+        sra_sample_stats = sra_data["Stats"]
+
+        if isinstance(sra_sample_stats, list):
+            for stat in sra_sample_stats:
+                if stat.get("@experiment_type") == data_type:
+                    return stat["@status"]
+        elif isinstance(sra_sample_stats, dict):
+            return sra_sample_stats["@status"]
+
+    def get_sample_info(self, alias):
+        sample = self._get_sample(alias)
+        try:
+            return {
+                "repository": sample["@repository"],
+                "submitted_subject_id": sample["@submitted_subject_id"]
+            }
+        except KeyError as e:
+            raise KeyError(f"Key error occurred when accessing {e} in sample with alias '{alias}'")
 
 
 BROAD_ABBREVIATION = "BI"
@@ -250,6 +310,22 @@ class Experiment:
 
         return f"{repo} Illumina {library_strategy_string} sequencing of '{library_source_string}' {paired_end} library '{self.read_group.library_name}' containing sample '{self.sample.alias}' {self.sample.subject_string}"
 
+    @staticmethod
+    def get_read_spec(label, index, base_coord):
+        return {
+            "READ_INDEX": index,
+            "READ_LABEL": label,
+            "READ_CLASS": "Application Read",
+            "READ_TYPE": "Forward" if label == "forward" else "Reverse",
+            "BASE_COORD": base_coord
+        }
+
+    def get_spot_length(self):
+        return (
+            str(self.read_group.get_read_length() * 2)
+            if self.read_group.paired_run else str(self.read_group.get_read_length())
+        )
+
     def generate_experiment_attributes(self):
         attributes_dict = {
             "aggregation_project": self.sample.project,
@@ -302,10 +378,16 @@ class Experiment:
                     },
                     "TITLE": self.get_title(),
                     "STUDY_REF": {
-                        "@accession": self.sample.phs
+                        "@accession": self.sample.phs,
+                        "#text": None
                     },
                     "DESIGN": {
                         "DESIGN_DESCRIPTION": self.get_design_description(),
+                        "SAMPLE_DESCRIPTOR": {
+                            "@refname": self.sample.alias,
+                            "@refcenter": self.sample.phs,
+                            '#text': None
+                        },
                         "LIBRARY_DESCRIPTOR": {
                             "LIBRARY_NAME": self.read_group.library_name,
                             "LIBRARY_STRATEGY": self.read_group.get_library_descriptor()["strategy"]["ncbi_string"],
@@ -345,8 +427,8 @@ class Experiment:
         print("Creating experiment xml files")
 
         experiment_dict = self.create_experiment_dict()
-        xml_string = xmltodict.unparse(experiment_dict, pretty=True)
-        write_xml_file(self.get_file_name(), xml_string)
+        validate_xml(experiment_dict, EXPERIMENT_XSD)
+        write_xml_file(self.get_file_name(), experiment_dict)
 
 
 class Run:
@@ -359,6 +441,9 @@ class Run:
         flowcell_barcodes = ".".join(self.read_group.flowcell_barcodes)
         sample_id = self.sample.alias
         return f"{flowcell_barcodes}.{sample_id}.{self.sample.project}.{self.sample.version}.{self.sample.file_type}"
+
+    def get_file_name(self):
+        return f"{self.get_submitter_id()}.xml"
 
     def generate_run_attributes(self):
         attributes_dict = {
@@ -429,9 +514,8 @@ class Run:
         print("Creating run xml files")
 
         run_dict = self.create_run_dict()
-        xml_string = xmltodict.unparse(run_dict, pretty=True)
-        write_xml_file(self.get_file_name(), xml_string)
-
+        validate_xml(run_dict, RUN_XSD)
+        write_xml_file(self.get_file_name(), run_dict)
 
 
 class Submission:
@@ -468,10 +552,10 @@ class Submission:
     def create_submission_attributes(submission):
         submission_attributes = {
             "SUBMISSION_ATTRIBUTES": {
-                "SUBMISSION_ATTRIBUTE": [
-                    {"TAG": "Submission Site"},
-                    {"VALUE": "NCBI_PROTECTED"}
-                ]
+                "SUBMISSION_ATTRIBUTE": {
+                    "TAG": "Submission Site",
+                    "VALUE": "NCBI_PROTECTED"
+                }
             }
         }
         submission.update(submission_attributes)
@@ -504,20 +588,23 @@ class Submission:
         self.create_actions(submission)
         self.create_submission_attributes(submission)
 
-        xml_string = xmltodict.unparse(submission_dict, pretty=True)
-        write_xml_file("submission.xml", xml_string)
+        validate_xml(submission_dict, SUBMISSION_XSD)
+        write_xml_file("submission.xml", submission_dict)
 
 
 # Helper Functions #
-def validate_xml(xml_string, xsd_url):
+def validate_xml(xml_dict, xsd_url):
     try:
+        # Convert dictionary to XML string
+        xml_string = xmltodict.unparse(xml_dict)
+        
         # Download XSD content
         xsd_content = requests.get(xsd_url).content
         # Create XMLSchema object
         xmlschema_doc = etree.parse(BytesIO(xsd_content))
         xmlschema = etree.XMLSchema(xmlschema_doc)
-        # Parse the XML string
-        xml_doc = etree.fromstring(xml_string)
+        # Parse the XML string (convert to bytes first)
+        xml_doc = etree.fromstring(xml_string.encode())
         # Validate XML against XSD
         xmlschema.assertValid(xml_doc)
         print("Validation successful. XML is valid according to XSD.")
@@ -529,10 +616,12 @@ def validate_xml(xml_string, xsd_url):
         raise ValueError("Error: {}".format(e))
 
 
-def write_xml_file(file_name, root):
-    file_path = f"/cromwell_root/xml/{file_name}"
+def write_xml_file(file_name, xml_dict):
+    file_path = f"cromwell_root/xml/{file_name}"
+    xml_string = xmltodict.unparse(xml_dict, short_empty_elements=True, pretty=True)
+
     with open(file_path, 'wb') as xfile:
-        xfile.write(ET.tostring(root, encoding="ASCII"))
+        xfile.write(xml_string.encode('ASCII'))
 
 
 def get_submission_comment_formatted_date():
