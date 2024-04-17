@@ -99,12 +99,13 @@ class ReadGroup:
         # 2. It can have a dict with keys itemsType , and items. This happens when the metadata is empty, but not for other samples
         # 3. Just has the metadata
         if "submission_metadata" in first_read_group and "items" not in first_read_group["submission_metadata"]:
-            # Replace single quotes with double quotes to make it valid JSON
-            submission_metadata_str = first_read_group["submission_metadata"].replace("'", "\"")
+            submission_metadata_str = first_read_group["submission_metadata"]
+            submission_metadata_str_json = submission_metadata_str.replace("'", '"')
 
-            # Convert the string to a Python list of dictionaries
-            submission_metadata = json.loads(submission_metadata_str)
-            self.submission_metadata = self.sub_data_to_dict(submission_metadata)
+            # Replace None with null
+            submission_metadata_str_json = submission_metadata_str_json.replace("None", "null")
+
+            self.submission_metadata = self.sub_data_to_dict(json.loads(submission_metadata_str_json))
         else:
             self.submission_metadata = []
 
@@ -556,7 +557,7 @@ def validate_xml(xml_dict, xsd_url):
 
 
 def write_xml_file(file_name, xml_dict):
-    file_path = f"cromwell_root/xml/{file_name}"
+    file_path = f"/cromwell_root/xml/{file_name}"
     xml_string = xmltodict.unparse(xml_dict, short_empty_elements=True, pretty=True)
 
     with open(file_path, 'wb') as xfile:
