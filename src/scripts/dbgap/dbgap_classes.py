@@ -59,7 +59,7 @@ class Sample:
             self.phs = str(sample_json["phs_id"])
             self.data_type = sample_json["data_type"]
             self.alias = sample_json["alias"]
-            self.aggregation_project = sample_json["aggregation_path"]
+            self.aggregation_path = sample_json["aggregation_path"]
         except KeyError as e:
             raise ValueError(f"Missing required field: {e}")
 
