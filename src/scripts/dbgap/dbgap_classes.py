@@ -63,7 +63,7 @@ class Sample:
         except KeyError as e:
             raise ValueError(f"Missing required field: {e}")
 
-        self.file_type = self._get_file_extension(self.aggregation_project)
+        self.file_type = self._get_file_extension(self.aggregation_path)
         self.data_file = f"{sample_id}.{self.file_type}"
         self.dbgap_info = DbgapTelemetryWrapper(phs_id=self.phs).get_sample_info(alias=self.alias)
 

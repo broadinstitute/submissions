@@ -37,6 +37,7 @@ workflow TransferToDbgap {
             filename = "~{sample_id}.xml"
     }
 
+    String file_type = basename(dataFile)
     call ascpFile as transferDataFile {
         input:
             key = key,
@@ -44,7 +45,7 @@ workflow TransferToDbgap {
             uploadSite = transferXml.site,
             uploadPath = transferXml.path,
             ascpUser = "asp-bi",
-            filename = "~{sample_id}.bam"
+            filename = "~{sample_id}.~{file_type}"
     }
 }
 
