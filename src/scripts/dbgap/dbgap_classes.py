@@ -59,11 +59,11 @@ class Sample:
             self.phs = str(sample_json["phs_id"])
             self.data_type = sample_json["data_type"]
             self.alias = sample_json["alias"]
-            self.aggregation_project = sample_json["aggregation_path"]
+            self.aggregation_path = sample_json["aggregation_path"]
         except KeyError as e:
             raise ValueError(f"Missing required field: {e}")
 
-        self.file_type = self._get_file_extension(self.aggregation_project)
+        self.file_type = self._get_file_extension(self.aggregation_path)
         self.data_file = f"{sample_id}.{self.file_type}"
         self.dbgap_info = DbgapTelemetryWrapper(phs_id=self.phs).get_sample_info(alias=self.alias)
 
