@@ -1,3 +1,10 @@
+# Deploying Changes
+## When making changes to the .wdl files
+Nothing is required if only the .wdl files are changed. Once your branch is merged to `main`, dockstore will automatically get updated with the most recent changes. In your Terra workspace, you can always verify what code is running by looking at the source code (in Terra on GCP, this can be found in the "SCRIPT" tab when you're navigated to your workflow configuration page). 
+
+## When making changes to the Python files
+If you've made a change to your Python file, most likely you'll need to recreate and push the image using the [V2 Dockerfile](Docker/V2/Dockerfile) since this is the one that contains all the Python code. You'll need to build, tag and push the docker image to [this repository](https://hub.docker.com/r/schaluvadi/horsefish).
+
 # SSH Key Creation and Usage Guide
 
 ## Introduction
