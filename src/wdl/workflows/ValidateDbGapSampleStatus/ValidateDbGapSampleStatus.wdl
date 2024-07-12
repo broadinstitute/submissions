@@ -47,7 +47,7 @@ task ValidateDbgapSample {
     }
 
     runtime {
-        docker: "schaluvadi/horsefish:submissionV2GDC"
+        docker: "narehsahakian/horsefish:submissionV2GDC"
         preemptible: 1
     }
 
