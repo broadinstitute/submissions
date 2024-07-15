@@ -58,6 +58,7 @@ task ascpFile {
         String ascpUser
         String filename
     }
+    Int disk_size = ceil(size(uploadFile, "GiB") * 1.5)
 
     command {
       set -e
@@ -74,10 +75,10 @@ task ascpFile {
     }
 
     runtime {
-      memory: "7.5 GB"
+      memory: "8 GB"
       docker: "schaluvadi/horsefish:submissionAspera"
       cpu: 2
-      disks: "local-disk 200 HDD"
+      disks: "local-disk " + disk_size + " HDD"
     }
 
     output {
