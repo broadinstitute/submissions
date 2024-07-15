@@ -6,7 +6,7 @@ Nothing is required if only the .wdl files are changed. Once your branch is merg
 If you've made a change to your Python file, most likely you'll need to recreate and push the image using the [V2 Dockerfile](Docker/V2/Dockerfile) since this is the one that contains all the Python code. You'll need to build, tag and push the docker image to [this repository](https://hub.docker.com/r/schaluvadi/horsefish/tags). Note that even though this repository is public, you'll need to be added as a collaborator in order to successfully push changes to it. 
 
 ### Building the Docker image - how to find which image to re-build
-Say you've updated some Python code and you want this available in Terra. First track down where in which `.wdl` file that Python code is called. Now in that `.wdl`, find the Docker image that's defined in the runtime attributes. This should correspond to one of the Docker files that are located within a subdirectory of [Docker](Docker). Once you've found the Dockerfile you'll need to re-create, you can do so with a command such as the following: 
+Say you've updated some Python code and you want this available in Terra. First track down where in which `.wdl` file that Python code is called. Now in that `.wdl`, find the Docker image that's defined in the runtime attributes. This should correspond to one of the Docker files that are located within a subdirectory of [Docker](Docker). Once you've found the Dockerfile you'll need to re-create, you can do so with a command such as the following from the ROOT of the repository: 
 ```commandline
 docker build -t schaluvadi/horsefish:submissionV2GDC -f Docker/V2/Dockerfile . --platform="linux/amd64"
 ```
@@ -15,7 +15,7 @@ Once you've successfully created the Docker image, you can run `docker images` a
 
 ### Pushing your new Docker image
 Once you're recreated your image and verified that your changes have propagated locally, you'll need to push your new image version to [this public repository](https://hub.docker.com/r/schaluvadi/horsefish/tags).
-You can do so by running: 
+You can do so by running a command such as (be sure to replace `submissionV2GDC` with the correct image tag!): 
 ```
 docker push schaluvadi/horsefish:submissionV2GDC
 ```
