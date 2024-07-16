@@ -197,9 +197,9 @@ class ReadGroup:
                 "selection": "RANDOM"
             },
             "cDNAShotgun": {
-                "strategy": {"ncbi_string": "RNA_SEQ", "humanized_string": "RNA"},
+                "strategy": {"ncbi_string": "RNA-Seq", "humanized_string": "RNA"},
                 "source": {"ncbi_string": "TRANSCRIPTOMIC", "humanized_string": "transcriptome"},
-                "selection": "CDNA"
+                "selection": "cDNA"
             },
             "HybridSelection": {
                 "strategy": {"ncbi_string": "WXS", "humanized_string": "random exon"},
