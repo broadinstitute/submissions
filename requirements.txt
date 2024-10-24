@@ -12,3 +12,4 @@ google-api-python-client
 google-cloud-secret-manager
 xmltodict
 lxml
+google-cloud-storage

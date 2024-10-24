@@ -30,7 +30,7 @@ class MetadataSubmission:
         gdc_wrapper = GdcApiWrapper(program=self.program, project=self.project, token=self.token)
         gdc_wrapper.submit_metadata(metadata)
         time.sleep(100) # Wait a second since gdc can lag a little
-        self.write_bam_data_to_file()
+        #self.write_bam_data_to_file()
         self.write_uuid_to_file(gdc_wrapper)
 
     def write_uuid_to_file(self, gdc_wrapper):

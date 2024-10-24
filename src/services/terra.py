@@ -40,6 +40,19 @@ class TerraAPIWrapper:
         headers = self.get_headers()
         workspace_url = f"{self.base_url}/{self.billing_project}/{self.workspace_name}/entityQuery/{table}"
 
+        # TODO revert this
+        parameters = {
+            'page': page_number,
+            'pageSize': 100,
+            'filterTerms': sample_id
+        }
+        response = requests.get(workspace_url, headers=headers, params=parameters)
+        response.raise_for_status()
+        data = response.json()
+        if data.get('results'):
+            results.extend(data['results'])
+
+        """
         while True:
             parameters = {
                 'page': page_number,
@@ -61,5 +74,5 @@ class TerraAPIWrapper:
 
                 if page_number >= filtered_page_count:
                     break
-        
+        """
         return results

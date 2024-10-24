@@ -236,6 +236,7 @@ task addReadsField {
         String gdc_token
         String project
         String program
+        File read_group_metadata_json
     }
 
     command {
