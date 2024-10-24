@@ -20,7 +20,7 @@ workflow TransferToGdc {
     Boolean dry_run = false
     Boolean deliver_files = true
     File?   monitoring_script
-    File read_group_metadata_json
+    File? read_group_metadata_json
   }
 
   String token_value = (read_lines(gdc_token))[0]

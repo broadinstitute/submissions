@@ -104,6 +104,7 @@ class ReadGroup:
 
             # Replace None with null
             submission_metadata_str_json = submission_metadata_str_json.replace("None", "null")
+
             self.submission_metadata = self.sub_data_to_dict(json.loads(submission_metadata_str_json))
         else:
             self.submission_metadata = []
