@@ -247,7 +247,7 @@ task addReadsField {
                                                       -t ~{gdc_token} \
                                                       -pj ~{project} \
                                                       -pg ~{program} \
-                                                      ~{"--r " + read_group_metadata_json}
+                                                      ~{"-r " + read_group_metadata_json}
     }
 
     runtime {

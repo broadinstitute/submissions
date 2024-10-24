@@ -1,6 +1,5 @@
 import argparse
 import sys
-sys.path.append("./")
 from src.services.terra import TerraAPIWrapper
 from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission
 

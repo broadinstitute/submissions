@@ -43,9 +43,15 @@ def get_args():
     json_group.add_argument(
         "-r",
         "--read_group_metadata_json",
-        required=True,
+        required=False,
         help="GCP path to the read group metadata JSON file"
     )
+
+    parser.add_argument("-s", "--sample_id", required=True, help="The sample alias")
+    parser.add_argument("-t", "--token", required=True, help="The API token to communicate with GDC")
+    parser.add_argument("-pj", "--project", required=True, help="GDC project")
+    parser.add_argument("-pg", "--program", required=True, help="GDC program")
+
     args = parser.parse_args()
 
     workspace_fields = [args.workspace_name, args.billing_project]
@@ -60,11 +66,6 @@ def get_args():
                 "If not providing the read group metadata JSON, both workspace name and billing project must be "
                 "provided"
             )
-
-    parser.add_argument("-s", "--sample_id", required=True, help="The sample alias")
-    parser.add_argument("-t", "--token", required=True, help="The API token to communicate with GDC")
-    parser.add_argument("-pj", "--project", required=True, help="GDC project")
-    parser.add_argument("-pg", "--program", required=True, help="GDC program")
 
     return args
 
