@@ -11,6 +11,6 @@ task ErrorWithMessage {
   >>>
 
   runtime {
-    docker: "ubuntu:20.04"
+    docker: "schaluvadi/horsefish:submissionV2GDC"
   }
 }
