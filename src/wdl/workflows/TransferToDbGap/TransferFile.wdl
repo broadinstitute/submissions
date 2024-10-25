@@ -2,6 +2,7 @@ version 1.0
 
 import "../../tasks/terra_tasks.wdl" as tasks
 
+# TODO data type will be manually provided, so add check where it can only be certain values and to convert for dbgap if necessary
 workflow TransferToDbgap {
     input {
         String sample_id

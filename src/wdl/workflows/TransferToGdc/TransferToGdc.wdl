@@ -1,6 +1,8 @@
 version 1.0
 
 import "../../tasks/terra_tasks.wdl" as tasks
+import "../../utilities/Utilities.wdl" as utils
+
 
 workflow TransferToGdc {
   input {
@@ -22,6 +24,15 @@ workflow TransferToGdc {
     File?   monitoring_script
     File? read_group_metadata_json
   }
+
+  if ((data_type != "WGS") && (data_type != "Exome") && (data_type != "RNA")) {
+    call utils.ErrorWithMessage as ErrorMessageIncorrectInput {
+        input:
+            message = "data_type must be either 'WGS', 'Exome', or 'RNA'."
+    }
+  }
+  String data_type_converted = if data_type == "Exome" then "WXS" else data_type
+
 
   String token_value = (read_lines(gdc_token))[0]
   String md5 = (read_lines(md5_file))[0]
@@ -51,7 +62,7 @@ workflow TransferToGdc {
         sample_alias = sample_alias,
         aggregation_path = aggregation_path,
         agg_project = agg_project,
-        data_type = data_type,
+        data_type = data_type_converted,
         file_size = file_size,
         md5 = md5,
         program = program,
@@ -86,7 +97,7 @@ workflow TransferToGdc {
           project = project,
           sample_alias = sample_alias,
           agg_project = agg_project,
-          data_type = data_type,
+          data_type = data_type_converted,
           gdc_token = token_value,
           previous_task = TransferBamToGdc.done
       }
