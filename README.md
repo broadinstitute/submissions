@@ -46,7 +46,7 @@ After linking your public key, you can upload your private key to the designated
 **Note:** Keep your private key secure and do not share it with anyone.
 
 ## Support
-For any inquiries or assistance, please contact Paul Hendriksen at `phendrik@broadinstitute.org`.
+For any inquiries or assistance, please contact Nareh Sahakian at `sahakian@broadinstitute.org`.
 
 ## Disclaimer
 Ensure you follow your organization's security policies and guidelines when managing SSH keys and accessing workspaces.
