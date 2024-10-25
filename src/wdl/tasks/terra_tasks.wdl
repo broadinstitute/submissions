@@ -7,6 +7,7 @@ task CreateDbgapXmlFiles {
         String billing_project
         String md5
         File? monitoring_script
+        File? read_group_metadata_json
     }
     Int disk_size = 32
 
@@ -21,10 +22,11 @@ task CreateDbgapXmlFiles {
         fi
 
         mkdir /cromwell_root/xml
-        python3 /src/scripts/dbgap/create_dbgap_xml_files.py -w ~{workspace_name} \
-                                                      -p ~{billing_project} \
-                                                      -s ~{sample_id} \
-                                                      -m ~{md5}
+        python3 /src/scripts/dbgap/create_dbgap_xml_files.py ~{if defined(workspace_name) then "--workspace_name " + workspace_name else ""} \
+                                                      ~{if defined(billing_project) then "--project " + billing_project else ""} \
+                                                      --sample_id ~{sample_id} \
+                                                      --md5 ~{md5} \
+                                                     ~{if defined(read_group_metadata_json) then "--read_group_metadata_json " + billing_project else ""}
         cd /cromwell_root/xml
         ls
         tar czf xml_files.tgz *.xml
@@ -230,8 +232,8 @@ task GetMetadata {
 task addReadsField {
     input {
         # workspace details
-        String workspace_name
-        String workspace_project
+        String? workspace_name
+        String? workspace_project
         String sample_id
         String gdc_token
         String project
@@ -241,13 +243,13 @@ task addReadsField {
 
     command {
         set -eo pipefail
-        python3 /src/scripts/gdc/extract_reads_data.py -w ~{workspace_name} \
-                                                      -p ~{workspace_project} \
-                                                      -s ~{sample_id} \
-                                                      -t ~{gdc_token} \
-                                                      -pj ~{project} \
-                                                      -pg ~{program} \
-                                                      ~{"-r " + read_group_metadata_json}
+        python3 /src/scripts/gdc/extract_reads_data.py ~{if defined(workspace_name) then "--workspace_name " + workspace_name else ""} \
+                                                      ~{if defined(workspace_project) then "--billing_project " + workspace_project else ""} \
+                                                      --sample_id ~{sample_id} \
+                                                      --token ~{gdc_token} \
+                                                      --project ~{project} \
+                                                      --program ~{program} \
+                                                      ~{if defined(read_group_metadata_json) then "--read_group_metadata_json " + read_group_metadata_json else ""}
     }
 
     runtime {

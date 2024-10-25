@@ -16,6 +16,7 @@ workflow TransferToDbgap {
         File dataFile
         File md5_file
         File? monitoring_script
+        File? read_group_metadata_json
     }
 
     String md5 = (read_lines(md5_file))[0]
@@ -37,7 +38,8 @@ workflow TransferToDbgap {
             billing_project = workspace_project,
             sample_id = sample_id,
             monitoring_script = monitoring_script,
-            md5 = md5
+            md5 = md5,
+            read_group_metadata_json = read_group_metadata_json
     }
 
     call ascpFile as transferXml {
