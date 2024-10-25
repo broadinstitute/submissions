@@ -85,19 +85,17 @@ def extract_reads_data_from_json_gdc(sample_alias: str, read_group_metadata_json
     version = 1 # DRAGEN data doesn't have the concept of a version, so we hard-code it to 1
 
     read_group_metadata = []
-    # TODO find out what the key for the read groups actually is, this is a placeholder
     for read_group in sample_metadata["readGroups"]:
         read_group_metadata.append(
             {
                 "read_length": get_read_length_from_read_structure(read_structure=read_group["setupReadStructure"]),
                 "flow_cell_barcode": sample_metadata["name"],
-                "library_name": read_group["library"], # TODO fix this when they have the read group metadata populated
+                "library_name": read_group["library"],
                 "library_selection": sample_metadata["analysisType"].split(".")[0],
                 "is_paired_end": sample_metadata["pairedRun"],
                 "includes_spike_ins": False,
                 "data_type": data_type,
                 "sample_identifier": sample_alias,
-                # TODO get reference sequence version from GP
                 "reference_sequences_version": sample_metadata["referenceSequenceVersion"],
                 "sequencing_center": BROAD_SEQUENCING_CENTER_ABBREVIATION,
                 "library_preparation_kit_version": sample_metadata["library_preparation_kit_version"],
@@ -109,7 +107,7 @@ def extract_reads_data_from_json_gdc(sample_alias: str, read_group_metadata_json
                 "reference_sequences": sample_metadata["referenceSequence"],
                 "library_preparation_kit_vendor": sample_metadata["library_preparation_kit_vendor"],
                 "platform": "Illumina",
-                "lane_number": read_group["lane"], # TODO fix this once they have the read group metadata populated
+                "lane_number": read_group["lane"],
                 "library_preparation_kit_catalog_number": sample_metadata["library_preparation_kit_catalog_number"],
                 "target_capture_kit": determine_target_capture_kit(
                     data_type, sample_metadata["library_preparation_kit_name"]
@@ -126,22 +124,18 @@ def extract_reads_data_from_json_dbgap(read_group_metadata_json_path: str):
     sample_metadata = get_json_contents(read_group_metadata_json_path)
 
     read_group_metadata_json = []
-    # TODO find out what the key for the read groups actually is, this is a placeholder
     for read_group in sample_metadata["readGroups"]:
         read_group_metadata_json.append(
             {
                 "attributes": {
                     "product_order_id": sample_metadata["productOrderKey"],
-                    # TODO this will have to be changed to be grabbed from the read groups metadata
                     "library_name": read_group["library"],
                     "library_type": sample_metadata["analysisType"].split(".")[0],
                     "work_request_id": sample_metadata["productOrderKey"],
                     "analysis_type": sample_metadata["analysisType"].split(".")[1],
                     "paired_run": 0 if sample_metadata["paired_run"] == "false" else 1,
-                    # TODO this is currently a field but not populated in the metadata JSON
                     "read_structure": sample_metadata["setupReadStructure"],
-                    # TODO this is currently missing from the metadata JSON
-                    "sample_lsid": sample_metadata["sampleLsid"],
+                    "sample_lsid": sample_metadata["lsid"],
                     "reference_sequence": sample_metadata["referenceSequence"],
                     "model": sample_metadata["sequencerModel"],
                     "research_project_id": sample_metadata["researchProjectId"],
