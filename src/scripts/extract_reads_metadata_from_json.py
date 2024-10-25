@@ -3,9 +3,6 @@ import re
 from google.cloud import storage
 from urllib.parse import urlparse
 
-from numpy.random import sample
-from pandas.core.config_init import data_manager_doc
-
 from src.services.terra import TerraAPIWrapper
 
 # TODO revert this
@@ -43,15 +40,22 @@ def determine_target_capture_kit(data_type: str, kit_name: str) -> str:
     else:
         return "Not Applicable"
 
-def extract_reads_data_from_workspace_metadata(sample_alias: str, billing_project: str, workspace_name: str) -> list:
+def extract_reads_data_from_workspace_metadata(
+        sample_alias: str, billing_project: str, workspace_name: str, is_gdc: bool,
+) -> list[dict]:
     """Grab the reads data for the given sample_id"""
     reads_data = TerraAPIWrapper(billing_project, workspace_name).call_terra_api(sample_alias, "read-group")
     formatted_reads = [read["attributes"] for read in reads_data]
 
-    with open(READS_JSON_PATH, "w") as f:
-        f.write(json.dumps(formatted_reads))
+    if is_gdc:
+        reads = reads_data
+    else:
+        reads = formatted_reads
 
-    return formatted_reads
+    with open(READS_JSON_PATH, "w") as f:
+        f.write(json.dumps(reads))
+
+    return reads
 
 def get_read_length_from_read_structure(read_structure: str) -> str:
     # Grab the first "section" before the T in the read structure. This can either be an integer, or a mix of
@@ -71,12 +75,13 @@ def get_read_length_from_read_structure(read_structure: str) -> str:
         return str(total)
 
 
-def extract_reads_data_from_json(sample_alias: str, read_group_metadata_json_path: str, is_gdc: bool) -> list[dict]:
+def extract_reads_data_from_json_gdc(sample_alias: str, read_group_metadata_json_path: str) -> list[dict]:
     """Grab the reads data for the given sample_id"""
     sample_metadata = get_json_contents(read_group_metadata_json_path)
-    data_type = DATA_TYPE_CONVERSION[sample_metadata["dataType"]] if is_gdc else sample_metadata["dataType"]
+    data_type = DATA_TYPE_CONVERSION[sample_metadata["dataType"]]
 
     aggregation_project = sample_metadata["researchProjectId"]
+    # TODO determine if any old samples with versions will be submitted at all and if this should be hard-coded or not
     version = 1 # DRAGEN data doesn't have the concept of a version, so we hard-code it to 1
 
     read_group_metadata = []
@@ -116,3 +121,32 @@ def extract_reads_data_from_json(sample_alias: str, read_group_metadata_json_pat
         f.write(json.dumps(read_group_metadata))
 
     return read_group_metadata
+
+def extract_reads_data_from_json_dbgap(read_group_metadata_json_path: str):
+    sample_metadata = get_json_contents(read_group_metadata_json_path)
+
+    read_group_metadata_json = []
+    # TODO find out what the key for the read groups actually is, this is a placeholder
+    for read_group in sample_metadata["readGroups"]:
+        read_group_metadata_json.append(
+            {
+                "attributes": {
+                    "product_order_id": sample_metadata["productOrderKey"],
+                    # TODO this will have to be changed to be grabbed from the read groups metadata
+                    "library_name": read_group["library"],
+                    "library_type": sample_metadata["analysisType"].split(".")[0],
+                    "work_request_id": sample_metadata["productOrderKey"],
+                    "analysis_type": sample_metadata["analysisType"].split(".")[1],
+                    "paired_run": 0 if sample_metadata["paired_run"] == "false" else 1,
+                    # TODO this is currently a field but not populated in the metadata JSON
+                    "read_structure": sample_metadata["setupReadStructure"],
+                    # TODO this is currently missing from the metadata JSON
+                    "sample_lsid": sample_metadata["sampleLsid"],
+                    "reference_sequence": sample_metadata["referenceSequence"],
+                    "model": sample_metadata["sequencerModel"],
+                    "research_project_id": sample_metadata["researchProjectId"],
+                    "bait_set": sample_metadata.get("baitSetName", ""),
+                    "sample_barcode": sample_metadata.get("sampleBarcode", ""),
+                }
+            }
+        )

@@ -7,12 +7,10 @@ import "../../utilities/Utilities.wdl" as utils
 workflow TransferToGdc {
   input {
     # Sample input
-    String sample_id
     String sample_alias
     String aggregation_path
     String agg_project
     String data_type
-    String file_size
     String program
     String project
     String workspace_name
@@ -32,6 +30,7 @@ workflow TransferToGdc {
     }
   }
   String data_type_converted = if data_type == "Exome" then "WXS" else data_type
+  String sample_id = agg_project + "_" + sample_alias + "_v1_" + data_type_converted + "_GDC"
 
 
   String token_value = (read_lines(gdc_token))[0]
@@ -63,7 +62,6 @@ workflow TransferToGdc {
         aggregation_path = aggregation_path,
         agg_project = agg_project,
         data_type = data_type_converted,
-        file_size = file_size,
         md5 = md5,
         program = program,
         project = project,
@@ -221,7 +219,6 @@ task submitMetadataToGDC {
       String aggregation_path
       String agg_project
       String data_type
-      String file_size
       String md5
       String program
       String project
@@ -239,7 +236,6 @@ task submitMetadataToGDC {
                       --aggregation_path ~{aggregation_path} \
                       --agg_project ~{agg_project} \
                       --data_type ~{data_type} \
-                      --file_size ~{file_size} \
                       --md5 ~{md5} \
                       --read_groups ~{json_file} \
                       --token ~{gdc_token}

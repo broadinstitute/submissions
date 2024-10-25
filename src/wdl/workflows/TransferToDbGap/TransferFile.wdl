@@ -1,11 +1,12 @@
 version 1.0
 
 import "../../tasks/terra_tasks.wdl" as tasks
-
-# TODO data type will be manually provided, so add check where it can only be certain values and to convert for dbgap if necessary
+# TODO find out from GP if any older samples run through Zamboni with agg versions will be run and if the version should be hard-coded to 1 or not
 workflow TransferToDbgap {
     input {
-        String sample_id
+        String aggregation_project
+        String collaborator_sample_id
+        String data_type
         String workspace_name
         String workspace_project
         String uploadSite
@@ -18,6 +19,17 @@ workflow TransferToDbgap {
     }
 
     String md5 = (read_lines(md5_file))[0]
+
+    if ((data_type != "WGS") && (data_type != "Exome") && (data_type != "RNA")) {
+    call utils.ErrorWithMessage as ErrorMessageIncorrectInput {
+        input:
+            message = "data_type must be either 'WGS', 'Exome', or 'RNA'."
+    }
+  }
+
+    # DRAGEN samples don't have the concept of a version, so we hard-code these to one
+    String sample_id = aggregation_project + "_" + collaborator_sample_id + "_v1_" + data_type + "_DBGAP"
+
 
     call tasks.CreateDbgapXmlFiles as xml {
         input:

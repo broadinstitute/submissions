@@ -1,9 +1,8 @@
-import json
 import argparse
 import sys
 
 from src.scripts.extract_reads_metadata_from_json import (
-    extract_reads_data_from_json,
+    extract_reads_data_from_json_gdc,
     extract_reads_data_from_workspace_metadata,
 )
 
@@ -94,14 +93,16 @@ def submit_reads(read_metadata, token, project, program):
 if __name__ == "__main__":
     args = get_args()
     if args.read_group_metadata_json:
-        reads = extract_reads_data_from_json(
+        reads = extract_reads_data_from_json_gdc(
             sample_alias=args.sample_id,
             read_group_metadata_json_path=args.read_group_metadata_json,
-            is_gdc=True,
         )
     else:
         reads = extract_reads_data_from_workspace_metadata(
-            sample_alias=args.sample_id, billing_project=args.billing_project, workspace_name=args.workspace_name
+            sample_alias=args.sample_id,
+            billing_project=args.billing_project,
+            workspace_name=args.workspace_name,
+            is_gdc=True,
         )
     # TODO uncomment this after testing
     #submit_reads(reads, args.token, args.project, args.program)
