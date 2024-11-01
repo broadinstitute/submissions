@@ -1,3 +1,5 @@
+
+
 # Deploying Changes
 ## When making changes to the .wdl files
 Nothing is required if only the .wdl files are changed. Once your branch is merged to `main`, dockstore will automatically get updated with the most recent changes. In your Terra workspace, you can always verify what code is running by looking at the source code (in Terra on GCP, this can be found in the "SCRIPT" tab when you're navigated to your workflow configuration page). 

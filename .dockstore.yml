@@ -17,6 +17,7 @@ workflows:
   - name: validateGDCStatus
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/ValidateFileStatus/ValidateFileStatus.wdl
+    readMePath: /src/wdl/workflows/ValidateFileStatus/README.md
 
   - name: verify
     subclass: WDL
@@ -25,4 +26,5 @@ workflows:
   - name: validateDbGapStatus
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/ValidateDbGapSampleStatus/ValidateDbGapSampleStatus.wdl
+    readMePath: /src/wdl/workflows/ValidateDbGapSampleStatus/README.md
   

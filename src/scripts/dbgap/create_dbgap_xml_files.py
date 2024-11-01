@@ -1,7 +1,4 @@
 import argparse
-import sys
-# TODO remove this before merging
-sys.path.append("./")
 
 from src.scripts.extract_reads_metadata_from_json import (
     extract_reads_data_from_json_dbgap,
@@ -34,7 +31,7 @@ def run_xml_creation(
         sample_json[0]["attributes"]["phs_id"] = phs_id
         sample_json[0]["attributes"]["data_type"] = data_type
         # TODO fix this once the metadata is updated
-        sample_json[0]["attributes"]["aggregation_path"] = "gs://something"
+        sample_json[0]["attributes"]["aggregation_path"] = sample_json[0]["attributes"]["aggregation_path"]
 
     sample = Sample(sample_json, md5)
     read_group = ReadGroup(reads_metadata)

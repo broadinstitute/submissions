@@ -1,6 +1,6 @@
-# TransferToDbgap
+# Transfer Files to dbGaP
 
-This WDL transfers data to the GDC. 
+This WDL transfers data to dbGaP. 
 
 ## Inputs Table: 
 | Input Name                   | Description                                                                                                                                                                                                                                       | Type    | Required | Default   |

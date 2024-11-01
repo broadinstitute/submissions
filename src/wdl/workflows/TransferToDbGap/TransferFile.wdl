@@ -1,6 +1,7 @@
 version 1.0
 
 import "../../tasks/terra_tasks.wdl" as tasks
+import "../../utilities/Utilities.wdl" as utils
 
 workflow TransferToDbgap {
     input {
@@ -26,10 +27,9 @@ workflow TransferToDbgap {
     call utils.ErrorWithMessage as ErrorMessageIncorrectInput {
         input:
             message = "data_type must be either 'WGS', 'Exome', or 'RNA'."
+        }
     }
-  }
 
-    # DRAGEN samples don't have the concept of a version, so we hard-code these to one
     String sample_id = aggregation_project + "_" + collaborator_sample_id + "_v" + aggregation_version + "_" + data_type + "_DBGAP"
     String ascpUser = "asp-bi"
 

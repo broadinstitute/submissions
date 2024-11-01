@@ -3,8 +3,8 @@ version 1.0
 task CreateDbgapXmlFiles {
     input {
         String sample_id
-        String? workspace_name
-        String? billing_project
+        String workspace_name
+        String billing_project
         String md5
         File? monitoring_script
         File? read_group_metadata_json
@@ -250,8 +250,8 @@ task GetMetadata {
 task addReadsField {
     input {
         # workspace details
-        String? workspace_name
-        String? workspace_project
+        String workspace_name
+        String workspace_project
         String sample_alias
         String gdc_token
         String project

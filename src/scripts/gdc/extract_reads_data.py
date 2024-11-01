@@ -1,8 +1,4 @@
 import argparse
-import sys
-# TODO remove this before merging in
-sys.path.append("./")
-
 
 from src.scripts.extract_reads_metadata_from_json import (
     extract_reads_data_from_json_gdc,
@@ -69,8 +65,7 @@ def format_read_group(read):
 
 def submit_reads(read_metadata, token, project, program):
     formatted_reads = [format_read_group(read["attributes"]) for read in read_metadata]
-    # TODO uncomment this after testing
-    #GdcApiWrapper(program=program, project=project, token=token).submit_metadata(formatted_reads)
+    GdcApiWrapper(program=program, project=project, token=token).submit_metadata(formatted_reads)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
-# TransferToGDC
+# Transfer Files To GDC
 
-This WDL transfers data to the GDC. 
+This WDL transfers data to the GDC 
 
 ## Inputs Table: 
 | Input Name                   | Description                                                                                                                                                                                                                                       | Type     | Required | Default |
