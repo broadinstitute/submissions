@@ -1,20 +1,27 @@
 version: 1.2
 workflows:
-  - name: transfer
+  - name: transferToGDC
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/TransferToGdc/TransferToGdc.wdl
+    readMePath: /src/wdl/workflows/TransferToGdc/README.md
+
   - name: delete
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/DeleteFromGdc/DeleteFromGdc.wdl
-  - name: dbgapTransfer
+
+  - name: transferToDbgap
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/TransferToDbGap/TransferFile.wdl
+    readMePath: /src/wdl/workflows/TransferToDbGap/README.md
+
   - name: validateGDCStatus
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/ValidateFileStatus/ValidateFileStatus.wdl
+
   - name: verify
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/VerifyRegistration/VerifyRegistration.wdl
+
   - name: validateDbGapStatus
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/ValidateDbGapSampleStatus/ValidateDbGapSampleStatus.wdl

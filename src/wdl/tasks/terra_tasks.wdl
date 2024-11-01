@@ -8,6 +8,9 @@ task CreateDbgapXmlFiles {
         String md5
         File? monitoring_script
         File? read_group_metadata_json
+        Int aggregation_version
+        String phs_id
+        String data_type
     }
     Int disk_size = 32
 
@@ -26,12 +29,20 @@ task CreateDbgapXmlFiles {
         if [ ! -z "~{read_group_metadata_json}" ]; then
             python3 /src/scripts/dbgap/create_dbgap_xml_files.py --sample_id ~{sample_id} \
                                                       --md5 ~{md5} \
+                                                      --workspace_name ~{workspace_name} \
+                                                      --billing_project ~{billing_project} \
+                                                      --aggregation_version ~{aggregation_version} \
+                                                      --phs_id ~{phs_id} \
+                                                      --data_type ~{data_type} \
                                                       --read_group_metadata_json ~{read_group_metadata_json}
         else:
             python3 /src/scripts/dbgap/create_dbgap_xml_files.py --sample_id ~{sample_id} \
                                                       --md5 ~{md5} \
                                                       --workspace_name ~{workspace_name} \
-                                                      --project ~{billing_project}
+                                                      --billing_project ~{billing_project} \
+                                                      --aggregation_version ~{aggregation_version} \
+                                                      --phs_id ~{phs_id} \
+                                                      --data_type ~{data_type}
         fi
 
         cd /cromwell_root/xml
@@ -241,7 +252,7 @@ task addReadsField {
         # workspace details
         String? workspace_name
         String? workspace_project
-        String sample_id
+        String sample_alias
         String gdc_token
         String project
         String program
@@ -252,7 +263,9 @@ task addReadsField {
         set -eo pipefail
 
         if [ ! -z "~{read_group_metadata_json}" ]; then
-            python3 /src/scripts/gdc/extract_reads_data.py --sample_id ~{sample_id} \
+            python3 /src/scripts/gdc/extract_reads_data.py --workspace_name ~{workspace_name} \
+                                                      --billing_project ~{workspace_project} \
+                                                      --sample_alias ~{sample_alias} \
                                                       --token ~{gdc_token} \
                                                       --project ~{project} \
                                                       --program ~{program} \
@@ -260,10 +273,10 @@ task addReadsField {
         else:
             python3 /src/scripts/gdc/extract_reads_data.py --workspace_name ~{workspace_name} \
                                                       --billing_project ~{workspace_project} \
-                                                      --sample_id ~{sample_id} \
+                                                      --sample_alias ~{sample_alias} \
                                                       --token ~{gdc_token} \
                                                       --project ~{project} \
-                                                      --program ~{program} \
+                                                      --program ~{program}
 
         fi
     }

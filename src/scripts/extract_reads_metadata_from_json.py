@@ -17,6 +17,7 @@ DATA_TYPE_CONVERSION = {
 GDC_TWIST_CAPTURE_KIT = "Custom Twist Broad Exome v1.0 - 35.0 Mb"
 MERCURY_TWIST_CAPTURE_KIT = "Kit,xGen Hybridization + Wash(96Rxn/BX)"
 GDC_NEXTERA_CAPTURE_KIT = "Nextera Rapid Capture Exome v1.2"
+ILLUMINA_PLATFORM = "Illumina"
 
 
 def get_json_contents(read_group_metadata_json: str) -> dict:
@@ -32,7 +33,13 @@ def get_json_contents(read_group_metadata_json: str) -> dict:
     return json_data
 
 
-def determine_target_capture_kit(data_type: str, kit_name: str) -> str:
+def determine_target_capture_kit(data_type: str, submissions_metadata: str) -> str:
+    submissions_info = json.loads(submissions_metadata)
+    kit_name = ""
+    for s in submissions_info:
+        if s["key"] == "target_capture_kit_name":
+            kit_name = s["value"]
+
     if data_type == "Exome":
         return GDC_TWIST_CAPTURE_KIT if kit_name == MERCURY_TWIST_CAPTURE_KIT else GDC_NEXTERA_CAPTURE_KIT
     elif data_type == "Custom_Selection":
@@ -74,44 +81,51 @@ def get_read_length_from_read_structure(read_structure: str) -> str:
         total = sum(int(num) for num in integers)
         return str(total)
 
+# TODO find out if this is the right way to extract the molecular barcode sequence
+def extract_molecular_barcode_name_and_sequence(molecular_indexing_scheme: str):
+    molecular_indexing = json.loads(molecular_indexing_scheme)
+    molecular_barcode_name = molecular_indexing["name"]
+    molecular_barcode_sequence = molecular_indexing["mapHintToAnalysisSequence"]["P5"]
+    return molecular_barcode_name, molecular_barcode_sequence
+
+
+def determine_library_selection(product_type):
+    # TODO determine what the types of products are here (for Exome, WGS and RNA)
+    if product_type == "HybridSelection":
+        return "HybridSelection"
+    elif product_type == "ShortRangePCR":
+        return "ShortRangePCR"
+    else:
+        return "Random"
 
 def extract_reads_data_from_json_gdc(sample_alias: str, read_group_metadata_json_path: str) -> list[dict]:
     """Grab the reads data for the given sample_id"""
     sample_metadata = get_json_contents(read_group_metadata_json_path)
-    data_type = DATA_TYPE_CONVERSION[sample_metadata["dataType"]]
-
-    aggregation_project = sample_metadata["researchProjectId"]
-    # TODO determine if any old samples with versions will be submitted at all and if this should be hard-coded or not
-    version = 1 # DRAGEN data doesn't have the concept of a version, so we hard-code it to 1
 
     read_group_metadata = []
     for read_group in sample_metadata["readGroups"]:
+        data_type = DATA_TYPE_CONVERSION[read_group["dataType"]]
+        aggregation_project = read_group["researchProjectId"]
         read_group_metadata.append(
             {
-                "read_length": get_read_length_from_read_structure(read_structure=read_group["setupReadStructure"]),
-                "flow_cell_barcode": sample_metadata["name"],
-                "library_name": read_group["library"],
-                "library_selection": sample_metadata["analysisType"].split(".")[0],
-                "is_paired_end": sample_metadata["pairedRun"],
-                "includes_spike_ins": False,
-                "data_type": data_type,
-                "sample_identifier": sample_alias,
-                "reference_sequences_version": sample_metadata["referenceSequenceVersion"],
-                "sequencing_center": BROAD_SEQUENCING_CENTER_ABBREVIATION,
-                "library_preparation_kit_version": sample_metadata["library_preparation_kit_version"],
-                "experiment_name": f"{sample_alias}.{data_type}.{aggregation_project}",
-                "library_strand": "Not Applicable",
-                "aggregation_project": aggregation_project,
-                "sample_id": f"{aggregation_project}.{sample_alias}.{version}.WXS_GDC",
-                "library_preparation_kit_name": sample_metadata["library_preparation_kit_name"],
-                "reference_sequences": sample_metadata["referenceSequence"],
-                "library_preparation_kit_vendor": sample_metadata["library_preparation_kit_vendor"],
-                "platform": "Illumina",
-                "lane_number": read_group["lane"],
-                "library_preparation_kit_catalog_number": sample_metadata["library_preparation_kit_catalog_number"],
-                "target_capture_kit": determine_target_capture_kit(
-                    data_type, sample_metadata["library_preparation_kit_name"]
-                ),
+                "attributes": {
+                    "aggregation_project": aggregation_project,
+                    "sample_identifier": sample_alias,
+                    "flow_cell_barcode": read_group["flowcellBarcode"],
+                    "experiment_name": f"{sample_alias}.{data_type}.{aggregation_project}",
+                    "sequencing_center": BROAD_SEQUENCING_CENTER_ABBREVIATION,
+                    "platform": ILLUMINA_PLATFORM,
+                    "library_selection": determine_library_selection(read_group["productFamily"]),
+                    "data_type": data_type,
+                    "library_name": read_group["library"],
+                    "lane_number": read_group["lane"],
+                    "is_paired_end": read_group["pairedRun"],
+                    "read_length": get_read_length_from_read_structure(read_group["setupReadStructure"]),
+                    "target_capture_kit": determine_target_capture_kit(
+                        data_type=read_group["dataType"], submissions_metadata=read_group["submissionsMetadata"]
+                    ),
+
+                }
             }
         )
 
@@ -125,22 +139,36 @@ def extract_reads_data_from_json_dbgap(read_group_metadata_json_path: str):
 
     read_group_metadata_json = []
     for read_group in sample_metadata["readGroups"]:
+
+        molecular_barcode_name, molecular_barcode_sequence = extract_molecular_barcode_name_and_sequence(
+            read_group["molecularIndexingScheme"]
+        )
+
         read_group_metadata_json.append(
             {
                 "attributes": {
-                    "product_order_id": sample_metadata["productOrderKey"],
+                    "product_order_id": read_group["productOrderKey"],
                     "library_name": read_group["library"],
-                    "library_type": sample_metadata["analysisType"].split(".")[0],
-                    "work_request_id": sample_metadata["productOrderKey"],
-                    "analysis_type": sample_metadata["analysisType"].split(".")[1],
-                    "paired_run": 0 if sample_metadata["paired_run"] == "false" else 1,
-                    "read_structure": sample_metadata["setupReadStructure"],
-                    "sample_lsid": sample_metadata["lsid"],
-                    "reference_sequence": sample_metadata["referenceSequence"],
-                    "model": sample_metadata["sequencerModel"],
-                    "research_project_id": sample_metadata["researchProjectId"],
-                    "bait_set": sample_metadata.get("baitSetName", ""),
-                    "sample_barcode": sample_metadata.get("sampleBarcode", ""),
+                    "library_type": read_group["analysisType"].split(".")[0],
+                    "work_request_id": read_group["productOrderKey"],
+                    "analysis_type": read_group["analysisType"].split(".")[1],
+                    "paired_run": 0 if read_group["pairedRun"] == "false" else 1,
+                    "read_structure": read_group["setupReadStructure"],
+                    "sample_lsid": read_group["lsid"],
+                    "reference_sequence": read_group["referenceSequence"],
+                    "model": read_group["sequencerModel"],
+                    "research_project_id": read_group["researchProjectId"],
+                    "bait_set": read_group.get("baitSetName", ""),
+                    "sample_barcode": read_group.get("sampleBarcode", ""),
+                    "run_barcode": read_group["barcode"],
+                    "lane": read_group["lane"],
+                    "run_name": read_group["name"],
+                    "molecular_barcode_name": molecular_barcode_name,
+                    "molecular_barcode_sequence": molecular_barcode_sequence,
+                    # TODO figure out if this is the correct mapping of machine
+                    "machine_name": read_group["dragenPipeline"],
+                    "flowcell_barcode": read_group["flowcellBarcode"],
                 }
             }
         )
+    return read_group_metadata_json

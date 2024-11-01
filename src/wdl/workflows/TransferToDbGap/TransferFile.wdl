@@ -1,7 +1,7 @@
 version 1.0
 
 import "../../tasks/terra_tasks.wdl" as tasks
-# TODO find out from GP if any older samples run through Zamboni with agg versions will be run and if the version should be hard-coded to 1 or not
+
 workflow TransferToDbgap {
     input {
         String aggregation_project
@@ -11,12 +11,13 @@ workflow TransferToDbgap {
         String workspace_project
         String uploadSite
         String uploadPath
-        String ascpUser
         File key
         File dataFile
         File md5_file
         File? monitoring_script
         File? read_group_metadata_json
+        Int aggregation_version
+        String phs_id
     }
 
     String md5 = (read_lines(md5_file))[0]
@@ -29,8 +30,8 @@ workflow TransferToDbgap {
   }
 
     # DRAGEN samples don't have the concept of a version, so we hard-code these to one
-    String sample_id = aggregation_project + "_" + collaborator_sample_id + "_v1_" + data_type + "_DBGAP"
-
+    String sample_id = aggregation_project + "_" + collaborator_sample_id + "_v" + aggregation_version + "_" + data_type + "_DBGAP"
+    String ascpUser = "asp-bi"
 
     call tasks.CreateDbgapXmlFiles as xml {
         input:
@@ -39,7 +40,10 @@ workflow TransferToDbgap {
             sample_id = sample_id,
             monitoring_script = monitoring_script,
             md5 = md5,
-            read_group_metadata_json = read_group_metadata_json
+            read_group_metadata_json = read_group_metadata_json,
+            aggregation_version = aggregation_version,
+            phs_id = phs_id,
+            data_type = data_type
     }
 
     call ascpFile as transferXml {
@@ -48,7 +52,7 @@ workflow TransferToDbgap {
             uploadFile = xml.xml_tar,
             uploadSite = uploadSite,
             uploadPath = uploadPath,
-            ascpUser = "asp-bi",
+            ascpUser = ascpUser,
             filename = "~{sample_id}.xml"
     }
 
@@ -58,7 +62,7 @@ workflow TransferToDbgap {
             uploadFile = dataFile,
             uploadSite = transferXml.site,
             uploadPath = transferXml.path,
-            ascpUser = "asp-bi",
+            ascpUser = ascpUser,
             filename = "~{sample_id}.bam"
     }
 }

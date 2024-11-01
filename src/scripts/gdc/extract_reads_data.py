@@ -1,60 +1,42 @@
 import argparse
 import sys
+# TODO remove this before merging in
+sys.path.append("./")
+
 
 from src.scripts.extract_reads_metadata_from_json import (
     extract_reads_data_from_json_gdc,
     extract_reads_data_from_workspace_metadata,
 )
 
-sys.path.append("./")
-
 from src.services.gdc_api import GdcApiWrapper
 
 
 def get_args():
     parser = argparse.ArgumentParser(description="Extract and submit reads data.")
-    workspace_args = parser.add_argument_group("Workspace Args (used when there is no JSON file for reads metadata)")
-    workspace_args.add_argument(
+    parser.add_argument(
         "-w",
         "--workspace_name",
-        required=False,
+        required=True,
         help="The name of the workspace in which to make changes"
     )
-    workspace_args.add_argument(
-        "-p",
+    parser.add_argument(
+        "-b",
         "--billing_project",
-        required=False,
-        help="The billing project (namespace) of the workspace in which to make changes"
+        required=True,
+        help="The billing project of the workspace in which to make changes"
     )
-    json_group = parser.add_mutually_exclusive_group(required=False)
-    json_group.add_argument(
+    parser.add_argument("-s", "--sample_alias", required=True, help="The sample alias")
+    parser.add_argument("-t", "--token", required=True, help="The API token to communicate with GDC")
+    parser.add_argument("-pj", "--project", required=True, help="GDC project")
+    parser.add_argument("-pg", "--program", required=True, help="GDC program")
+    parser.add_argument(
         "-r",
         "--read_group_metadata_json",
         required=False,
         help="GCP path to the read group metadata JSON file"
     )
-
-    parser.add_argument("-s", "--sample_id", required=True, help="The sample alias")
-    parser.add_argument("-t", "--token", required=True, help="The API token to communicate with GDC")
-    parser.add_argument("-pj", "--project", required=True, help="GDC project")
-    parser.add_argument("-pg", "--program", required=True, help="GDC program")
-
-    args = parser.parse_args()
-
-    workspace_fields = [args.workspace_name, args.billing_project]
-    if args.read_group_metadata_json:
-        if any(workspace_fields):
-            parser.error(
-                "Cannot provide BOTH read group metadata JSON and the combination of workspace/billing project"
-            )
-    else:
-        if not all(workspace_fields):
-            parser.error(
-                "If not providing the read group metadata JSON, both workspace name and billing project must be "
-                "provided"
-            )
-
-    return args
+    return parser.parse_args()
 
 
 def format_read_group(read):
@@ -86,23 +68,24 @@ def format_read_group(read):
 
 
 def submit_reads(read_metadata, token, project, program):
-    formatted_reads = [format_read_group(read) for read in read_metadata]
-    GdcApiWrapper(program=program, project=project, token=token).submit_metadata(formatted_reads)
+    formatted_reads = [format_read_group(read["attributes"]) for read in read_metadata]
+    # TODO uncomment this after testing
+    #GdcApiWrapper(program=program, project=project, token=token).submit_metadata(formatted_reads)
 
 
 if __name__ == "__main__":
     args = get_args()
     if args.read_group_metadata_json:
         reads = extract_reads_data_from_json_gdc(
-            sample_alias=args.sample_id,
+            sample_alias=args.sample_alias,
             read_group_metadata_json_path=args.read_group_metadata_json,
         )
     else:
         reads = extract_reads_data_from_workspace_metadata(
-            sample_alias=args.sample_id,
+            sample_alias=args.sample_alias,
             billing_project=args.billing_project,
             workspace_name=args.workspace_name,
             is_gdc=True,
         )
-    # TODO uncomment this after testing
-    #submit_reads(reads, args.token, args.project, args.program)
+
+    submit_reads(reads, args.token, args.project, args.program)
