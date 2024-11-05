@@ -79,19 +79,19 @@ def get_read_length_from_read_structure(read_structure: str) -> str:
         total = sum(int(num) for num in integers)
         return str(total)
 
-# TODO find out if this is the right way to extract the molecular barcode sequence
+
 def extract_molecular_barcode_name_and_sequence(molecular_indexing_scheme: str):
     molecular_indexing = json.loads(molecular_indexing_scheme)
     molecular_barcode_name = molecular_indexing["name"]
-    molecular_barcode_sequence = molecular_indexing["mapHintToAnalysisSequence"]["P5"]
+    # TODO find out if this should be P5 or P7 sequence
+    molecular_barcode_sequence = molecular_indexing["mapHintToSequence"]["P5"]
     return molecular_barcode_name, molecular_barcode_sequence
 
 
 def determine_library_selection(product_type):
-    # TODO determine what the types of products are here (for Exome, WGS and RNA)
-    if product_type == "HybridSelection":
+    if product_type == "Exome":
         return "HybridSelection"
-    elif product_type == "ShortRangePCR":
+    elif product_type == "RNA":
         return "ShortRangePCR"
     else:
         return "Random"
@@ -163,8 +163,7 @@ def extract_reads_data_from_json_dbgap(read_group_metadata_json_path: str):
                     "run_name": read_group["name"],
                     "molecular_barcode_name": molecular_barcode_name,
                     "molecular_barcode_sequence": molecular_barcode_sequence,
-                    # TODO figure out if this is the correct mapping of machine
-                    "machine_name": read_group["dragenPipeline"],
+                    "machine_name": read_group["sequencerModel"],
                     "flowcell_barcode": read_group["flowcellBarcode"],
                 }
             }
