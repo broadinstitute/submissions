@@ -1,4 +1,5 @@
-
+# TODO update this to include directions and links for which workflows should be run for each repository and in what order 
+Add links to readmes as well! 
 
 # Deploying Changes
 ## When making changes to the .wdl files
