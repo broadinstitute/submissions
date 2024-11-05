@@ -83,7 +83,7 @@ def get_read_length_from_read_structure(read_structure: str) -> str:
 def extract_molecular_barcode_name_and_sequence(molecular_indexing_scheme: str):
     molecular_indexing = json.loads(molecular_indexing_scheme)
     molecular_barcode_name = molecular_indexing["name"]
-    molecular_barcode_sequence = f'{molecular_indexing["mapHintToAnalysisSequence"]["P7"]}-{molecular_indexing["mapHintToAnalysisSequence"]["P5"]}'
+    molecular_barcode_sequence = f'{molecular_indexing["mapHintToSequence"]["P5"]}-{molecular_indexing["mapHintToSequence"]["P7"]}'
     return molecular_barcode_name, molecular_barcode_sequence
 
 
