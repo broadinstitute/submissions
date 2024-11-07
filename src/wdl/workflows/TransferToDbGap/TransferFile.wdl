@@ -1,22 +1,37 @@
 version 1.0
 
 import "../../tasks/terra_tasks.wdl" as tasks
+import "../../utilities/Utilities.wdl" as utils
 
 workflow TransferToDbgap {
     input {
-        String sample_id
+        String aggregation_project
+        String collaborator_sample_id
+        String data_type
         String workspace_name
         String workspace_project
         String uploadSite
         String uploadPath
-        String ascpUser
         File key
         File dataFile
         File md5_file
         File? monitoring_script
+        File? read_group_metadata_json
+        Int aggregation_version
+        String phs_id
     }
 
     String md5 = (read_lines(md5_file))[0]
+
+    if ((data_type != "WGS") && (data_type != "Exome") && (data_type != "RNA")) {
+    call utils.ErrorWithMessage as ErrorMessageIncorrectInput {
+        input:
+            message = "data_type must be either 'WGS', 'Exome', or 'RNA'."
+        }
+    }
+
+    String sample_id = aggregation_project + "_" + collaborator_sample_id + "_v" + aggregation_version + "_" + data_type + "_DBGAP"
+    String ascpUser = "asp-bi"
 
     call tasks.CreateDbgapXmlFiles as xml {
         input:
@@ -24,7 +39,11 @@ workflow TransferToDbgap {
             billing_project = workspace_project,
             sample_id = sample_id,
             monitoring_script = monitoring_script,
-            md5 = md5
+            md5 = md5,
+            read_group_metadata_json = read_group_metadata_json,
+            aggregation_version = aggregation_version,
+            phs_id = phs_id,
+            data_type = data_type
     }
 
     call ascpFile as transferXml {
@@ -33,7 +52,7 @@ workflow TransferToDbgap {
             uploadFile = xml.xml_tar,
             uploadSite = uploadSite,
             uploadPath = uploadPath,
-            ascpUser = "asp-bi",
+            ascpUser = ascpUser,
             filename = "~{sample_id}.xml"
     }
 
@@ -43,7 +62,7 @@ workflow TransferToDbgap {
             uploadFile = dataFile,
             uploadSite = transferXml.site,
             uploadPath = transferXml.path,
-            ascpUser = "asp-bi",
+            ascpUser = ascpUser,
             filename = "~{sample_id}.bam"
     }
 }

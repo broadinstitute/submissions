@@ -1,13 +1,22 @@
-# TransferToGdc
+# Transfer Files To GDC
 
-## Workflow
+This WDL transfers data to the GDC 
 
-The WDL file defines a workflow to transfer files to GDC.
-
-There are also example inputs, options, and labels files in this directory for testing purposes.
-
-## Docker
-The docker image used in this WDL defined [here](../../../../docker/Dockerfile).
-It can be built using [this script](../../../../docker/build_docker.sh)
-
-
+## Inputs Table: 
+| Input Name                   | Description                                                                                                                                                                                                                                       | Type     | Required | Default |
+|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|----------|---------|
+| **sample_alias**             | The collaborator sample ID                                                                                                                                                                                                                        | String   | Yes      | N/A     |
+| **aggregation_path**         | The GCP path to the aggregation (bam/cram file)                                                                                                                                                                                                   | FileRef  | Yes      | N/A     |
+| **agg_project**              | The sample's aggregation project                                                                                                                                                                                                                  | String   | Yes      | N/A     |
+| **data_type**                | The data type. Must be one of: "WGS", "Exome", or "RNA"                                                                                                                                                                                           | String   | Yes      | N/A     |
+| **program**                  | The GDC program name                                                                                                                                                                                                                              | String   | Yes      | N/A     |
+| **project**                  | The GDC project name                                                                                                                                                                                                                              | String   | Yes      | N/A     |
+| **workspace_name**           | The workspace name                                                                                                                                                                                                                                | String   | Yes      | N/A     |
+| **workspace_project**        | The workspace billing project                                                                                                                                                                                                                     | String   | Yes      | N/A     |
+| **md5_file**                 | The GCP path to the aggregation's md5 file                                                                                                                                                                                                        | FileRef  | Yes      | N/A     |
+| **gdc_token**                | The GCP path to the GDC file containing the user token                                                                                                                                                                                            | FileRef  | Yes      | N/A     |
+| **dry_run**                  | Whether to run a "test" submission. If set to "true", no files will actually get transferred to the GDC and no metadata will be manipulated                                                                                                       | Boolean  | No       | False   |
+| **deliver_files**            | Whether to actually deliver the files to the GDC                                                                                                                                                                                                  | Boolean  | No       | True    |
+| **monitoring_script**        | The path to a monitoring script (used for debugging memory and disk shortages)                                                                                                                                                                    | FileRef  | No       | N/A     |
+| **read_group_metadata_json** | The path to the read group metadata. Use this ONLY for DRAGEN samples where read-group level data is not uploaded to the Terra metadata tables. For non-DRAGEN samples, read-group level metadata MUST be available in the Terra metadata tables. | FileRef  | No       | N/A     |
+| **aggregation_version**      | The aggregation version. For DRAGEN samples, set this to 1. For non-DRAGEN samples, set this to the actual aggregation version.                                                                                                                   | Int      | Yes      | N/A     |

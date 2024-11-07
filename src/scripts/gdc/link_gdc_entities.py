@@ -125,7 +125,6 @@ def readMetadata(sample_file):
     with open(sample_file, 'r') as my_file:
         return json.load(my_file) # TODO - Need to be more defensive here
 
-    print("Error when trying to parse the input Metadata file")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')

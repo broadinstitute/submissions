@@ -1,34 +1,42 @@
 version 1.0
 
 import "../../tasks/terra_tasks.wdl" as tasks
+import "../../utilities/Utilities.wdl" as utils
 
 workflow ValidateDbGapSampleStatus {
-  input {
-    String workspace_name
-    String workspace_project
-    String sample_id
-    String sample_alias
-    String phs_id
-    String data_type
-  }
+    input {
+        String workspace_name
+        String workspace_project
+        String sample_id
+        String sample_alias
+        String phs_id
+        String data_type
+    }
 
-  call ValidateDbgapSample {
-    input:
-      sample_alias = sample_alias,
-      sample_id = sample_id,
-      phs_id = phs_id,
-      data_type = data_type
-  }
+    if ((data_type != "WGS") && (data_type != "Exome") && (data_type != "RNA")) {
+        call utils.ErrorWithMessage as ErrorMessageIncorrectInput {
+            input:
+                message = "data_type must be either 'WGS', 'Exome', or 'RNA'."
+        }
+    }
 
-  call tasks.UpsertMetadataToDataModel {
-    input:
-      workspace_name = workspace_name,
-      workspace_project = workspace_project,
-      tsv = ValidateDbgapSample.sample_status_tsv
-  }
+      call ValidateDbgapSample {
+        input:
+          sample_alias = sample_alias,
+          sample_id = sample_id,
+          phs_id = phs_id,
+          data_type = data_type
+      }
 
-  output { }
-}
+      call tasks.UpsertMetadataToDataModel {
+        input:
+          workspace_name = workspace_name,
+          workspace_project = workspace_project,
+          tsv = ValidateDbgapSample.sample_status_tsv
+      }
+
+      output { }
+    }
 
 task ValidateDbgapSample {
     input {

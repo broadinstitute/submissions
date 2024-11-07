@@ -61,5 +61,5 @@ class TerraAPIWrapper:
 
                 if page_number >= filtered_page_count:
                     break
-        
+
         return results

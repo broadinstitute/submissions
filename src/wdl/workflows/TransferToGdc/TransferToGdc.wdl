@@ -1,16 +1,16 @@
 version 1.0
 
 import "../../tasks/terra_tasks.wdl" as tasks
+import "../../utilities/Utilities.wdl" as utils
+
 
 workflow TransferToGdc {
   input {
     # Sample input
-    String sample_id
     String sample_alias
     String aggregation_path
     String agg_project
     String data_type
-    String file_size
     String program
     String project
     String workspace_name
@@ -20,7 +20,18 @@ workflow TransferToGdc {
     Boolean dry_run = false
     Boolean deliver_files = true
     File?   monitoring_script
+    File? read_group_metadata_json
+    Int aggregation_version
   }
+
+  if ((data_type != "WGS") && (data_type != "Exome") && (data_type != "RNA")) {
+    call utils.ErrorWithMessage as ErrorMessageIncorrectInput {
+        input:
+            message = "data_type must be either 'WGS', 'Exome', or 'RNA'."
+    }
+  }
+  String data_type_converted = if data_type == "Exome" then "WXS" else data_type
+  String sample_id = agg_project + "_" + sample_alias + "_v1" + aggregation_version + "_" + data_type_converted + "_GDC"
 
   String token_value = (read_lines(gdc_token))[0]
   String md5 = (read_lines(md5_file))[0]
@@ -38,10 +49,11 @@ workflow TransferToGdc {
       input:
         workspace_name = workspace_name,
         workspace_project = workspace_project,
-        sample_id = sample_alias,
+        sample_alias = sample_alias,
         gdc_token = token_value,
         project = project,
-        program = program
+        program = program,
+        read_group_metadata_json = read_group_metadata_json
     }
 
     call submitMetadataToGDC {
@@ -49,8 +61,7 @@ workflow TransferToGdc {
         sample_alias = sample_alias,
         aggregation_path = aggregation_path,
         agg_project = agg_project,
-        data_type = data_type,
-        file_size = file_size,
+        data_type = data_type_converted,
         md5 = md5,
         program = program,
         project = project,
@@ -84,7 +95,7 @@ workflow TransferToGdc {
           project = project,
           sample_alias = sample_alias,
           agg_project = agg_project,
-          data_type = data_type,
+          data_type = data_type_converted,
           gdc_token = token_value,
           previous_task = TransferBamToGdc.done
       }
@@ -208,7 +219,6 @@ task submitMetadataToGDC {
       String aggregation_path
       String agg_project
       String data_type
-      String file_size
       String md5
       String program
       String project
@@ -226,7 +236,6 @@ task submitMetadataToGDC {
                       --aggregation_path ~{aggregation_path} \
                       --agg_project ~{agg_project} \
                       --data_type ~{data_type} \
-                      --file_size ~{file_size} \
                       --md5 ~{md5} \
                       --read_groups ~{json_file} \
                       --token ~{gdc_token}

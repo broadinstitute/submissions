@@ -1,6 +1,7 @@
 version 1.0
 
 import "../../tasks/terra_tasks.wdl" as tasks
+import "../../utilities/Utilities.wdl" as utils
 
 workflow ValidateGDCFileStatus {
   input {
@@ -15,6 +16,13 @@ workflow ValidateGDCFileStatus {
     String data_type
     Boolean delete = false
     File aggregation_path
+  }
+
+  if ((data_type != "WGS") && (data_type != "Exome") && (data_type != "RNA")) {
+    call utils.ErrorWithMessage as ErrorMessageIncorrectInput {
+        input:
+            message = "data_type must be either 'WGS', 'Exome', or 'RNA'."
+    }
   }
 
   String token_value = (read_lines(gdc_token))[0]

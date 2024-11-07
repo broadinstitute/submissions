@@ -1,6 +1,8 @@
 import argparse
 import json
 import time
+from google.cloud import storage
+from urllib.parse import urlparse
 from src.services.gdc_api import GdcApiWrapper
 
 DATA_TYPE_TO_EXPERIMENT_STRATEGY = {
@@ -12,7 +14,7 @@ DATA_TYPE_TO_EXPERIMENT_STRATEGY = {
 }
 
 class MetadataSubmission:
-    def __init__(self, program=None, project=None, token=None, sample_alias=None, aggregation_path=None, agg_project=None, data_type=None, file_size=None, md5=None, read_groups=None):
+    def __init__(self, program=None, project=None, token=None, sample_alias=None, aggregation_path=None, agg_project=None, data_type=None, md5=None, read_groups=None):
         self.program = program
         self.project = project
         self.token = token
@@ -20,7 +22,6 @@ class MetadataSubmission:
         self.aggregation_path = aggregation_path
         self.agg_project = agg_project
         self.data_type = data_type
-        self.file_size = file_size
         self.md5 = md5
         self.read_groups = read_groups
         self.submitter_id = f"{sample_alias}.{data_type}.{agg_project}"
@@ -52,13 +53,25 @@ class MetadataSubmission:
         else:
             raise RuntimeError("Data was not returned from GDC properly")
 
+    def get_file_size(self):
+        client = storage.Client()
+        parsed_url = urlparse(self.aggregation_path)
+        bucket_name = parsed_url.netloc
+        file_path = parsed_url.path.lstrip("/")
+
+        bucket = client.get_bucket(bucket_name)
+        blob = bucket.blob(file_path)
+        blob.reload()
+        file_size = blob.size
+        return int(file_size)
+
     def create_metadata(self):
         gdc_metadata = {
             "file_name": f"{self.submitter_id}.bam",
             "submitter_id": self.submitter_id,
             "data_category": "Sequencing Reads",
             "type": "submitted_aligned_reads",
-            "file_size": int(self.file_size),
+            "file_size": self.get_file_size(),
             "data_type": "Aligned Reads",
             "experimental_strategy": DATA_TYPE_TO_EXPERIMENT_STRATEGY.get(self.data_type, ""),
             "data_format": "BAM",
@@ -110,7 +123,6 @@ if __name__ == '__main__':
     parser.add_argument('-ag', '--aggregation_path', required=True, help='Path to bam file')
     parser.add_argument('-ap', '--agg_project', required=True, help='Broad specific project for the sample')
     parser.add_argument('-d', '--data_type', required=True, help='Data type - i.e. WGS')
-    parser.add_argument('-f', '--file_size', required=True, help='File size in bytes for the file')
     parser.add_argument('-md', '--md5', required=True, help='md5 for the file')
     parser.add_argument('-rg', '--read_groups', required=True, help='JSON file with all linked read groups for the sample')
     args = parser.parse_args()
