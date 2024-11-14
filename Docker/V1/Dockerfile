@@ -9,10 +9,8 @@ RUN wget -q 'https://github.com/samtools/samtools/releases/download/1.10/samtool
   make install && \
   cd ../ && \
   rm -rf samtools-1.10
-RUN wget -q https://gdc.cancer.gov/files/public/file/gdc-client_v1.6.0_Ubuntu_x64-py3.7.zip -O gdc-client.zip && \
+RUN wget -q https://gdc.cancer.gov/system/files/public/file/gdc-client_2.3_Ubuntu_x64-py3.8-ubuntu-20.04.zip -O gdc-client.zip && \
     unzip gdc-client.zip && \
-    unzip gdc-client_v1.6.0_Ubuntu_x64.zip -d bin && \
-    rm gdc-client_v1.6.0_Ubuntu_x64.zip && \
     rm gdc-client.zip
 RUN wget https://releases.hashicorp.com/vault/1.4.0/vault_1.4.0_linux_amd64.zip -O vault.zip && \
   unzip vault.zip -d /usr/bin && \
