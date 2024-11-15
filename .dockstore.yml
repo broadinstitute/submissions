@@ -5,7 +5,7 @@ workflows:
     primaryDescriptorPath: /src/wdl/workflows/TransferToGdc/TransferToGdc.wdl
     readMePath: /src/wdl/workflows/TransferToGdc/README.md
 
-  - name: delete
+  - name: deleteFromGDC
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/DeleteFromGdc/DeleteFromGdc.wdl
 
@@ -18,10 +18,6 @@ workflows:
     subclass: WDL
     primaryDescriptorPath: /src/wdl/workflows/ValidateFileStatus/ValidateFileStatus.wdl
     readMePath: /src/wdl/workflows/ValidateFileStatus/README.md
-
-  - name: verify
-    subclass: WDL
-    primaryDescriptorPath: /src/wdl/workflows/VerifyRegistration/VerifyRegistration.wdl
 
   - name: validateDbGapStatus
     subclass: WDL
