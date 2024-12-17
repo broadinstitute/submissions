@@ -18,7 +18,7 @@ def run_xml_creation(
         aggregation_version: int,
         phs_id: str,
         data_type: str,
-) -> None:
+):
 
     terra_service = TerraAPIWrapper(billing_project, workspace_name)
     sample_json = terra_service.call_terra_api(sample_id, "sample")
