@@ -22,6 +22,7 @@ task CreateDbgapXmlFiles {
             ~{monitoring_script} > monitoring.log &
         else
             echo "No monitoring script given as input" > monitoring.log &
+            echo "EVALUATED CORRECTLY TO NO MONITORTING SCRIPT"
         fi
 
         mkdir /cromwell_root/xml
@@ -36,6 +37,7 @@ task CreateDbgapXmlFiles {
                                                       --data_type ~{data_type} \
                                                       --read_group_metadata_json ~{read_group_metadata_json}
         else:
+            echo "EVALUATED CORRECTLY TO NO READS JSON FILE"
             python3 /src/scripts/dbgap/create_dbgap_xml_files.py --sample_id ~{sample_id} \
                                                       --md5 ~{md5} \
                                                       --workspace_name ~{workspace_name} \
