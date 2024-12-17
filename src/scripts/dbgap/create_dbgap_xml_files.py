@@ -10,14 +10,14 @@ from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission
 
 
 def run_xml_creation(
-        sample_id: str,
-        billing_project: str,
-        workspace_name: str,
-        md5: str,
-        reads_metadata: list[dict],
-        aggregation_version: int,
-        phs_id: str,
-        data_type: str,
+        sample_id,
+        billing_project,
+        workspace_name,
+        md5,
+        reads_metadata,
+        aggregation_version,
+        phs_id,
+        data_type,
 ):
 
     terra_service = TerraAPIWrapper(billing_project, workspace_name)
