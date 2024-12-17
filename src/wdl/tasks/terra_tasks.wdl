@@ -36,7 +36,7 @@ task CreateDbgapXmlFiles {
                                                       --phs_id ~{phs_id} \
                                                       --data_type ~{data_type} \
                                                       --read_group_metadata_json ~{read_group_metadata_json}
-        else:
+        else
             echo "EVALUATED CORRECTLY TO NO READS JSON FILE"
             python3 /src/scripts/dbgap/create_dbgap_xml_files.py --sample_id ~{sample_id} \
                                                       --md5 ~{md5} \
