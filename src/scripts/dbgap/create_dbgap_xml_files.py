@@ -33,7 +33,6 @@ def run_xml_creation(
         # TODO fix this once the metadata is updated
         sample_json[0]["attributes"]["aggregation_path"] = sample_json[0]["attributes"]["aggregation_path"]
 
-    print(f'sample json: {sample_json}')
     sample = Sample(sample_json, md5)
     read_group = ReadGroup(reads_metadata)
 
