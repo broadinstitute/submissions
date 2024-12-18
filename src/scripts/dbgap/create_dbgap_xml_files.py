@@ -10,15 +10,15 @@ from dbgap_classes import Sample, ReadGroup, Experiment, Run, Submission
 
 
 def run_xml_creation(
-        sample_id: str,
-        billing_project: str,
-        workspace_name: str,
-        md5: str,
-        reads_metadata: list[dict],
-        aggregation_version: int,
-        phs_id: str,
-        data_type: str,
-) -> None:
+        sample_id,
+        billing_project,
+        workspace_name,
+        md5,
+        reads_metadata,
+        aggregation_version,
+        phs_id,
+        data_type,
+):
 
     terra_service = TerraAPIWrapper(billing_project, workspace_name)
     sample_json = terra_service.call_terra_api(sample_id, "sample")
@@ -72,7 +72,7 @@ if __name__ == '__main__':
         reads = extract_reads_data_from_json_dbgap(read_group_metadata_json_path=args.read_group_metadata_json)
     else:
         reads = extract_reads_data_from_workspace_metadata(
-            sample_alias=args.sample_id, billing_project=args.project, workspace_name=args.workspace_name, is_gdc=False,
+            sample_alias=args.sample_id, billing_project=args.billing_project, workspace_name=args.workspace_name, is_gdc=False,
         )
 
     run_xml_creation(

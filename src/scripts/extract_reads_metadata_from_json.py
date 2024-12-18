@@ -18,7 +18,7 @@ GDC_NEXTERA_CAPTURE_KIT = "Nextera Rapid Capture Exome v1.2"
 ILLUMINA_PLATFORM = "Illumina"
 
 
-def get_json_contents(read_group_metadata_json: str) -> dict:
+def get_json_contents(read_group_metadata_json):
     client = storage.Client()
     parsed_url = urlparse(read_group_metadata_json)
     bucket_name = parsed_url.netloc
@@ -31,7 +31,7 @@ def get_json_contents(read_group_metadata_json: str) -> dict:
     return json_data
 
 
-def determine_target_capture_kit(data_type: str, submissions_metadata: str) -> str:
+def determine_target_capture_kit(data_type, submissions_metadata):
     submissions_info = json.loads(submissions_metadata)
     kit_name = ""
     for s in submissions_info:
@@ -45,9 +45,7 @@ def determine_target_capture_kit(data_type: str, submissions_metadata: str) -> s
     else:
         return "Not Applicable"
 
-def extract_reads_data_from_workspace_metadata(
-        sample_alias: str, billing_project: str, workspace_name: str, is_gdc: bool,
-) -> list[dict]:
+def extract_reads_data_from_workspace_metadata(sample_alias, billing_project, workspace_name, is_gdc):
     """Grab the reads data for the given sample_id"""
     reads_data = TerraAPIWrapper(billing_project, workspace_name).call_terra_api(sample_alias, "read-group")
     formatted_reads = [read["attributes"] for read in reads_data]
@@ -62,7 +60,7 @@ def extract_reads_data_from_workspace_metadata(
 
     return reads
 
-def get_read_length_from_read_structure(read_structure: str) -> str:
+def get_read_length_from_read_structure(read_structure):
     # Grab the first "section" before the T in the read structure. This can either be an integer, or a mix of
     # letters and integers if it's a UMI-aware read structure
     first_read = read_structure.split("T")[0]
@@ -80,7 +78,7 @@ def get_read_length_from_read_structure(read_structure: str) -> str:
         return str(total)
 
 
-def extract_molecular_barcode_name_and_sequence(molecular_indexing_scheme: str):
+def extract_molecular_barcode_name_and_sequence(molecular_indexing_scheme):
     molecular_indexing = json.loads(molecular_indexing_scheme)
     molecular_barcode_name = molecular_indexing["name"]
     molecular_barcode_sequence = f'{molecular_indexing["mapHintToSequence"]["P5"]}-{molecular_indexing["mapHintToSequence"]["P7"]}'
@@ -95,7 +93,7 @@ def determine_library_selection(product_type):
     else:
         return "Random"
 
-def extract_reads_data_from_json_gdc(sample_alias: str, read_group_metadata_json_path: str) -> list[dict]:
+def extract_reads_data_from_json_gdc(sample_alias, read_group_metadata_json_path):
     """Grab the reads data for the given sample_id"""
     sample_metadata = get_json_contents(read_group_metadata_json_path)
 
