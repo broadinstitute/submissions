@@ -1,3 +1,5 @@
+from random import sample
+
 import requests
 import xmltodict
 

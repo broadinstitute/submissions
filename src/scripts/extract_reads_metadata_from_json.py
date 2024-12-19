@@ -55,8 +55,8 @@ def extract_reads_data_from_workspace_metadata(sample_alias, billing_project, wo
     else:
         reads = formatted_reads
 
-    with open(READS_JSON_PATH, "w") as f:
-        f.write(json.dumps(reads))
+#    with open(READS_JSON_PATH, "w") as f:
+#        f.write(json.dumps(reads))
 
     return reads
 
