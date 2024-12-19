@@ -81,13 +81,6 @@ task ascpFile {
     command {
       set -e
       mkdir upload
-      echo "ls'ing current dir"
-        ls
-        echo "ls'ing upload dir"
-        ls upload/
-        echo "ls'sing key file"
-        ls ~{key}
-        cat ~{key}
       cp ~{key} upload/private.openssh
       cp ~{uploadFile} upload/~{filename}
       pwd
