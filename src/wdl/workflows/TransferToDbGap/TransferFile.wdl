@@ -76,13 +76,13 @@ task ascpFile {
         String ascpUser
         String filename
     }
-    Int disk_size = ceil(size(uploadFile, "GiB") * 1.5)
+    Int disk_size = ceil(size(uploadFile, "GiB") * 3)
 
     command {
       set -e
       mkdir upload
-      mv ~{key} upload/private.openssh
-      mv ~{uploadFile} upload/~{filename}
+      cp ~{key} upload/private.openssh
+      cp ~{uploadFile} upload/~{filename}
       pwd
       ascp -k0 -Q -l 500M -i upload/private.openssh -L upload upload/~{filename} ${ascpUser}@${uploadSite}:${uploadPath};
       ERRORS=$(grep "Source file transfers failed" upload/aspera-scp-transfer.log | rev | cut -f 1 -d ' ');

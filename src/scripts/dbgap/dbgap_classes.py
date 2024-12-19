@@ -58,7 +58,7 @@ class Sample:
             self.md5 = md5
             self.phs = str(sample_json["phs_id"])
             self.data_type = sample_json["data_type"]
-            self.alias = sample_json["collaborator_sample_id"]
+            self.alias = sample_json["alias"]
             self.aggregation_path = sample_json["aggregation_path"]
         except KeyError as e:
             raise ValueError(f"Missing required field: {e}")
@@ -88,7 +88,7 @@ class Sample:
 
 class ReadGroup:
     def __init__(self, json_objects):
-        first_read_group = json_objects[0]["attributes"]
+        first_read_group = json_objects[0]
         self._set_constant_values(first_read_group)
         self._set_aggregate_values(json_objects)
         self._set_submission_metadata(first_read_group)
@@ -101,10 +101,8 @@ class ReadGroup:
         if "submission_metadata" in first_read_group and "items" not in first_read_group["submission_metadata"]:
             submission_metadata_str = first_read_group["submission_metadata"]
             submission_metadata_str_json = submission_metadata_str.replace("'", '"')
-
             # Replace None with null
             submission_metadata_str_json = submission_metadata_str_json.replace("None", "null")
-
             self.submission_metadata = self.sub_data_to_dict(json.loads(submission_metadata_str_json))
         else:
             self.submission_metadata = []
@@ -113,7 +111,7 @@ class ReadGroup:
         try:
             self.library_name = first_read_group["library_name"]
             self.library_type = first_read_group["library_type"]
-            self.work_request_id = first_read_group["work_request_id"]
+            self.work_request_id = first_read_group.get("work_request_id")
             self.analysis_type = first_read_group["analysis_type"]
             self.paired_run = first_read_group["paired_run"]
             self.read_structure = first_read_group["read_structure"]
@@ -149,7 +147,7 @@ class ReadGroup:
 
     def _set_aggregate_values(self, json_objects):
         # Extract relevant attributes using list comprehension
-        attributes_list = [x["attributes"] for x in json_objects]
+        attributes_list = [x for x in json_objects]
 
         # Define helper functions for constructing aggregate values
         def construct_read_group_id(row):
