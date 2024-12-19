@@ -76,7 +76,7 @@ task ascpFile {
         String ascpUser
         String filename
     }
-    Int disk_size = ceil(size(uploadFile, "GiB") * 1.5)
+    Int disk_size = ceil(size(uploadFile, "GiB") * 3)
 
     command {
       set -e
