@@ -270,7 +270,7 @@ task addReadsField {
                                                       --project ~{project} \
                                                       --program ~{program} \
                                                       --read_group_metadata_json ~{read_group_metadata_json}
-        else:
+        else
             python3 /src/scripts/gdc/extract_reads_data.py --workspace_name ~{workspace_name} \
                                                       --billing_project ~{workspace_project} \
                                                       --sample_alias ~{sample_alias} \
