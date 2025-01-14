@@ -3,6 +3,7 @@ import json
 import time
 from google.cloud import storage
 from urllib.parse import urlparse
+
 from src.services.gdc_api import GdcApiWrapper
 
 DATA_TYPE_TO_EXPERIMENT_STRATEGY = {
@@ -36,6 +37,7 @@ class MetadataSubmission:
 
     def write_uuid_to_file(self, gdc_wrapper):
         gdc_response = gdc_wrapper.get_entity("sar", self.submitter_id).json()
+
 
         if 'data' in gdc_response and gdc_response['data'].get('submitted_aligned_reads'):
             aligned_reads = gdc_response['data']['submitted_aligned_reads']
@@ -96,10 +98,9 @@ class MetadataSubmission:
         read_groups = self.load_read_groups_from_file()
 
         for read_group in read_groups:
-            flow_cell_barcode = read_group.get('flow_cell_barcode', '')
-            lane_number = read_group.get('lane_number', '')
+            flow_cell_barcode = read_group["attributes"]["flow_cell_barcode"]
+            lane_number = read_group["attributes"]["lane_number"]
             submitter_id = f"{flow_cell_barcode}.{lane_number}.{submitter_id_constant}"
-
             submitter_ids.append({"submitter_id": submitter_id})
 
         return submitter_ids
