@@ -55,7 +55,7 @@ class GdcApiWrapper:
             )
 
         except Exception as e:
-            print("Error: {e}")
+            print(f"Error: {e}")
 
     def construct_query(self, query_type, submitter_id):
         base_query = """
