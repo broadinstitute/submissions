@@ -24,7 +24,10 @@ RUN /bin/bash gcloud_install.sh --disable-prompts && \
 RUN wget -q https://gdc.cancer.gov/system/files/public/file/gdc-client_2.3_Ubuntu_x64-py3.8-ubuntu-20.04.zip -O gdc-client.zip
 # Unzip the tar file
 RUN unzip gdc-client.zip
-RUN unzip gdc-client_2.3_Ubuntu_x64.zip
-RUN chmod +x gdc-client
+RUN unzip gdc-client_2.3_Ubuntu_x64.zip -d bin
+RUN rm gdc-client.zip && \
+    rm gdc-client_2.3_Ubuntu_x64.zip
+
+
 
 CMD ["/bin/bash"]

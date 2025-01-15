@@ -169,6 +169,8 @@ task TransferBamToGdc {
 
   command {
     set -e
+    echo "getting gdc client version"
+    gdc-client --version
 
     pwd
     # if the WDL/task contains a monitoring script as input
@@ -192,8 +194,8 @@ task TransferBamToGdc {
       echo "BAM_FILE=~{aggregation_path}" >> gdc_transfer.log
       echo "MANIFEST=~{manifest}" >> gdc_transfer.log
     else
-      ./gdc-client --version
-      ./gdc-client upload -t ~{gdc_token} -m ~{manifest} --debug --log-file gdc_transfer.log
+      gdc-client --version
+      gdc-client upload -t ~{gdc_token} -m ~{manifest} --debug --log-file gdc_transfer.log
     fi
 
     pwd
