@@ -169,6 +169,8 @@ task TransferBamToGdc {
 
   command {
     set -e
+    echo "getting gdc client version"
+    gdc-client --version
 
     pwd
     # if the WDL/task contains a monitoring script as input
