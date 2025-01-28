@@ -6,7 +6,6 @@ from src.services.gdc_api import GdcApiWrapper
 
 def check_registration(alias, program, project, token):
     response = GdcApiWrapper(program=program, project=project, token=token).get_entity("verify", alias)
-    print(response.text)
     response = json.loads(response.text)
 
     if response['data'] and response['data']['aliquot'] and len(response['data']['aliquot']) > 0:
