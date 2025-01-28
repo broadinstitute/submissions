@@ -31,7 +31,7 @@ class GdcApiWrapper:
 
         url = f"{self.endpoint}/{self.program}/{self.project}"
 
-        print("Submit METADATA to GDC dry_run endpoint for PROGRAM PROJECT.")
+        print(f"Submitting metadata to GDC dry_run endpoint for program {self.program} in project {self.project}")
         try:
             dry_run_response = requests.put(
                 f'{url}/_dry_run',
@@ -53,6 +53,8 @@ class GdcApiWrapper:
                 f'{url}/transactions/{transaction_id}/{operation}',
                 headers=self.get_headers()
             )
+            print(f"Response for the '{operation}' operation: {commit_response.status_code}")
+            return operation
 
         except Exception as e:
             print(f"Error: {e}")

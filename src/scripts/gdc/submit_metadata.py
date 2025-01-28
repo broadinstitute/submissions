@@ -1,6 +1,7 @@
 import argparse
 import json
 import time
+import random
 from google.cloud import storage
 from urllib.parse import urlparse
 
@@ -30,25 +31,41 @@ class MetadataSubmission:
     def submit(self):
         metadata = self.create_metadata()
         gdc_wrapper = GdcApiWrapper(program=self.program, project=self.project, token=self.token)
-        gdc_wrapper.submit_metadata(metadata)
-        time.sleep(100) # Wait a second since gdc can lag a little
+
+        sleep_time = random.randint(1, 100)
+        print(f"Sleeping for {sleep_time} seconds before starting...")
+        time.sleep(sleep_time)
+        max_retries = 10
+        retry_delay = 60  # in seconds
+
+        for attempt in range(1, max_retries + 1):
+            print(f"Attempt {attempt} of {max_retries}")
+            operation = gdc_wrapper.submit_metadata(metadata)
+            if operation == "commit":
+                break
+            else:
+                if attempt < max_retries:
+                    time.sleep(retry_delay)
+                else:
+                    print("Max retries reached. Exiting...")
+                    raise Exception
+
+        time.sleep(100) # Wait a bit since gdc can lag a little
         self.write_bam_data_to_file()
         self.write_uuid_to_file(gdc_wrapper)
 
     def write_uuid_to_file(self, gdc_wrapper):
         gdc_response = gdc_wrapper.get_entity("sar", self.submitter_id).json()
 
-
         if 'data' in gdc_response and gdc_response['data'].get('submitted_aligned_reads'):
             aligned_reads = gdc_response['data']['submitted_aligned_reads']
-            
             if aligned_reads:
                 uuid = aligned_reads[0]['id']
                 file_path = "/cromwell_root/UUID.txt"
-                
+
                 with open(file_path, 'w') as file:
                     file.write(uuid)
-                
+
                 print("Done writing UUID to file")
             else:
                 print("No ids inside the submitted_aligned_reads array")
