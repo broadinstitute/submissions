@@ -41,7 +41,9 @@ class MetadataSubmission:
         for attempt in range(1, max_retries + 1):
             print(f"Attempt {attempt} of {max_retries}")
             operation = gdc_wrapper.submit_metadata(metadata)
-            if operation != "commit":
+            if operation == "commit":
+                break
+            else:
                 if attempt < max_retries:
                     time.sleep(retry_delay)
                 else:

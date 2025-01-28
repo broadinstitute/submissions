@@ -31,7 +31,7 @@ workflow TransferToGdc {
     }
   }
   String data_type_converted = if data_type == "Exome" then "WXS" else data_type
-  String sample_id = agg_project + "_" + sample_alias + "_V" + aggregation_version + "_" + data_type_converted + "_GDC"
+  String sample_id = agg_project + "_" + sample_alias + "_v" + aggregation_version + "_" + data_type_converted + "_GDC"
 
   String token_value = (read_lines(gdc_token))[0]
   String md5 = (read_lines(md5_file))[0]
