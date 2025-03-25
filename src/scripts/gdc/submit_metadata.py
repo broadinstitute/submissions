@@ -78,8 +78,7 @@ class MetadataSubmission:
         bucket_name = parsed_url.netloc
         file_path = parsed_url.path.lstrip("/")
 
-        bucket = client.get_bucket(bucket_name)
-        blob = bucket.blob(file_path)
+        blob = client.bucket(bucket_name).get_blob(file_path)
         blob.reload()
         file_size = blob.size
         return int(file_size)
