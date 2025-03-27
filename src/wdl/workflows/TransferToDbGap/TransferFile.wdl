@@ -19,6 +19,7 @@ workflow TransferToDbgap {
         File? read_group_metadata_json
         Int aggregation_version
         String phs_id
+        String sample_id
     }
 
     String md5 = (read_lines(md5_file))[0]
@@ -30,7 +31,6 @@ workflow TransferToDbgap {
         }
     }
 
-    String sample_id = aggregation_project + "_" + collaborator_sample_id + "_v" + aggregation_version + "_" + data_type + "_DBGAP"
     String ascpUser = "asp-bi"
 
     call tasks.CreateDbgapXmlFiles as xml {
