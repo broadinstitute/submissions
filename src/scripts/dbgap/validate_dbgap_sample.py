@@ -3,13 +3,15 @@ from src.services.dbgap_telemetry_report import DbgapTelemetryWrapper
 
 SAMPLE_STATUS_FILE_PATH = '/cromwell_root/sample_status.tsv'
 
+
 def save_sample_status(sample_id, state_info):
     """Saves the file state information to a file."""
     with open(SAMPLE_STATUS_FILE_PATH, 'w') as file:
         # Write header
         file.write("entity:sample_id\tsample_status\n")
         # Write data
-        file.write(f"{sample_id}\t{sample_status}")
+        file.write(f"{sample_id}\t{state_info}")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Check the current status of sample in Dbgap by parsing the Telemetry report.')
@@ -20,5 +22,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     sample_status = DbgapTelemetryWrapper(phs_id=args.phs_id).get_sample_status(args.sample_alias, args.data_type)
-    save_sample_status(args.sample_id, sample_status)
+    save_sample_status(sample_id=args.sample_id, state_info=sample_status)
     print(f"Script finished with sample status of - {sample_status}")
