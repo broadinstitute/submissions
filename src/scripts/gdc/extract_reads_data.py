@@ -3,6 +3,7 @@ import argparse
 from src.scripts.extract_reads_metadata_from_json import (
     extract_reads_data_from_json_gdc,
     extract_reads_data_from_workspace_metadata,
+    DATA_TYPE_CONVERSION,
 )
 
 from src.services.gdc_api import GdcApiWrapper
@@ -37,6 +38,21 @@ def get_args():
 
 def format_read_group(read):
     submitter_id_constant = f"{read['aggregation_project']}.{read['sample_identifier']}"
+
+    data_type = ""
+    if read["data_type"] in DATA_TYPE_CONVERSION.values():
+        # If the provided data type is already an allowed GDC value, use it the way it was provided
+        data_type = read["data_type"]
+    else:
+        try:
+            # Otherwise, attempt to map it to an allowed data type
+            data_type = DATA_TYPE_CONVERSION[read["data_type"]]
+        except KeyError:
+            print(
+                f"Provided data type must either be one of the allowed GDC values: ({','.join(DATA_TYPE_CONVERSION.values())}) "
+                f"OR it must be one of the data types we can map: ({','.join(DATA_TYPE_CONVERSION.keys())}). Instead received: '{read['data_type']}'"
+            )
+
     formatted_read = {
         "type": "read_group",
         "aliquots": {
@@ -47,7 +63,7 @@ def format_read_group(read):
         "sequencing_center": read["sequencing_center"],
         "platform": read["platform"],
         "library_selection": "Hybrid Selection" if read["library_selection"] == "HybridSelection" else read["library_selection"],
-        "library_strategy": read["data_type"],
+        "library_strategy": data_type,
         "library_name": read["library_name"],
         "lane_number": read["lane_number"],
         "is_paired_end": read["is_paired_end"],

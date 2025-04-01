@@ -48,6 +48,7 @@ class GdcApiWrapper:
             else:
                 print(f"Could not submit metadata for transaction {transaction_id}")
                 operation = "close"
+                raise Exception("Could not ")
 
             commit_response = requests.put(
                 f'{url}/transactions/{transaction_id}/{operation}',
