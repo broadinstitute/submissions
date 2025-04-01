@@ -13,10 +13,10 @@ workflow ValidateDbGapSampleStatus {
         String data_type
     }
 
-    if ((data_type != "WGS") && (data_type != "Exome") && (data_type != "RNA")) {
+    if ((data_type != "WGS") && (data_type != "Exome") && (data_type != "RNA") && (data_type != "Targeted-Capture")) {
         call utils.ErrorWithMessage as ErrorMessageIncorrectInput {
             input:
-                message = "data_type must be either 'WGS', 'Exome', or 'RNA'."
+                message = "data_type must be either 'WGS', 'Exome', 'RNA' or 'Targeted-Capture'."
         }
     }
 
