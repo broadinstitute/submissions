@@ -3,7 +3,7 @@ import argparse
 from src.scripts.extract_reads_metadata_from_json import (
     extract_reads_data_from_json_gdc,
     extract_reads_data_from_workspace_metadata,
-    DATA_TYPE_CONVERSION,
+    DATA_TYPE_CONVERSION
 )
 
 from src.services.gdc_api import GdcApiWrapper

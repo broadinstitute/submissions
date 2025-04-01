@@ -34,27 +34,33 @@ class GdcApiWrapper:
         print(f"Submitting metadata to GDC dry_run endpoint for program {self.program} in project {self.project}")
         try:
             dry_run_response = requests.put(
-                f'{url}/_dry_run',
+                f"{url}/_dry_run",
                 data=json.dumps(metadata),
                 headers=self.get_headers()
             ).json()
 
             print(f"Response for the dry commit: {dry_run_response}")
-            transaction_id = dry_run_response.get('transaction_id')
+            transaction_id = dry_run_response.get("transaction_id")
 
-            if dry_run_response.get('success'):
+            if dry_run_response.get("success"):
                 print(f"Successfully submitted metadata for transaction {transaction_id}")
                 operation = "commit"
+                commit_response = requests.put(
+                    url=f"{url}/transactions/{transaction_id}/{operation}",
+                    headers=self.get_headers()
+                )
+                print(f"Response for the '{operation}' operation: {commit_response.status_code}")
+
             else:
                 print(f"Could not submit metadata for transaction {transaction_id}")
                 operation = "close"
-                raise Exception("Could not ")
+                commit_response = requests.put(
+                    f"{url}/transactions/{transaction_id}/{operation}",
+                    headers=self.get_headers()
+                )
+                print(f"Response for the '{operation}' operation: {commit_response.status_code}")
+                raise Exception(f"Could not submit metadata for transaction {transaction_id}")
 
-            commit_response = requests.put(
-                f'{url}/transactions/{transaction_id}/{operation}',
-                headers=self.get_headers()
-            )
-            print(f"Response for the '{operation}' operation: {commit_response.status_code}")
             return operation
 
         except Exception as e:
