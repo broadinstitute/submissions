@@ -10,6 +10,7 @@ FILE_STATE_PATH = "/cromwell_root/file_state.txt"
 def get_file_status(program, project, sample_alias, aggregation_project, data_type, token):
     """Calls the GDC API to check the current status of the file transfer."""
     submitter_id = f"{sample_alias}.{data_type}.{aggregation_project}"
+    print(f"Querying GDC for submitted id: '{submitter_id}'")
     response = GdcApiWrapper(program=program, project=project, token=token).get_entity("submitted_aligned_reads", submitter_id)
     response_json = response.json()
 
