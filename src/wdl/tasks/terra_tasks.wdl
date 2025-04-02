@@ -304,12 +304,12 @@ task ValidateFileStatus {
 
     command {
         set -eo pipefail
-        python3 /src/scripts/gdc/validate_gdc_file_status.py -program ~{program} \
-                                                -project ~{project} \
-                                                -sample_alias ~{sample_alias} \
-                                                -aggregation_project ~{agg_project} \
-                                                -data_type ~{data_type} \
-                                                -token ~{gdc_token}
+        python3 /src/scripts/gdc/validate_gdc_file_status.py --program ~{program} \
+                                                --project ~{project} \
+                                                --sample_alias ~{sample_alias} \
+                                                --aggregation_project ~{agg_project} \
+                                                --data_type ~{data_type} \
+                                                --token ~{gdc_token}
     }
 
     runtime {
