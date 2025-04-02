@@ -1,8 +1,11 @@
 import argparse
-import json
+
 from src.services.gdc_api import GdcApiWrapper
+from src.scripts.extract_reads_metadata_from_json import DATA_TYPE_CONVERSION
+
 
 FILE_STATE_PATH = '/cromwell_root/file_state.txt'
+
 
 def get_file_status(program, project, sample_alias, aggregation_project, data_type, token):
     """Calls the GDC API to check the current status of the file transfer."""
@@ -31,6 +34,20 @@ if __name__ == '__main__':
     parser.add_argument('-token', required=True, help='API token to communicate with GDC')
     args = parser.parse_args()
 
-    state, file_state = get_file_status(args.program, args.project, args.sample_alias, args.aggregation_project, args.data_type, args.token)
+    data_type = ""
+    if args.data_type in DATA_TYPE_CONVERSION.values():
+        # If the provided data type is already an allowed GDC value, use it the way it was provided
+        data_type = args.data_type
+    else:
+        try:
+            # Otherwise, attempt to map it to an allowed data type
+            data_type = DATA_TYPE_CONVERSION[args.data_type]
+        except KeyError:
+            print(
+                f"Provided data type must either be one of the allowed GDC values: ({','.join(DATA_TYPE_CONVERSION.values())}) "
+                f"OR it must be one of the data types we can map: ({','.join(DATA_TYPE_CONVERSION.keys())}). Instead received: '{args.data_type}'"
+            )
+
+    state, file_state = get_file_status(args.program, args.project, args.sample_alias, args.aggregation_project, data_type, args.token)
     print(f"Successfully received file status from GDC. \nState - {state}. File_state - {file_state}")
     save_file_state(f"{file_state}\n{state}")
