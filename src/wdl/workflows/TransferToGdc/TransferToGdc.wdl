@@ -245,7 +245,7 @@ task submitMetadataToGDC {
 
     runtime {
       preemptible: 3
-      docker: "schaluvadi/horsefish:submissionV2GDC"
+      docker: "schaluvadi/horsefish:submissionV2"
     }
 
     output {

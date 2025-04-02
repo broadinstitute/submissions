@@ -26,7 +26,7 @@ If you've updated any of the Python code, the docker image(s) will have to be re
 ```commandline
 docker build -t schaluvadi/horsefish:submissionAspera -f Docker/Aspera/Dockerfile . --platform="linux/amd64"
 
-docker build -t schaluvadi/horsefish:submissionV2GDC -f Docker/V2/Dockerfile . --platform="linux/amd64"
+docker build -t schaluvadi/horsefish:submissionV2 -f Docker/V2/Dockerfile . --platform="linux/amd64"
 
 docker build -t schaluvadi/horsefish:submissionV1 -f Docker/V1/Dockerfile . --platform="linux/amd64"
 ```
@@ -38,7 +38,7 @@ Once you're recreated your image and verified that your changes have propagated 
 You can do so by running any of the following commands (depending on which image you have built and need to push): 
 ```commandLine
 docker push schaluvadi/horsefish:submissionAspera
-docker push schaluvadi/horsefish:submissionV2GDC
+docker push schaluvadi/horsefish:submissionV2
 docker push schaluvadi/horsefish:submissionV1
 ```
 

@@ -53,7 +53,7 @@ task CreateDbgapXmlFiles {
 
     runtime {
       memory: "32 GB"
-      docker: "schaluvadi/horsefish:submissionV2GDC"
+      docker: "schaluvadi/horsefish:submissionV2"
       cpu: 4
       disks: "local-disk " + disk_size + " HDD"
     }
@@ -114,7 +114,7 @@ task verifyGDCRegistration {
     }
 
     runtime {
-        docker: "schaluvadi/horsefish:submissionV2GDC"
+        docker: "schaluvadi/horsefish:submissionV2"
         preemptible: 1
     }
 
@@ -203,7 +203,7 @@ task UpsertMetadataToDataModel {
 
     runtime {
         preemptible: 3
-        docker: "schaluvadi/horsefish:submissionV2GDC"
+        docker: "schaluvadi/horsefish:submissionV2"
     }
 
     output {
@@ -234,7 +234,7 @@ task GetMetadata {
 
   runtime {
     memory: "7.5 GB"
-    docker: "schaluvadi/horsefish:submissionV2GDC"
+    docker: "schaluvadi/horsefish:submissionV2"
     cpu: 2
     preemptible: 3
     disks: "local-disk " + disk_size + " HDD"
@@ -283,7 +283,7 @@ task addReadsField {
 
     runtime {
         preemptible: 3
-        docker: "schaluvadi/horsefish:submissionV2GDC"
+        docker: "schaluvadi/horsefish:submissionV2"
     }
 
     output {
