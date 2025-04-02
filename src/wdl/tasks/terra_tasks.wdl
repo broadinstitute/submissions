@@ -313,7 +313,7 @@ task ValidateFileStatus {
     }
 
     runtime {
-        docker: "schaluvadi/horsefish:submissionV2GDC"
+        docker: "schaluvadi/horsefish:submissionV2"
         preemptible: 1
     }
 
