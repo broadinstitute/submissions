@@ -38,6 +38,7 @@ def get_args():
 
 def format_read_group(read):
     submitter_id_constant = f"{read['aggregation_project']}.{read['sample_identifier']}"
+
     data_type = ""
     if read["data_type"] in DATA_TYPE_CONVERSION.values():
         # If the provided data type is already an allowed GDC value, use it the way it was provided

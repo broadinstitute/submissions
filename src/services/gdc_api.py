@@ -60,6 +60,7 @@ class GdcApiWrapper:
                 )
                 print(f"Response for the '{operation}' operation: {commit_response.status_code}")
                 raise Exception(f"Could not submit metadata for transaction {transaction_id}")
+
             return operation
 
         except Exception as e:
