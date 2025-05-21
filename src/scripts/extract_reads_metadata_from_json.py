@@ -1,7 +1,6 @@
 import json
 import re
 from google.cloud import storage
-from urllib.parse import urlparse
 
 from src.services.terra import TerraAPIWrapper
 
@@ -20,23 +19,24 @@ ILLUMINA_PLATFORM = "Illumina"
 
 def get_json_contents(read_group_metadata_json):
     print("Reading JSON file from GCP bucket")
-    print(f'read_group_metadata_json: {read_group_metadata_json}')
+
+    path_parts = read_group_metadata_json.strip("/").split("/")
+    bucket_name = path_parts[3]
+    file_path = "/".join(path_parts[4:])
+    print(f"Found bucket name: {bucket_name} and file path: {file_path} for JSON metadata file")
+
+    if not bucket_name.startswith("fc-"):
+        raise ValueError(f"Bucket name must start with 'fc-', instead got: '{bucket_name}'")
+
     client = storage.Client()
-    parsed_url = urlparse(read_group_metadata_json)
-    print(f'parsed_url: {parsed_url}')
-    bucket_name = parsed_url.netloc
-    print(f'bucket_name: {bucket_name}')
-    file_path = parsed_url.path.lstrip("/")
-    print(f'file_path: {file_path}')
-
     blob = client.bucket(bucket_name).get_blob(file_path)
-    print(f'blob: {blob}')
-    content = blob.download_as_string()
-    print(f'content: {content}')
-    json_data = json.loads(content)
-    print(f'json_data: {json_data}')
-    return json_data
+    if blob is None:
+        raise FileNotFoundError(f"Blob not found: gs://{bucket_name}/{file_path}")
 
+    content = blob.download_as_string()
+    json_data = json.loads(content)
+    print(f"Extracted JSON metadata:\n{json_data}")
+    return json_data
 
 def determine_target_capture_kit(data_type, submissions_metadata):
     submissions_info = json.loads(submissions_metadata)
