@@ -39,9 +39,8 @@ def get_json_contents(read_group_metadata_json):
     return json_data
 
 def determine_target_capture_kit(data_type, submissions_metadata):
-    submissions_info = json.loads(submissions_metadata)
     kit_name = ""
-    for s in submissions_info:
+    for s in submissions_metadata:
         if s["key"] == "target_capture_kit_name":
             kit_name = s["value"]
 
@@ -105,31 +104,35 @@ def extract_reads_data_from_json_gdc(sample_alias, read_group_metadata_json_path
     sample_metadata = get_json_contents(read_group_metadata_json_path)
 
     read_group_metadata = []
-    for read_group in sample_metadata["readGroups"]:
-        data_type = DATA_TYPE_CONVERSION[read_group["dataType"]]
-        aggregation_project = read_group["researchProjectId"]
-        read_group_metadata.append(
-            {
-                "attributes": {
-                    "aggregation_project": aggregation_project,
-                    "sample_identifier": sample_alias,
-                    "flow_cell_barcode": read_group["flowcellBarcode"],
-                    "experiment_name": f"{sample_alias}.{data_type}.{aggregation_project}",
-                    "sequencing_center": BROAD_SEQUENCING_CENTER_ABBREVIATION,
-                    "platform": ILLUMINA_PLATFORM,
-                    "library_selection": determine_library_selection(read_group["productFamily"]),
-                    "data_type": data_type,
-                    "library_name": read_group["library"],
-                    "lane_number": read_group["lane"],
-                    "is_paired_end": read_group["pairedRun"],
-                    "read_length": get_read_length_from_read_structure(read_group["setupReadStructure"]),
-                    "target_capture_kit": determine_target_capture_kit(
-                        data_type=read_group["dataType"], submissions_metadata=read_group["submissionsMetadata"]
-                    ),
+    for run in sample_metadata["runs"]:
+        lanes = run["lanes"]
 
-                }
-            }
-        )
+        for lane in lanes:
+            libraries = lane["libraries"]
+            for library in libraries:
+                data_type_converted = DATA_TYPE_CONVERSION[library["dataType"]]
+                agg_project = library["researchProjectId"]
+                read_group_metadata.append(
+                    {
+                        "attributes": {
+                            "aggregation_project": agg_project,
+                            "sample_identifier": sample_alias,
+                            "flow_cell_barcode": run["flowcellBarcode"],
+                            "experiment_name": f"{sample_alias}.{data_type_converted}.{agg_project}",
+                            "sequencing_center": BROAD_SEQUENCING_CENTER_ABBREVIATION,
+                            "platform": ILLUMINA_PLATFORM,
+                            "library_selection": determine_library_selection(library["productFamily"]),
+                            "data_type": data_type_converted,
+                            "library_name": library["library"],
+                            "lane_number": lane["name"],
+                            "is_paired_end": run["pairedRun"],
+                            "read_length": get_read_length_from_read_structure(run["setupReadStructure"]),
+                            "target_capture_kit": determine_target_capture_kit(
+                                data_type=library["dataType"], submissions_metadata=library["submissionMetadata"]
+                            ),
+                        }
+                    }
+                )
 
     with open(READS_JSON_PATH, "w") as f:
         f.write(json.dumps(read_group_metadata))
