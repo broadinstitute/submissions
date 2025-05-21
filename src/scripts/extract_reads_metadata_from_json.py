@@ -75,13 +75,13 @@ def get_read_length_from_read_structure(read_structure):
         # If the read structure looks something like 76T8B8B76T, we get the read length by looking at the integer
         # before the first "T" - in this case "76" and we can automatically determine by trying to convert to an int
         int(first_read)
-        return str(first_read)
+        return int(first_read)
     except ValueError:
         # If the read structure looks something like 3M2S71T8B8B3M2S71T, the read length is the sum of the numbers
         # before the first "T" - so 3 + 2 + 71 in this example, and we need to add them manually
         integers = re.findall(pattern=r"\d+", string=first_read)
         total = sum(int(num) for num in integers)
-        return str(total)
+        return int(total)
 
 
 def extract_molecular_barcode_name_and_sequence(molecular_indexing_scheme):
@@ -124,7 +124,7 @@ def extract_reads_data_from_json_gdc(sample_alias, read_group_metadata_json_path
                             "library_selection": determine_library_selection(library["productFamily"]),
                             "data_type": data_type_converted,
                             "library_name": library["library"],
-                            "lane_number": lane["name"],
+                            "lane_number": int(lane["name"]),
                             "is_paired_end": run["pairedRun"],
                             "read_length": get_read_length_from_read_structure(run["setupReadStructure"]),
                             "target_capture_kit": determine_target_capture_kit(
