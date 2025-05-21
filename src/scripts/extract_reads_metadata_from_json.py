@@ -19,15 +19,22 @@ ILLUMINA_PLATFORM = "Illumina"
 
 
 def get_json_contents(read_group_metadata_json):
+    print("Reading JSON file from GCP bucket")
+    print(f'read_group_metadata_json: {read_group_metadata_json}')
     client = storage.Client()
     parsed_url = urlparse(read_group_metadata_json)
+    print(f'parsed_url: {parsed_url}')
     bucket_name = parsed_url.netloc
+    print(f'bucket_name: {bucket_name}')
     file_path = parsed_url.path.lstrip("/")
+    print(f'file_path: {file_path}')
 
-    bucket = client.get_bucket(bucket_name)
-    blob = bucket.blob(file_path)
+    blob = client.bucket(bucket_name).get_blob(file_path)
+    print(f'blob: {blob}')
     content = blob.download_as_string()
+    print(f'content: {content}')
     json_data = json.loads(content)
+    print(f'json_data: {json_data}')
     return json_data
 
 
