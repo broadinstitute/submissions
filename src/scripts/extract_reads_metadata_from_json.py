@@ -19,31 +19,59 @@ ILLUMINA_PLATFORM = "Illumina"
 
 
 def get_json_contents(read_group_metadata_json):
+    """Gets the JSON contents from the given path. Different logic is used depending
+    on whether the JSON file is in an external GCP bucket, or in the bucket of the workspace where
+    the submission is running."""
+
     client = storage.Client()
-    parsed_url = urlparse(read_group_metadata_json)
-    bucket_name = parsed_url.netloc
-    file_path = parsed_url.path.lstrip("/")
 
-    bucket = client.get_bucket(bucket_name)
-    blob = bucket.blob(file_path)
-    content = blob.download_as_string()
-    json_data = json.loads(content)
-    return json_data
+    print("Reading JSON file from GCP bucket")
+    # If the JSON file is in an external GCP bucket, then the path will start with "gs://"
+    if read_group_metadata_json.startswith("gs://"):
+        parsed_url = urlparse(read_group_metadata_json)
+        bucket_name = parsed_url.netloc
+        file_path = parsed_url.path.lstrip("/")
 
+        bucket = client.get_bucket(bucket_name)
+        blob = bucket.blob(file_path)
+        content = blob.download_as_string()
+        json_data = json.loads(content)
+        return json_data
+    # If the JSON file is in the workspace bucket, then the path will start with "/mnt/disks/cromwell_root/"
+    elif read_group_metadata_json.startswith("/mnt/disks/cromwell_root/"):
+        path_parts = read_group_metadata_json.strip("/").split("/")
+        bucket_name = path_parts[3]
+        file_path = "/".join(path_parts[4:])
+        print(f"Found bucket name: {bucket_name} and file path: {file_path} for JSON metadata file")
+
+        if not bucket_name.startswith("fc-"):
+            raise ValueError(f"Bucket name must start with 'fc-', instead got: '{bucket_name}'")
+
+        blob = client.bucket(bucket_name).get_blob(file_path)
+        if blob is None:
+            raise FileNotFoundError(f"Blob not found: gs://{bucket_name}/{file_path}")
+
+        content = blob.download_as_string()
+        json_data = json.loads(content)
+        print(f"Extracted JSON metadata:\n{json_data}")
+        return json_data
+    else:
+        raise ValueError(f"Invalid path for JSON file: {read_group_metadata_json}. Must start with 'gs://' or '/mnt/disks/cromwell_root/'")
 
 def determine_target_capture_kit(data_type, submissions_metadata):
-    submissions_info = json.loads(submissions_metadata)
-    kit_name = ""
-    for s in submissions_info:
-        if s["key"] == "target_capture_kit_name":
-            kit_name = s["value"]
+    if submissions_metadata:
+        kit_name = ""
+        for s in submissions_metadata:
+            if s["key"] == "target_capture_kit_name":
+                kit_name = s["value"]
 
-    if data_type == "Exome":
-        return GDC_TWIST_CAPTURE_KIT if kit_name == MERCURY_TWIST_CAPTURE_KIT else GDC_NEXTERA_CAPTURE_KIT
-    elif data_type == "Custom_Selection":
-        return "Unknown"
-    else:
-        return "Not Applicable"
+        if data_type == "Exome":
+            return GDC_TWIST_CAPTURE_KIT if kit_name == MERCURY_TWIST_CAPTURE_KIT else GDC_NEXTERA_CAPTURE_KIT
+        elif data_type == "Custom_Selection":
+            return "Unknown"
+        else:
+            return "Not Applicable"
+    return "Not Applicable"
 
 def extract_reads_data_from_workspace_metadata(sample_alias, billing_project, workspace_name, is_gdc):
     """Grab the reads data for the given sample_id"""
@@ -69,13 +97,13 @@ def get_read_length_from_read_structure(read_structure):
         # If the read structure looks something like 76T8B8B76T, we get the read length by looking at the integer
         # before the first "T" - in this case "76" and we can automatically determine by trying to convert to an int
         int(first_read)
-        return str(first_read)
+        return int(first_read)
     except ValueError:
         # If the read structure looks something like 3M2S71T8B8B3M2S71T, the read length is the sum of the numbers
         # before the first "T" - so 3 + 2 + 71 in this example, and we need to add them manually
         integers = re.findall(pattern=r"\d+", string=first_read)
         total = sum(int(num) for num in integers)
-        return str(total)
+        return int(total)
 
 
 def extract_molecular_barcode_name_and_sequence(molecular_indexing_scheme):
@@ -98,31 +126,35 @@ def extract_reads_data_from_json_gdc(sample_alias, read_group_metadata_json_path
     sample_metadata = get_json_contents(read_group_metadata_json_path)
 
     read_group_metadata = []
-    for read_group in sample_metadata["readGroups"]:
-        data_type = DATA_TYPE_CONVERSION[read_group["dataType"]]
-        aggregation_project = read_group["researchProjectId"]
-        read_group_metadata.append(
-            {
-                "attributes": {
-                    "aggregation_project": aggregation_project,
-                    "sample_identifier": sample_alias,
-                    "flow_cell_barcode": read_group["flowcellBarcode"],
-                    "experiment_name": f"{sample_alias}.{data_type}.{aggregation_project}",
-                    "sequencing_center": BROAD_SEQUENCING_CENTER_ABBREVIATION,
-                    "platform": ILLUMINA_PLATFORM,
-                    "library_selection": determine_library_selection(read_group["productFamily"]),
-                    "data_type": data_type,
-                    "library_name": read_group["library"],
-                    "lane_number": read_group["lane"],
-                    "is_paired_end": read_group["pairedRun"],
-                    "read_length": get_read_length_from_read_structure(read_group["setupReadStructure"]),
-                    "target_capture_kit": determine_target_capture_kit(
-                        data_type=read_group["dataType"], submissions_metadata=read_group["submissionsMetadata"]
-                    ),
+    for run in sample_metadata["runs"]:
+        lanes = run["lanes"]
 
-                }
-            }
-        )
+        for lane in lanes:
+            libraries = lane["libraries"]
+            for library in libraries:
+                data_type_converted = DATA_TYPE_CONVERSION[library["dataType"]]
+                agg_project = library["researchProjectId"]
+                read_group_metadata.append(
+                    {
+                        "attributes": {
+                            "aggregation_project": agg_project,
+                            "sample_identifier": sample_alias,
+                            "flow_cell_barcode": run["flowcellBarcode"],
+                            "experiment_name": f"{sample_alias}.{data_type_converted}.{agg_project}",
+                            "sequencing_center": BROAD_SEQUENCING_CENTER_ABBREVIATION,
+                            "platform": ILLUMINA_PLATFORM,
+                            "library_selection": determine_library_selection(library["productFamily"]),
+                            "data_type": data_type_converted,
+                            "library_name": library["library"],
+                            "lane_number": int(lane["name"]),
+                            "is_paired_end": run["pairedRun"],
+                            "read_length": get_read_length_from_read_structure(run["setupReadStructure"]),
+                            "target_capture_kit": determine_target_capture_kit(
+                                data_type=library["dataType"], submissions_metadata=library.get("submissionMetadata")
+                            ),
+                        }
+                    }
+                )
 
     with open(READS_JSON_PATH, "w") as f:
         f.write(json.dumps(read_group_metadata))
