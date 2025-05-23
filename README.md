@@ -26,7 +26,10 @@ in the `.wdl` files. Find the corresponding Docker image in the runtime attribut
 the image that needs to be rebuilt. The Docker images are located in the [Docker](Docker) subdirectory of this repository.
 Below are the commands to build and push the Docker images. They're currently stored in Artifact Registry in the 
 [Operations Portal](https://console.cloud.google.com/welcome?project=operations-portal-427515&inv=1&invt=AbyLhw) GCP 
-project (`operations-portal-427515`). They're all located within the `submissions` repository.  
+project (`operations-portal-427515`). They're all located within the `submissions` repository. The `submission` 
+repository is publicly readable, which means anybody can run the WDLs that reference these images. However, you'll 
+need additional permissions to push new images to the repository. If you don't have access, please reach out to the 
+Operations Team (`support@pipeline-ops.zendesk.com`). 
 
 #### Building the Docker image
 Once you've found the Dockerfile you'll need to re-create, you can use the following commands to build and push the docker images (note, you don't have to necessarily build all three images, but these are the commands to use in case you do): 
