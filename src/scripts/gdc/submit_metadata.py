@@ -5,6 +5,8 @@ import random
 from google.cloud import storage
 from urllib.parse import urlparse
 
+from pydantic_core.core_schema import time_schema
+
 from src.services.gdc_api import GdcApiWrapper
 
 DATA_TYPE_TO_EXPERIMENT_STRATEGY = {
@@ -34,7 +36,7 @@ class MetadataSubmission:
 
         sleep_time = random.randint(1, 100)
         print(f"Sleeping for {sleep_time} seconds before starting...")
-        time.sleep(1)
+        time.sleep(sleep_time)
         max_retries = 10
         retry_delay = 60  # in seconds
 

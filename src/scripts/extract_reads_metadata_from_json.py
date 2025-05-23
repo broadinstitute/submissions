@@ -59,17 +59,19 @@ def get_json_contents(read_group_metadata_json):
         raise ValueError(f"Invalid path for JSON file: {read_group_metadata_json}. Must start with 'gs://' or '/mnt/disks/cromwell_root/'")
 
 def determine_target_capture_kit(data_type, submissions_metadata):
-    kit_name = ""
-    for s in submissions_metadata:
-        if s["key"] == "target_capture_kit_name":
-            kit_name = s["value"]
+    if submissions_metadata:
+        kit_name = ""
+        for s in submissions_metadata:
+            if s["key"] == "target_capture_kit_name":
+                kit_name = s["value"]
 
-    if data_type == "Exome":
-        return GDC_TWIST_CAPTURE_KIT if kit_name == MERCURY_TWIST_CAPTURE_KIT else GDC_NEXTERA_CAPTURE_KIT
-    elif data_type == "Custom_Selection":
-        return "Unknown"
-    else:
-        return "Not Applicable"
+        if data_type == "Exome":
+            return GDC_TWIST_CAPTURE_KIT if kit_name == MERCURY_TWIST_CAPTURE_KIT else GDC_NEXTERA_CAPTURE_KIT
+        elif data_type == "Custom_Selection":
+            return "Unknown"
+        else:
+            return "Not Applicable"
+    return "Not Applicable"
 
 def extract_reads_data_from_workspace_metadata(sample_alias, billing_project, workspace_name, is_gdc):
     """Grab the reads data for the given sample_id"""
@@ -148,7 +150,7 @@ def extract_reads_data_from_json_gdc(sample_alias, read_group_metadata_json_path
                             "is_paired_end": run["pairedRun"],
                             "read_length": get_read_length_from_read_structure(run["setupReadStructure"]),
                             "target_capture_kit": determine_target_capture_kit(
-                                data_type=library["dataType"], submissions_metadata=library["submissionMetadata"]
+                                data_type=library["dataType"], submissions_metadata=library.get("submissionMetadata")
                             ),
                         }
                     }
