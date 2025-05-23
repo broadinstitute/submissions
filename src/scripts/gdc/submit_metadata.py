@@ -5,8 +5,6 @@ import random
 from google.cloud import storage
 from urllib.parse import urlparse
 
-from pydantic_core.core_schema import time_schema
-
 from src.services.gdc_api import GdcApiWrapper
 
 DATA_TYPE_TO_EXPERIMENT_STRATEGY = {
