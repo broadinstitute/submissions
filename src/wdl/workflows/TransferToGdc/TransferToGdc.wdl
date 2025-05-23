@@ -143,7 +143,7 @@ task RetrieveGdcManifest {
 
   runtime {
     memory: "3.75 GB"
-    docker: "schaluvadi/horsefish:submissionV1"
+    docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v1:latest"
     cpu: 1
     preemptible: 3
     disks: "local-disk " + 20 + " HDD"
@@ -203,7 +203,7 @@ task TransferBamToGdc {
 
   runtime {
     memory: "8 GB"
-    docker: "schaluvadi/horsefish:submissionV1"
+    docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v1:latest"
     cpu: 2
     disks: "local-disk " + disk_size + " HDD"
   }
@@ -245,7 +245,7 @@ task submitMetadataToGDC {
 
     runtime {
       preemptible: 3
-      docker: "schaluvadi/horsefish:submissionV2"
+      docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v2:latest"
     }
 
     output {
