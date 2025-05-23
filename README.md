@@ -24,11 +24,11 @@ If you've made a change to your Python file, most likely you'll need to recreate
 #### Building the Docker image - how to find which image to re-build
 If you've updated any of the Python code, the docker image(s) will have to be rebuilt and pushed to DockerHub. First track down where in which `.wdl` file that Python code is called. Now in that `.wdl`, find the Docker image that's defined in the runtime attributes. This should correspond to one of the Docker files that are located within a subdirectory of [Docker](Docker). Once you've found the Dockerfile you'll need to re-create, you can use the following commands to build and push the docker images (note, you don't have to necessarily build all three images, but these are the commands to use in case you do): 
 ```commandline
-docker build -t schaluvadi/horsefish:submissionAspera -f Docker/Aspera/Dockerfile . --platform="linux/amd64"
+docker build -t us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_aspera:latest -f Docker/Aspera/Dockerfile . --platform="linux/amd64"
 
-docker build -t schaluvadi/horsefish:submissionV2 -f Docker/V2/Dockerfile . --platform="linux/amd64"
+docker build -t us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v2:latest -f Docker/V2/Dockerfile . --platform="linux/amd64"
 
-docker build -t schaluvadi/horsefish:submissionV1 -f Docker/V1/Dockerfile . --platform="linux/amd64"
+docker build -t us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v1:latest -f Docker/V1/Dockerfile . --platform="linux/amd64"
 ```
 You'll need to add the `--platform="linux/amd64`  in case your default platform is different on your machine. 
 Once you've successfully created the Docker image, you can run `docker images` and you should see a newly created image. If you're like to verify anything, you can open the image in an interactive shell. First run `docker images` and copy the `IMAGE ID` of your new image. Next run `docker run -it {IMAGE_ID}`. This opens an interactive shell where you can run regular unix commands such as `cd`, `grep`, `vim`, etc.
@@ -37,9 +37,9 @@ Once you've successfully created the Docker image, you can run `docker images` a
 Once you're recreated your image and verified that your changes have propagated locally, you'll need to push your new image version to [this public repository](https://hub.docker.com/r/schaluvadi/horsefish/tags).
 You can do so by running any of the following commands (depending on which image you have built and need to push): 
 ```commandLine
-docker push schaluvadi/horsefish:submissionAspera
-docker push schaluvadi/horsefish:submissionV2
-docker push schaluvadi/horsefish:submissionV1
+docker push us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_aspera:latest
+docker push us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v2:latest
+docker push us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v1:latest
 ```
 
 ## SSH Key Creation and Usage Guide

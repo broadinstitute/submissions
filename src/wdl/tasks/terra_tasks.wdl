@@ -53,7 +53,7 @@ task CreateDbgapXmlFiles {
 
     runtime {
       memory: "32 GB"
-      docker: "schaluvadi/horsefish:submissionV2"
+      docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v2:latest"
       cpu: 4
       disks: "local-disk " + disk_size + " HDD"
     }
@@ -89,7 +89,7 @@ task CreateValidationStatusTable {
 
     runtime {
         preemptible: 3
-        docker: "schaluvadi/horsefish:submissionV1"
+        docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v1:latest"
     }
 
     output {
@@ -114,7 +114,7 @@ task verifyGDCRegistration {
     }
 
     runtime {
-        docker: "schaluvadi/horsefish:submissionV2"
+        docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v2:latest"
         preemptible: 1
     }
 
@@ -155,7 +155,7 @@ task CreateTableLoadFile {
 
     runtime {
         preemptible: 3
-        docker: "schaluvadi/horsefish:submissionV1"
+        docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v1:latest"
     }
 
     output {
@@ -174,7 +174,7 @@ task DeleteFileFromWorkspace {
     }
 
     runtime {
-        docker: "schaluvadi/horsefish:submissionV1"
+        docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v1:latest"
     }
 }
 
@@ -203,7 +203,7 @@ task UpsertMetadataToDataModel {
 
     runtime {
         preemptible: 3
-        docker: "schaluvadi/horsefish:submissionV2"
+        docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v2:latest"
     }
 
     output {
@@ -234,7 +234,7 @@ task GetMetadata {
 
   runtime {
     memory: "7.5 GB"
-    docker: "schaluvadi/horsefish:submissionV2"
+    docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v2:latest"
     cpu: 2
     preemptible: 3
     disks: "local-disk " + disk_size + " HDD"
@@ -283,7 +283,7 @@ task addReadsField {
 
     runtime {
         preemptible: 3
-        docker: "schaluvadi/horsefish:submissionV2"
+        docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v2:latest"
     }
 
     output {
@@ -313,7 +313,7 @@ task ValidateFileStatus {
     }
 
     runtime {
-        docker: "schaluvadi/horsefish:submissionV2"
+        docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v2:latest"
         preemptible: 1
     }
 

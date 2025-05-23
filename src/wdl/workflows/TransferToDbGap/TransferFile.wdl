@@ -94,7 +94,7 @@ task ascpFile {
 
     runtime {
       memory: "8 GB"
-      docker: "schaluvadi/horsefish:submissionAspera"
+      docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_aspera:latest"
       cpu: 2
       disks: "local-disk " + disk_size + " HDD"
     }
