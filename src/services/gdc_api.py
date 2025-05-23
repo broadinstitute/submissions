@@ -32,6 +32,7 @@ class GdcApiWrapper:
         url = f"{self.endpoint}/{self.program}/{self.project}"
 
         print(f"Submitting metadata to GDC dry_run endpoint for program {self.program} in project {self.project}")
+        print(f'payload: {metadata}')
         try:
             dry_run_response = requests.put(
                 f"{url}/_dry_run",

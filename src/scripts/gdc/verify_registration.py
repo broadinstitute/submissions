@@ -11,7 +11,7 @@ def check_registration(alias, program, project, token):
     if response['data'] and response['data']['aliquot'] and len(response['data']['aliquot']) > 0:
         print("true")
     else:
-        raise RuntimeError(f"Sample is not registered in GDC. Resopnse - {response}")
+        raise RuntimeError(f"Sample is not registered in GDC. Response - {response}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='')

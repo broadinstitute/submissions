@@ -34,7 +34,7 @@ class MetadataSubmission:
 
         sleep_time = random.randint(1, 100)
         print(f"Sleeping for {sleep_time} seconds before starting...")
-        time.sleep(sleep_time)
+        time.sleep(1)
         max_retries = 10
         retry_delay = 60  # in seconds
 

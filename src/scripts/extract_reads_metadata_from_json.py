@@ -1,6 +1,7 @@
 import json
 import re
 from google.cloud import storage
+from urllib.parse import urlparse
 
 from src.services.terra import TerraAPIWrapper
 
@@ -18,25 +19,44 @@ ILLUMINA_PLATFORM = "Illumina"
 
 
 def get_json_contents(read_group_metadata_json):
-    print("Reading JSON file from GCP bucket")
-
-    path_parts = read_group_metadata_json.strip("/").split("/")
-    bucket_name = path_parts[3]
-    file_path = "/".join(path_parts[4:])
-    print(f"Found bucket name: {bucket_name} and file path: {file_path} for JSON metadata file")
-
-    if not bucket_name.startswith("fc-"):
-        raise ValueError(f"Bucket name must start with 'fc-', instead got: '{bucket_name}'")
+    """Gets the JSON contents from the given path. Different logic is used depending
+    on whether the JSON file is in an external GCP bucket, or in the bucket of the workspace where
+    the submission is running."""
 
     client = storage.Client()
-    blob = client.bucket(bucket_name).get_blob(file_path)
-    if blob is None:
-        raise FileNotFoundError(f"Blob not found: gs://{bucket_name}/{file_path}")
 
-    content = blob.download_as_string()
-    json_data = json.loads(content)
-    print(f"Extracted JSON metadata:\n{json_data}")
-    return json_data
+    print("Reading JSON file from GCP bucket")
+    # If the JSON file is in an external GCP bucket, then the path will start with "gs://"
+    if read_group_metadata_json.startswith("gs://"):
+        parsed_url = urlparse(read_group_metadata_json)
+        bucket_name = parsed_url.netloc
+        file_path = parsed_url.path.lstrip("/")
+
+        bucket = client.get_bucket(bucket_name)
+        blob = bucket.blob(file_path)
+        content = blob.download_as_string()
+        json_data = json.loads(content)
+        return json_data
+    # If the JSON file is in the workspace bucket, then the path will start with "/mnt/disks/cromwell_root/"
+    elif read_group_metadata_json.startswith("/mnt/disks/cromwell_root/"):
+        path_parts = read_group_metadata_json.strip("/").split("/")
+        bucket_name = path_parts[3]
+        file_path = "/".join(path_parts[4:])
+        print(f"Found bucket name: {bucket_name} and file path: {file_path} for JSON metadata file")
+
+        if not bucket_name.startswith("fc-"):
+            raise ValueError(f"Bucket name must start with 'fc-', instead got: '{bucket_name}'")
+
+        blob = client.bucket(bucket_name).get_blob(file_path)
+        if blob is None:
+            raise FileNotFoundError(f"Blob not found: gs://{bucket_name}/{file_path}")
+
+        content = blob.download_as_string()
+        json_data = json.loads(content)
+        print(f"Extracted JSON metadata:\n{json_data}")
+        return json_data
+    else:
+        raise ValueError(f"Invalid path for JSON file: {read_group_metadata_json}. Must start with 'gs://' or '/mnt/disks/cromwell_root/'")
 
 def determine_target_capture_kit(data_type, submissions_metadata):
     kit_name = ""
