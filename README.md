@@ -23,7 +23,8 @@ automatically get updated with the most recent changes. In your Terra workspace,
 If you've made a change to your Python file, you'll need to recreate and push the appropriate docker image(s). To 
 figure out what images need to be replaced, take a look at the Python files you've edited and where they're called 
 in the `.wdl` files. Find the corresponding Docker image in the runtime attributes of the `.wdl` file - this will be 
-the image that needs to be rebuilt. The Docker images are located in the [Docker](Docker) subdirectory of this repository.
+the image that needs to be rebuilt. The Docker files are located in the [Docker](Docker) subdirectory of this 
+repository.
 Below are the commands to build and push the Docker images. They're currently stored in Artifact Registry in the 
 [Operations Portal](https://console.cloud.google.com/welcome?project=operations-portal-427515&inv=1&invt=AbyLhw) GCP 
 project (`operations-portal-427515`). They're all located within the `submissions` repository. The `submission` 
@@ -41,11 +42,11 @@ docker build -t us-central1-docker.pkg.dev/operations-portal-427515/submissions/
 docker build -t us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v1:latest -f Docker/V1/Dockerfile . --platform="linux/amd64"
 ```
 You'll need to add the `--platform="linux/amd64`  in case your default platform is different on your machine. 
-Once you've successfully created the Docker image, you can run `docker images` and you should see a newly created image. If you're like to verify anything, you can open the image in an interactive shell. First run `docker images` and copy the `IMAGE ID` of your new image. Next run `docker run -it {IMAGE_ID}`. This opens an interactive shell where you can run regular unix commands such as `cd`, `grep`, `vim`, etc.
+Once you've successfully created the Docker image, you can run `docker images` and you should see a newly created 
+image. If you'd like to verify anything, you can open the image in an interactive shell. First run `docker images` and copy the `IMAGE ID` of your new image. Next run `docker run -it {IMAGE_ID}`. This opens an interactive shell where you can run regular unix commands such as `cd`, `grep`, `vim`, etc.
 
 #### Pushing your new Docker image
-Once you're recreated your image and verified that your changes have propagated locally, you'll need to push your 
-new image version to Artifact Registry.
+Once you're recreated your image, you'll need to push your new image version to Artifact Registry.
 You can do so by running any of the following commands (depending on which image you have built and need to push): 
 ```commandLine
 docker push us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_aspera:latest
@@ -77,7 +78,7 @@ After linking your public key, you can upload your private key to the designated
 **Note:** Keep your private key secure and do not share it with anyone.
 
 ## Support
-For any inquiries or assistance, please contact Nareh Sahakian at `sahakian@broadinstitute.org`.
+For any inquiries or assistance, please contact the Operations team at `support@pipeline-ops.zendesk.com`.
 
 ## Disclaimer
 Ensure you follow your organization's security policies and guidelines when managing SSH keys and accessing workspaces.
