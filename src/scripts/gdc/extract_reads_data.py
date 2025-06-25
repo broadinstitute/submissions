@@ -1,12 +1,17 @@
 import argparse
+import logging
 
 from src.scripts.extract_reads_metadata_from_json import (
     extract_reads_data_from_json_gdc,
     extract_reads_data_from_workspace_metadata,
     DATA_TYPE_CONVERSION
 )
-
 from src.services.gdc_api import GdcApiWrapper
+
+
+logging.basicConfig(
+    format="%(levelname)s: %(asctime)s : %(message)s", level=logging.INFO
+)
 
 
 def get_args():
@@ -48,7 +53,7 @@ def format_read_group(read):
             # Otherwise, attempt to map it to an allowed data type
             data_type = DATA_TYPE_CONVERSION[read["data_type"]]
         except KeyError:
-            print(
+            logging.error(
                 f"Provided data type must either be one of the allowed GDC values: ({','.join(DATA_TYPE_CONVERSION.values())}) "
                 f"OR it must be one of the data types we can map: ({','.join(DATA_TYPE_CONVERSION.keys())}). Instead received: '{read['data_type']}'"
             )
@@ -81,7 +86,22 @@ def format_read_group(read):
 
 def submit_reads(read_metadata, token, project, program):
     formatted_reads = [format_read_group(read["attributes"]) for read in read_metadata]
-    GdcApiWrapper(program=program, project=project, token=token).submit_metadata(formatted_reads)
+    operation = GdcApiWrapper(
+        program=program,
+        project=project,
+        token=token
+    ).submit_metadata(formatted_reads)
+
+    if operation:
+        if operation == "close":
+            raise Exception(f"Failed to submit reads, operation: {operation}")
+        if operation == "commit":
+            logging.info(f"Successfully submitted reads, operation: {operation}")
+    else:
+        raise Exception(
+            "Failed to submit reads, an exception was encountered while attempting "
+            "to communicate the the GDC API"
+        )
 
 
 if __name__ == "__main__":

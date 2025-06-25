@@ -2,10 +2,16 @@ import argparse
 import json
 import time
 import random
+import logging
 from google.cloud import storage
 from urllib.parse import urlparse
 
 from src.services.gdc_api import GdcApiWrapper
+
+logging.basicConfig(
+    format="%(levelname)s: %(asctime)s : %(message)s", level=logging.INFO
+)
+
 
 DATA_TYPE_TO_EXPERIMENT_STRATEGY = {
     "WGS": "WGS",
@@ -33,13 +39,13 @@ class MetadataSubmission:
         gdc_wrapper = GdcApiWrapper(program=self.program, project=self.project, token=self.token)
 
         sleep_time = random.randint(1, 100)
-        print(f"Sleeping for {sleep_time} seconds before starting...")
+        logging.info(f"Sleeping for {sleep_time} seconds before starting...")
         time.sleep(sleep_time)
         max_retries = 10
         retry_delay = 60  # in seconds
 
         for attempt in range(1, max_retries + 1):
-            print(f"Attempt {attempt} of {max_retries}")
+            logging.info(f"Attempt {attempt} of {max_retries}")
             operation = gdc_wrapper.submit_metadata(metadata)
             if operation == "commit":
                 break
@@ -47,7 +53,7 @@ class MetadataSubmission:
                 if attempt < max_retries:
                     time.sleep(retry_delay)
                 else:
-                    print("Max retries reached. Exiting...")
+                    logging.error("Max retries reached. Exiting...")
                     raise Exception
 
         time.sleep(100) # Wait a bit since gdc can lag a little
@@ -66,9 +72,9 @@ class MetadataSubmission:
                 with open(file_path, 'w') as file:
                     file.write(uuid)
 
-                print("Done writing UUID to file")
+                logging.info("Done writing UUID to file")
             else:
-                print("No ids inside the submitted_aligned_reads array")
+                logging.warning("No ids inside the submitted_aligned_reads array")
         else:
             raise RuntimeError("Data was not returned from GDC properly")
 
@@ -129,10 +135,10 @@ class MetadataSubmission:
         with open(file_path, 'w') as file:
             file.write(bam_data)
 
-        print("Done writing BAM data to file")
+        logging.info("Done writing BAM data to file")
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='')
+    parser = argparse.ArgumentParser(description="Submit metadata to GDC")
     parser.add_argument('-s', '--sample_alias', required=True, help='list of aliases to check registration status')
     parser.add_argument('-t', '--token', required=True, help='Api token to communicate with GDC')
     parser.add_argument('-pg', '--program', required=True, help='GDC program')
