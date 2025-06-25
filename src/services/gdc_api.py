@@ -72,8 +72,7 @@ class GdcApiWrapper:
             return operation
 
         except Exception as e:
-            logging.error(f"Error: {e}")
-            return None
+            raise Exception(f"Error: {e}")
 
     def construct_query(self, query_type, submitter_id):
         base_query = """

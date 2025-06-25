@@ -92,16 +92,10 @@ def submit_reads(read_metadata, token, project, program):
         token=token
     ).submit_metadata(formatted_reads)
 
-    if operation:
-        if operation == "close":
-            raise Exception(f"Failed to submit reads, operation: {operation}")
-        if operation == "commit":
-            logging.info(f"Successfully submitted reads, operation: {operation}")
-    else:
-        raise Exception(
-            "Failed to submit reads, an exception was encountered while attempting "
-            "to communicate the the GDC API"
-        )
+    if operation == "close":
+        raise Exception(f"Failed to submit reads, operation: {operation}")
+    if operation == "commit":
+        logging.info(f"Successfully submitted reads, operation: {operation}")
 
 
 if __name__ == "__main__":
