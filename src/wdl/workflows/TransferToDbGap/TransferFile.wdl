@@ -84,18 +84,26 @@ task ascpFile {
     String filename = if xml_file then "~{sample_id}.xml" else "~{sample_id}" + file_ext
 
     command {
-      set -e
-      mkdir upload
-      cp ~{key} upload/private.openssh
-      cp ~{uploadFile} upload/~{filename}
-      pwd
-      ascp -k0 -Q -l 500M -i upload/private.openssh -L upload upload/~{filename} ${ascpUser}@${uploadSite}:${uploadPath};
-      ERRORS=$(grep "Source file transfers failed" upload/aspera-scp-transfer.log | rev | cut -f 1 -d ' ');
-      [[ $ERRORS[*] =~ '!' ]] && echo "An error was detected during aspera upload." && exit 1
-      cat upload/aspera-scp-transfer.log
-      cd upload
-      ls
+        echo "uploadFile: ~{uploadFile}"
+        echo "uploadPath: ~{uploadPath}"
+        echo "file extension: ~{file_ext}"
+        echo "file name: ~{filename}"
     }
+
+    #command {
+    #  set -e
+    #  mkdir upload
+    #  cp ~{key} upload/private.openssh
+    #  cp ~{uploadFile} upload/~{filename}
+    #  pwd
+    #  ascp -k0 -Q -l 500M -i upload/private.openssh -L upload upload/~{filename}
+#${ascpUser}@${uploadSite}:${uploadPath};
+ #     ERRORS=$(grep "Source file transfers failed" upload/aspera-scp-transfer.log | rev | cut -f 1 -d ' ');
+  #    [[ $ERRORS[*] =~ '!' ]] && echo "An error was detected during aspera upload." && exit 1
+   #   cat upload/aspera-scp-transfer.log
+    #  cd upload
+     # ls
+    #}
 
     runtime {
       memory: "8 GB"
