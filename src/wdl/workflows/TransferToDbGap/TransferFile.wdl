@@ -33,23 +33,23 @@ workflow TransferToDbgap {
 
     String ascpUser = "asp-bi"
 
-    #call tasks.CreateDbgapXmlFiles as xml {
-    #    input:
-    #        workspace_name = workspace_name,
-    #        billing_project = workspace_project,
-    #        sample_id = sample_id,
-    #        monitoring_script = monitoring_script,
-    #        md5 = md5,
-    #        read_group_metadata_json = read_group_metadata_json,
-    #        aggregation_version = aggregation_version,
-    #        phs_id = phs_id,
-    #        data_type = data_type
-    #}
+    call tasks.CreateDbgapXmlFiles as xml {
+        input:
+            workspace_name = workspace_name,
+            billing_project = workspace_project,
+            sample_id = sample_id,
+            monitoring_script = monitoring_script,
+            md5 = md5,
+            read_group_metadata_json = read_group_metadata_json,
+            aggregation_version = aggregation_version,
+            phs_id = phs_id,
+            data_type = data_type
+    }
 
     call ascpFile as transferXml {
         input:
             key = key,
-            uploadFile = "gs://fc-7d7fca41-a260-4ad9-85a4-3d9751ba3dc4/MIN_EM226_0001_1_D1.cram",
+            uploadFile = xml.xml_tar,
             uploadSite = uploadSite,
             uploadPath = uploadPath,
             ascpUser = ascpUser,
@@ -84,27 +84,18 @@ task ascpFile {
     String filename = if xml_file then "~{sample_id}.xml" else "~{sample_id}" + file_ext
 
     command {
-        echo "xml file? ~{xml_file}"
-        echo "uploadFile: ~{uploadFile}"
-        echo "uploadPath: ~{uploadPath}"
-        echo "file extension: ~{file_ext}"
-        echo "file name: ~{filename}"
+      set -e
+      mkdir upload
+      cp ~{key} upload/private.openssh
+      cp ~{uploadFile} upload/~{filename}
+      pwd
+      ascp -k0 -Q -l 500M -i upload/private.openssh -L upload upload/~{filename}${ascpUser}@${uploadSite}:${uploadPath};
+      ERRORS=$(grep "Source file transfers failed" upload/aspera-scp-transfer.log | rev | cut -f 1 -d ' ');
+      [[ $ERRORS[*] =~ '!' ]] && echo "An error was detected during aspera upload." && exit 1
+      cat upload/aspera-scp-transfer.log
+      cd upload
+      ls
     }
-
-    #command {
-    #  set -e
-    #  mkdir upload
-    #  cp ~{key} upload/private.openssh
-    #  cp ~{uploadFile} upload/~{filename}
-    #  pwd
-    #  ascp -k0 -Q -l 500M -i upload/private.openssh -L upload upload/~{filename}
-#${ascpUser}@${uploadSite}:${uploadPath};
- #     ERRORS=$(grep "Source file transfers failed" upload/aspera-scp-transfer.log | rev | cut -f 1 -d ' ');
-  #    [[ $ERRORS[*] =~ '!' ]] && echo "An error was detected during aspera upload." && exit 1
-   #   cat upload/aspera-scp-transfer.log
-    #  cd upload
-     # ls
-    #}
 
     runtime {
       memory: "8 GB"
@@ -113,9 +104,9 @@ task ascpFile {
       disks: "local-disk " + disk_size + " HDD"
     }
 
-    #output {
-    #    File transferLog = "upload/aspera-scp-transfer.log"
-    #    String site = uploadSite
-    #    String path = uploadPath
-    #}
+    output {
+        File transferLog = "upload/aspera-scp-transfer.log"
+        String site = uploadSite
+        String path = uploadPath
+    }
 }

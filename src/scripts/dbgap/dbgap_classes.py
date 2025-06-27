@@ -535,6 +535,7 @@ def validate_xml(xml_dict, xsd_url):
     try:
         # Convert dictionary to XML string
         xml_string = xmltodict.unparse(xml_dict)
+
         # Download XSD content
         xsd_content = requests.get(xsd_url).content
         # Create XMLSchema object
