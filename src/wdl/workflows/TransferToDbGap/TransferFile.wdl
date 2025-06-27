@@ -33,18 +33,18 @@ workflow TransferToDbgap {
 
     String ascpUser = "asp-bi"
 
-    call tasks.CreateDbgapXmlFiles as xml {
-        input:
-            workspace_name = workspace_name,
-            billing_project = workspace_project,
-            sample_id = sample_id,
-            monitoring_script = monitoring_script,
-            md5 = md5,
-            read_group_metadata_json = read_group_metadata_json,
-            aggregation_version = aggregation_version,
-            phs_id = phs_id,
-            data_type = data_type
-    }
+    #call tasks.CreateDbgapXmlFiles as xml {
+    #    input:
+    #        workspace_name = workspace_name,
+    #        billing_project = workspace_project,
+    #        sample_id = sample_id,
+    #        monitoring_script = monitoring_script,
+    #        md5 = md5,
+    #        read_group_metadata_json = read_group_metadata_json,
+    #        aggregation_version = aggregation_version,
+    #        phs_id = phs_id,
+    #        data_type = data_type
+    #}
 
     call ascpFile as transferXml {
         input:
