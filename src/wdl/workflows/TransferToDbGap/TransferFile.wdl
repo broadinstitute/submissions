@@ -113,9 +113,9 @@ task ascpFile {
       disks: "local-disk " + disk_size + " HDD"
     }
 
-    output {
-        File transferLog = "upload/aspera-scp-transfer.log"
-        String site = uploadSite
-        String path = uploadPath
-    }
+    #output {
+    #    File transferLog = "upload/aspera-scp-transfer.log"
+    #    String site = uploadSite
+    #    String path = uploadPath
+    #}
 }
