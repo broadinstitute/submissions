@@ -49,7 +49,7 @@ workflow TransferToDbgap {
     call ascpFile as transferXml {
         input:
             key = key,
-            uploadFile = "xml_files.tgz",
+            uploadFile = "gs://fc-7d7fca41-a260-4ad9-85a4-3d9751ba3dc4/MIN_EM226_0001_1_D1.cram",
             uploadSite = uploadSite,
             uploadPath = uploadPath,
             ascpUser = ascpUser,
@@ -84,6 +84,7 @@ task ascpFile {
     String filename = if xml_file then "~{sample_id}.xml" else "~{sample_id}" + file_ext
 
     command {
+        echo "xml file? ~{xml_file}"
         echo "uploadFile: ~{uploadFile}"
         echo "uploadPath: ~{uploadPath}"
         echo "file extension: ~{file_ext}"
