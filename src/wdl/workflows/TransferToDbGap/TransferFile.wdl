@@ -49,7 +49,7 @@ workflow TransferToDbgap {
     call ascpFile as transferXml {
         input:
             key = key,
-            uploadFile = xml.xml_tar,
+            uploadFile = "xml_files.tgz",
             uploadSite = uploadSite,
             uploadPath = uploadPath,
             ascpUser = ascpUser,
