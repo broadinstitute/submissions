@@ -53,7 +53,8 @@ workflow TransferToDbgap {
             uploadSite = uploadSite,
             uploadPath = uploadPath,
             ascpUser = ascpUser,
-            filename = "~{sample_id}.xml"
+            sample_id = sample_id,
+            xml_file = true
     }
 
     call ascpFile as transferDataFile {
@@ -63,7 +64,8 @@ workflow TransferToDbgap {
             uploadSite = transferXml.site,
             uploadPath = transferXml.path,
             ascpUser = ascpUser,
-            filename = "~{sample_id}.bam"
+            sample_id = sample_id,
+            xml_file = false
     }
 }
 
@@ -74,9 +76,12 @@ task ascpFile {
         String uploadSite
         String uploadPath
         String ascpUser
-        String filename
+        String sample_id
+        Boolean xml_file
     }
     Int disk_size = ceil(size(uploadFile, "GiB") * 3)
+    String file_ext = sub(basename(uploadFile), ".*(\\..+)$", "$1")
+    String filename = if xml_file then "~{sample_id}.xml" else "~{sample_id}" + file_ext
 
     command {
       set -e
