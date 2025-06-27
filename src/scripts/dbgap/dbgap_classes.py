@@ -535,19 +535,13 @@ def validate_xml(xml_dict, xsd_url):
     try:
         # Convert dictionary to XML string
         xml_string = xmltodict.unparse(xml_dict)
-        print("REACHED 1")
         # Download XSD content
         xsd_content = requests.get(xsd_url).content
-        print("REACHED 2")
-        print(xsd_content)
         # Create XMLSchema object
         xmlschema_doc = etree.parse(BytesIO(xsd_content))
-        print("REACHED 3")
         xmlschema = etree.XMLSchema(xmlschema_doc)
-        print("REACHED 4")
         # Parse the XML string (convert to bytes first)
         xml_doc = etree.fromstring(xml_string.encode())
-
         # Validate XML against XSD
         xmlschema.assertValid(xml_doc)
         print(f"Validation successful. XML is valid according to {xsd_url}.")
