@@ -35,12 +35,13 @@ def run_xml_creation(
 
     sample = Sample(sample_json, md5)
     read_group = ReadGroup(reads_metadata)
-
+    print("REACHED 1")
     experiment = Experiment(sample, read_group)
     experiment.create_file()
-
+    print("REACHED 2")
     run = Run(sample, read_group, experiment)
     run.create_file()
+    print("REACHED 3")
 
     submission = Submission(experiment, run, sample.phs)
     submission.create_file()
