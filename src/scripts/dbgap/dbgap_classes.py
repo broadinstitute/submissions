@@ -556,7 +556,7 @@ def validate_xml(xml_dict, local_xsd_filename):
 
 
 def write_xml_file(file_name, xml_dict):
-    file_path = f"{file_name}"
+    file_path = f"/cromwell_root/xml/{file_name}"
     xml_string = xmltodict.unparse(xml_dict, short_empty_elements=True, pretty=True)
 
     with open(file_path, 'wb') as xfile:

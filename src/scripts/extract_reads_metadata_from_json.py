@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 from src.services.terra import TerraAPIWrapper
 
-READS_JSON_PATH = "reads.json"
+READS_JSON_PATH = "/cromwell_root/reads.json"
 BROAD_SEQUENCING_CENTER_ABBREVIATION = "BI"
 DATA_TYPE_CONVERSION = {
     "Exome": "WXS",
