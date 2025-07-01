@@ -4,7 +4,6 @@ import re
 import os
 import xmltodict
 from lxml import etree
-from io import BytesIO
 from datetime import datetime
 from src.services.dbgap_telemetry_report import DbgapTelemetryWrapper
 
@@ -12,9 +11,11 @@ from src.services.dbgap_telemetry_report import DbgapTelemetryWrapper
 BROAD_ABBREVIATION = "BI"
 NONAMESPACESCHEMALOCATION = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.submission.xsd?view=co"
 XSI = "http://www.w3.org/2001/XMLSchema-instance"
-EXPERIMENT_XSD = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.experiment.xsd?view=co"
-RUN_XSD = "http://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.run.xsd?view=co"
-SUBMISSION_XSD = "https://www.ncbi.nlm.nih.gov/viewvc/v1/trunk/sra/doc/SRA_1-5/SRA.submission.xsd?view=co"
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+EXPERIMENT_XSD = os.path.join(BASE_DIR, "schemas/SRA.experiment.xsd")
+RUN_XSD = os.path.join(BASE_DIR, "schemas/SRA.run.xsd")
+SUBMISSION_XSD = os.path.join(BASE_DIR, "schemas/SRA.submission.xsd")
 
 
 class Sample:
@@ -531,21 +532,21 @@ class Submission:
 
 
 # Helper Functions #
-def validate_xml(xml_dict, xsd_url):
+def validate_xml(xml_dict, local_xsd_filename):
     try:
         # Convert dictionary to XML string
         xml_string = xmltodict.unparse(xml_dict)
 
-        # Download XSD content
-        xsd_content = requests.get(xsd_url).content
-        # Create XMLSchema object
-        xmlschema_doc = etree.parse(BytesIO(xsd_content))
+        # Load main XSD schema (will resolve relative imports automatically)
+        xmlschema_doc = etree.parse(local_xsd_filename)
         xmlschema = etree.XMLSchema(xmlschema_doc)
-        # Parse the XML string (convert to bytes first)
+
+        # Parse the XML string
         xml_doc = etree.fromstring(xml_string.encode())
-        # Validate XML against XSD
+
+        # Validate
         xmlschema.assertValid(xml_doc)
-        print(f"Validation successful. XML is valid according to {xsd_url}.")
+        print(f"Validation successful. XML is valid according to {local_xsd_filename}.")
     except etree.XMLSchemaError as e:
         raise ValueError("Error in XML Schema: {}".format(e))
     except etree.XMLSyntaxError as e:
