@@ -55,7 +55,7 @@ task ValidateDbgapSample {
     }
 
     runtime {
-        docker: "schaluvadi/horsefish:submissionV2"
+        docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v2:latest"
         preemptible: 1
     }
 
