@@ -31,7 +31,7 @@ workflow TransferToDbgap {
         }
     }
 
-    String ascpUser = "asp-bi"
+    String ascpUser = "asp-dbgap"
 
     call tasks.CreateDbgapXmlFiles as xml {
         input:
