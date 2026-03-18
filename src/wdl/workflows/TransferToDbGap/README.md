@@ -1,6 +1,16 @@
 # Transfer Files to dbGaP
 
-This WDL transfers data to dbGaP. 
+This WDL transfers data to dbGaP.
+
+Note that there are two ways to run this workflow. It can either be used to upload sequencing data only, or to 
+upload sequencing data AND generate and upload read-group level XML metadata files. If you only want to 
+upload sequencing data, set the `upload_xml` input to `false`. If you want to upload sequencing data AND generate/upload
+XML metadata files, set the `upload_xml` input to `true`. If you set `upload_xml` to `true`, make sure that all the 
+read-group level metadata is available in the Terra metadata tables (for non-DRAGEN samples) or in the read group 
+metadata JSON file (for DRAGEN samples). **If you set `upload_xml` to `false`, you do not need all the read-group 
+level metadata available in Terra.** You'll only need a table that has the basic information below, such as 
+`sample_id`, `aggregation_project`, `data_type`, `data_file`, `md5_file`, and `aggregation_version` to upload the
+sequencing files.
 
 ## Inputs Table: 
 | Input Name                   | Description                                                                                                                                                                                                                                                                                                                                                                                   | Type    | Required | Default   |
