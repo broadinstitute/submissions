@@ -12,6 +12,10 @@ RUN chmod +x ibm-aspera-connect_4.2.12.780_linux_x86_64.sh
 # Create a non-root user
 RUN useradd -ms /bin/bash aspera-user
 
+
+# DO NOT CHANGE ANYTHING BELOW THIS UNLESS YOU'RE ALSO PLANNING ON CHANGING THE TransferFile.wdl WHICH RELIES ON THIS
+# SPECIFIC USER AND WHERE THESE FILES ARE INSTALLED
+
 # Switch to the non-root user
 USER aspera-user
 
