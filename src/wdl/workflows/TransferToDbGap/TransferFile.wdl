@@ -84,21 +84,21 @@ task ascpFile {
     String filename = if xml_file then "~{sample_id}.xml" else "~{sample_id}" + file_ext
 
     command {
-        set -e
-        mkdir upload
-        cp ~{key} upload/private.openssh
-        cp ~{uploadFile} upload/~{filename}
+      set -e
 
-        export ASPERA_SCP_PASS=743128bf-3bf3-45b5-ab14-4602c67f2950
-        ascp -i "upload/private.openssh" -Q -l 200m -k 1 upload/~{filename} ~{ascpUser}@~{uploadSite}:~{uploadPath}
+      mkdir upload
+      cp ~{uploadFile} upload/~{filename}
 
+      export ASPERA_SCP_PASS=743128bf-3bf3-45b5-ab14-4602c67f2950
 
-        ERRORS=$(grep "Source file transfers failed" upload/aspera-scp-transfer.log | rev | cut -f 1 -d ' ');
-        [[ $ERRORS[*] =~ '!' ]] && echo "An error was detected during aspera upload." && exit 1
-        cat upload/aspera-scp-transfer.log
-        cd upload
-        ls
-    }
+      ascp -k0 -Q -l 500M \
+        -i /home/aspera-user/.aspera/connect/etc/aspera_tokenauth_id_rsa \
+        -L upload \
+        upload/~{filename} \
+        ~{ascpUser}@~{uploadSite}:~{uploadPath}
+
+      cat upload/aspera-scp-transfer.log
+}
 
     runtime {
       memory: "8 GB"
