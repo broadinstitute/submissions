@@ -16,7 +16,7 @@ workflow TransferToDbgap {
         Int aggregation_version
         String phs_id
         String sample_id
-        Boolean upload_xml
+        Boolean generate_and_upload_xml
 
         File? monitoring_script
         File? read_group_metadata_json
@@ -33,7 +33,7 @@ workflow TransferToDbgap {
 
     String ascp_user = "asp-dbgap"
 
-    if (upload_xml) {
+    if (generate_and_upload_xml) {
         call tasks.CreateDbgapXmlFiles as xml {
             input:
                 workspace_name = workspace_name,
