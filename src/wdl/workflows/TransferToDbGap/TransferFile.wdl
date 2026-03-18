@@ -89,6 +89,8 @@ task ascpFile {
       cp ~{key} upload/private.openssh
       cp ~{uploadFile} upload/~{filename}
       pwd
+
+      export ASPERA_SCP_PASS=743128bf-3bf3-45b5-ab14-4602c67f2950
       ascp -k0 -Q -l 500M -i upload/private.openssh -L upload upload/~{filename} ${ascpUser}@${uploadSite}:${uploadPath};
       ERRORS=$(grep "Source file transfers failed" upload/aspera-scp-transfer.log | rev | cut -f 1 -d ' ');
       [[ $ERRORS[*] =~ '!' ]] && echo "An error was detected during aspera upload." && exit 1
