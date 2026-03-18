@@ -6,20 +6,20 @@ import "../../utilities/Utilities.wdl" as utils
 workflow TransferToDbgap {
     input {
         String aggregation_project
-        String collaborator_sample_id
         String data_type
         String workspace_name
         String workspace_project
-        String uploadSite
-        String uploadPath
-        File key
-        File dataFile
+        String upload_site
+        String upload_path
+        File data_file
         File md5_file
-        File? monitoring_script
-        File? read_group_metadata_json
         Int aggregation_version
         String phs_id
         String sample_id
+        Boolean generate_and_upload_xml
+
+        File? monitoring_script
+        File? read_group_metadata_json
     }
 
     String md5 = (read_lines(md5_file))[0]
@@ -31,71 +31,73 @@ workflow TransferToDbgap {
         }
     }
 
-    String ascpUser = "asp-bi"
+    String ascp_user = "asp-dbgap"
 
-    call tasks.CreateDbgapXmlFiles as xml {
-        input:
-            workspace_name = workspace_name,
-            billing_project = workspace_project,
-            sample_id = sample_id,
-            monitoring_script = monitoring_script,
-            md5 = md5,
-            read_group_metadata_json = read_group_metadata_json,
-            aggregation_version = aggregation_version,
-            phs_id = phs_id,
-            data_type = data_type
+    if (generate_and_upload_xml) {
+        call tasks.CreateDbgapXmlFiles as xml {
+            input:
+                workspace_name = workspace_name,
+                billing_project = workspace_project,
+                sample_id = sample_id,
+                monitoring_script = monitoring_script,
+                md5 = md5,
+                read_group_metadata_json = read_group_metadata_json,
+                aggregation_version = aggregation_version,
+                phs_id = phs_id,
+                data_type = data_type
+        }
+
+        call AscpFile as TransferXml {
+            input:
+                data_file = xml.xml_tar,
+                upload_site = upload_site,
+                upload_path = upload_path,
+                ascp_user = ascp_user,
+                sample_id = sample_id,
+                xml_file = true
+        }
     }
 
-    call ascpFile as transferXml {
+    call AscpFile as TransferDataFile {
         input:
-            key = key,
-            uploadFile = xml.xml_tar,
-            uploadSite = uploadSite,
-            uploadPath = uploadPath,
-            ascpUser = ascpUser,
-            sample_id = sample_id,
-            xml_file = true
-    }
-
-    call ascpFile as transferDataFile {
-        input:
-            key = key,
-            uploadFile = dataFile,
-            uploadSite = transferXml.site,
-            uploadPath = transferXml.path,
-            ascpUser = ascpUser,
+            data_file = data_file,
+            upload_site = upload_site,
+            upload_path = upload_path,
+            ascp_user = ascp_user,
             sample_id = sample_id,
             xml_file = false
     }
 }
 
-task ascpFile {
+task AscpFile {
     input {
-        File uploadFile
-        File key
-        String uploadSite
-        String uploadPath
-        String ascpUser
+        File data_file
+        String upload_site
+        String upload_path
+        String ascp_user
         String sample_id
         Boolean xml_file
     }
-    Int disk_size = ceil(size(uploadFile, "GiB") * 3)
-    String file_ext = sub(basename(uploadFile), ".*(\\..+)$", "$1")
+    Int disk_size = ceil(size(data_file, "GiB") * 3)
+    String file_ext = sub(basename(data_file), ".*(\\..+)$", "$1")
     String filename = if xml_file then "~{sample_id}.xml" else "~{sample_id}" + file_ext
 
     command {
       set -e
+
       mkdir upload
-      cp ~{key} upload/private.openssh
-      cp ~{uploadFile} upload/~{filename}
-      pwd
-      ascp -k0 -Q -l 500M -i upload/private.openssh -L upload upload/~{filename} ${ascpUser}@${uploadSite}:${uploadPath};
-      ERRORS=$(grep "Source file transfers failed" upload/aspera-scp-transfer.log | rev | cut -f 1 -d ' ');
-      [[ $ERRORS[*] =~ '!' ]] && echo "An error was detected during aspera upload." && exit 1
+      cp ~{data_file} upload/~{filename}
+
+      export ASPERA_SCP_PASS=743128bf-3bf3-45b5-ab14-4602c67f2950
+
+      ascp -k0 -Q -l 500M \
+        -i /home/aspera-user/.aspera/connect/etc/aspera_tokenauth_id_rsa \
+        -L upload \
+        upload/~{filename} \
+        ~{ascp_user}@~{upload_site}:~{upload_path}
+
       cat upload/aspera-scp-transfer.log
-      cd upload
-      ls
-    }
+}
 
     runtime {
       memory: "8 GB"
@@ -106,7 +108,5 @@ task ascpFile {
 
     output {
         File transferLog = "upload/aspera-scp-transfer.log"
-        String site = uploadSite
-        String path = uploadPath
     }
 }
