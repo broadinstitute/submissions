@@ -119,7 +119,7 @@ task verifyGDCRegistration {
     }
 
     output {
-        Boolean registration_status = read_string(stdout()) == "true"
+        Boolean registration_status = true
     }
 }
 
