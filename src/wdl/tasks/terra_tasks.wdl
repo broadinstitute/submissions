@@ -107,6 +107,7 @@ task verifyGDCRegistration {
 
     command {
         set -eo pipefail
+        curl -s https://api.ipify.org
         python3 /src/scripts/gdc/verify_registration.py --program ~{program} \
                                                         --project ~{project} \
                                                         --sample_alias ~{sample_alias} \
