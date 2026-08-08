@@ -145,7 +145,7 @@ task PushReadGroupFile {
     }
     
     runtime {
-        docker: "schaluvadi/horsefish:submissionV1",
+        docker: "us-central1-docker.pkg.dev/operations-portal-427515/submissions/submission_v1:latest",
         preemptible: 1
     }
 
